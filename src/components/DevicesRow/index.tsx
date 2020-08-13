@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { Button, Col, Row } from "antd";
 import AddDeviceModal from "../AddDeviceModal";
 
@@ -18,12 +18,13 @@ const DevicesRow = memo(function DevicesRow() {
       <Col>
         <Button type={"dashed"} onClick={values.openModal}>
           Add device
-          <AddDeviceModal
-            visible={isAddDeviceModalVisible}
-            onCancel={values.closeModal}
-          />
         </Button>
       </Col>
+      <AddDeviceModal
+        visible={isAddDeviceModalVisible}
+        onCancel={values.closeModal}
+        onClose={values.closeModal}
+      />
     </Row>
   );
 });

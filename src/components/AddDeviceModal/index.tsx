@@ -1,37 +1,87 @@
-import React, { memo } from "react";
-import { Col, Input, Modal, Select } from "antd";
+import React, {
+  ChangeEvent,
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+import { Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
-import { Option } from "antd/es/mentions";
+import { Device, syncDevices } from "../../store/devices";
 
-export interface AddDeviceModalProps extends ModalProps {}
+const defaultValue: Device = {
+  name: "",
+  ip: "",
+  connection: "tcp",
+  port: 4370,
+};
+
+export interface AddDeviceModalProps extends ModalProps {
+  onClose: () => void;
+}
 const AddDeviceModal = memo(function AddDeviceModal(
   props: AddDeviceModalProps
 ) {
+  const [device, setDevice] = useState<Device>(defaultValue);
+
+  const values = useMemo(() => {
+    const onChange = (name: keyof Device) => (
+      event: ChangeEvent<HTMLInputElement>
+    ) => {
+      event.persist();
+      setDevice((oldValue) => ({
+        ...oldValue,
+        [name]: event.target.value,
+      }));
+    };
+    return {
+      onNameChange: onChange("name"),
+      onIpChange: onChange("ip"),
+      onPortChange: onChange("port"),
+      onConnectionChange: (type: Device["connection"]) =>
+        setDevice((old) => ({
+          ...old,
+          connection: type,
+        })),
+    };
+  }, []);
+
+  const onOk = useCallback(() => {
+    // @todo Validate device
+    syncDevices([device]);
+    props.onClose();
+  }, [device, props.onClose]);
+
   return (
-    <Modal title={"Add device"} {...props}>
+    <Modal title={"Add device"} onOk={onOk} {...props}>
       <Input
         addonBefore={"Device name"}
         placeholder={"Ex: Main door attendance machine"}
+        value={device.name}
+        onChange={values.onNameChange}
       />
       <br />
       <br />
       <Input
         addonBefore={"Device IP"}
         placeholder={"Ex: 192.168.0.5, 10.20.0.4"}
+        value={device.ip}
+        onChange={values.onIpChange}
       />
       <br />
       <br />
       <Input
         addonBefore={"Device Port"}
         placeholder={"Default port is 4370"}
-        defaultValue={4370}
+        value={device.port}
+        onChange={values.onPortChange}
       />
       <br />
       <br />
       <Input.Group>
-        <Select defaultValue={"tcp"}>
-          <Option value={"tcp"}>TCP</Option>
-          <Option value={"udp"}>UDP</Option>
+        <Select value={device.connection} onChange={values.onConnectionChange}>
+          <Select.Option value={"tcp"}>TCP</Select.Option>
+          <Select.Option value={"udp"}>UDP</Select.Option>
         </Select>
       </Input.Group>
     </Modal>
