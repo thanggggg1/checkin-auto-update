@@ -42,6 +42,11 @@ export const createDynamicReducer = <T extends { [x: string]: any }>(
           ...initialState,
         } as DynamicState<T>;
       },
+      multiDelete(state, action: PayloadAction<string[]>) {
+        for (const key of action.payload) {
+          delete state.byKey[key];
+        }
+      }
     },
   });
 
@@ -87,6 +92,10 @@ export const createDynamicReducer = <T extends { [x: string]: any }>(
     return _getStore().dispatch(actions.setQueries(queries));
   };
 
+  const multiDelete = (keys: string[]) => {
+    return _getStore().dispatch(actions.multiDelete(keys));
+  }
+
   const reset = () => {
     return _getStore().dispatch(actions.reset());
   };
@@ -103,5 +112,6 @@ export const createDynamicReducer = <T extends { [x: string]: any }>(
     sync,
     setQueries,
     reset,
+    multiDelete
   };
 };

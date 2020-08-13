@@ -1,4 +1,5 @@
 import { createDynamicReducer } from "../../utils/createDynamicReducer";
+import { useSelector } from "react-redux";
 
 export interface Device {
   ip: string;
@@ -11,5 +12,10 @@ export const {
   reducer: devicesReducer,
   setStore: setDevicesStore,
   sync: syncDevices,
-  setQueries: setDeviceQueries,
+  multiDelete: deleteDevices
 } = createDynamicReducer<Device>("devices", "ip");
+
+const devicesSelector = (state: any) => state.devices.byKey;
+export const useDevicesRecord = (): Record<string, Device> => {
+  return useSelector(devicesSelector);
+};
