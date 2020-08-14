@@ -12,8 +12,18 @@ export const {
   reducer: devicesReducer,
   setStore: setDevicesStore,
   sync: syncDevices,
-  multiDelete: deleteDevices
-} = createDynamicReducer<Device>("devices", "ip");
+  multiDelete: deleteDevices,
+} = createDynamicReducer<Device>("devices", "ip", {
+  byKey: {
+    "10.20.2.31": {
+      ip: "10.20.2.31",
+      connection: "tcp",
+      name: "Test device",
+      port: 4370,
+    },
+  },
+  query: {},
+});
 
 const devicesSelector = (state: any) => state.devices.byKey;
 export const useDevicesRecord = (): Record<string, Device> => {
