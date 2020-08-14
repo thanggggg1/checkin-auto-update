@@ -1,7 +1,16 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
-import { Device, deleteDevices } from "../../store/devices";
-import { Card, Col, Popconfirm, Popover } from "antd";
+import { deleteDevices, Device } from "../../store/devices";
+import { Card, Popconfirm } from "antd";
 import ZK from "../../packages/js_zklib/ZK";
+import { styled } from "../../global";
+
+const Wrapper = styled(Card)`
+  flex: 0 0 220px;
+`;
+
+const InfoRow = styled.p`
+  margin-bottom: 0;
+`;
 
 const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
   // device state
@@ -46,24 +55,22 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
   }, [device]);
 
   return (
-    <Col span={8}>
-      <Card
-        title={device.name}
-        size={"small"}
-        extra={
-          <Popconfirm
-            title={"Are you sure to delete this device?"}
-            onConfirm={deleteDevice}
-          >
-            <a>Delete</a>
-          </Popconfirm>
-        }
-      >
-        <p>IP: {device.ip}</p>
-        <p>Status: {state}</p>
-        <p>Realtime status: {realtimeState}</p>
-      </Card>
-    </Col>
+    <Wrapper
+      title={device.name}
+      size={"small"}
+      extra={
+        <Popconfirm
+          title={"Are you sure to delete this device?"}
+          onConfirm={deleteDevice}
+        >
+          <a>Delete</a>
+        </Popconfirm>
+      }
+    >
+      <InfoRow>IP: {device.ip}</InfoRow>
+      <InfoRow>Status: {state}</InfoRow>
+      <InfoRow>Realtime status: {realtimeState}</InfoRow>
+    </Wrapper>
   );
 });
 
