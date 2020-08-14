@@ -29,8 +29,6 @@ const DevicesRow = memo(function DevicesRow() {
     };
   }, []);
 
-  console.log({ devices });
-
   return (
     <>
       <Wrapper>
