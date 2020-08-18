@@ -38,7 +38,7 @@ const RecordsTable = memo(function RecordsTable() {
       .map((record) => ({
         key: record.id,
         uid: record.uid,
-        device: "",
+        device: record.deviceIp,
         time: record.timeFormatted,
         date: record.dateFormatted,
       }));

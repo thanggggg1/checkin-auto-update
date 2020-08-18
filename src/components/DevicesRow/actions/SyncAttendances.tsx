@@ -8,16 +8,16 @@ import {
 } from "../../../store/records";
 
 const SyncAttendances = memo(function SyncAttendances() {
-  const { connection } = useCurrentDevice();
+  const { connection, device } = useCurrentDevice();
 
   const [{ error }, onClick] = useAsyncFn(async () => {
     // console.log("start disable device");
     // await connection.disableDevice();
     const attendance = await connection.getAttendance();
-    syncAttendanceRecords(formatRawAttendanceRecords(attendance));
+    syncAttendanceRecords(formatRawAttendanceRecords(attendance, device.ip));
     // console.log("start enable device");
     // await connection.enableDevice();
-  }, [connection]);
+  }, [connection, device]);
 
   useEffect(() => {
     if (!error) return;

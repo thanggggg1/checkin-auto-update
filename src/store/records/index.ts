@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import moment from "moment";
-import {getStore} from "../storeAccess";
+import { getStore } from "../storeAccess";
 
 export interface AttendanceRecord {
   id: string;
   uid: number;
+  deviceIp: string;
   timestamp: number;
   timeFormatted: string;
   dateFormatted: string;
@@ -32,12 +33,14 @@ const { actions, reducer: recordsReducer } = createSlice({
 });
 
 export const formatRawAttendanceRecord = (
-  rawAttendanceRecord: RawAttendanceRecord
+  rawAttendanceRecord: RawAttendanceRecord,
+  deviceIp: string
 ): AttendanceRecord => {
   const mm = moment(rawAttendanceRecord.timestamp);
   return {
     id: `${rawAttendanceRecord.id}_${rawAttendanceRecord.timestamp.valueOf()}`,
     uid: rawAttendanceRecord.id,
+    deviceIp,
     timestamp: rawAttendanceRecord.timestamp.valueOf(),
     timeFormatted: mm.format("HH:mm"),
     dateFormatted: mm.format("DD/MM/YYYY"),
@@ -45,13 +48,15 @@ export const formatRawAttendanceRecord = (
 };
 
 export const formatRawAttendanceRecords = (
-  rawAttendanceRecords: RawAttendanceRecord[]
-) => rawAttendanceRecords.map(formatRawAttendanceRecord);
+  rawAttendanceRecords: RawAttendanceRecord[],
+  deviceIp: string
+) =>
+  rawAttendanceRecords.map((record) =>
+    formatRawAttendanceRecord(record, deviceIp)
+  );
 
 export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
   getStore().dispatch(actions.addRecords(records));
-}
+};
 
-export {
-  recordsReducer
-}
+export { recordsReducer };
