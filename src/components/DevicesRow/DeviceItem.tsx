@@ -1,11 +1,11 @@
 import React, { memo, useEffect, useState } from "react";
-import { Device } from "../../store/devices";
+import { Device, syncDevices } from "../../store/devices";
 import { Card } from "antd";
 import ZK from "../../packages/js_zklib/ZK";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
 import { DeviceProvider } from "./context";
-import { useUpdateEffect } from "react-use";
+import { useAsyncRetry, useUpdateEffect } from "react-use";
 
 const Wrapper = styled(Card)`
   flex: 0 0 220px;
@@ -84,6 +84,25 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
       clearInterval(interval);
     };
   }, [state]);
+
+  useAsyncRetry(async () => {
+    if (state !== "Connected") return;
+
+    const interval = setInterval(async () => {
+      const freeSizes = await connection.getFreeSizes();
+      syncDevices([
+        {
+          ...device,
+          ...freeSizes,
+        },
+      ]);
+
+      console.log("freeSizes", freeSizes);
+    }, 10000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [connection, state, device]);
 
   return (
     <DeviceProvider device={device} connection={connection}>
