@@ -6,6 +6,7 @@ import { Col, Layout, Row } from "antd";
 import { Provider } from "react-redux";
 import DevicesRow from "./components/DevicesRow";
 import { store } from "./store";
+import RecordsTable from "./components/RecordsTable";
 
 const _App = memo(function App() {
   return (
@@ -17,6 +18,7 @@ const _App = memo(function App() {
           </Col>
         </Row>
         <DevicesRow />
+        <RecordsTable />
       </Layout>
     </Provider>
   );

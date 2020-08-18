@@ -1,7 +1,11 @@
-import React, { memo, useCallback, useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import { useCurrentDevice } from "../context";
 import { useAsyncFn } from "react-use";
-import { Alert, Modal } from "antd";
+import { Modal } from "antd";
+import {
+  formatRawAttendanceRecords,
+  syncAttendanceRecords,
+} from "../../../store/records";
 
 const SyncAttendances = memo(function SyncAttendances() {
   const { connection } = useCurrentDevice();
@@ -9,9 +13,8 @@ const SyncAttendances = memo(function SyncAttendances() {
   const [{ error }, onClick] = useAsyncFn(async () => {
     // console.log("start disable device");
     // await connection.disableDevice();
-    console.log("start get attendance");
     const attendance = await connection.getAttendance();
-    console.log("attendance", attendance);
+    syncAttendanceRecords(formatRawAttendanceRecords(attendance));
     // console.log("start enable device");
     // await connection.enableDevice();
   }, [connection]);

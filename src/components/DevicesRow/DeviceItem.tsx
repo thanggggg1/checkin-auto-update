@@ -35,7 +35,7 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
       new ZK({
         port: device.port,
         connectionType: device.connection,
-        timeout: 10000,
+        timeout: 5000,
         inport: 5200,
         ip: device.ip,
       })
@@ -85,24 +85,24 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
     };
   }, [state]);
 
-  useAsyncRetry(async () => {
-    if (state !== "Connected") return;
-
-    const interval = setInterval(async () => {
-      const freeSizes = await connection.getFreeSizes();
-      syncDevices([
-        {
-          ...device,
-          ...freeSizes,
-        },
-      ]);
-
-      console.log("freeSizes", freeSizes);
-    }, 10000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [connection, state, device]);
+  // useAsyncRetry(async () => {
+  //   if (state !== "Connected") return;
+  //
+  //   const interval = setInterval(async () => {
+  //     const freeSizes = await connection.getFreeSizes();
+  //     syncDevices([
+  //       {
+  //         ...device,
+  //         ...freeSizes,
+  //       },
+  //     ]);
+  //
+  //     console.log("freeSizes", freeSizes);
+  //   }, 10000);
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
+  // }, [connection, state, device]);
 
   return (
     <DeviceProvider device={device} connection={connection}>
