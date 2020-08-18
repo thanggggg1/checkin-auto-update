@@ -1,9 +1,11 @@
 import constate from "constate";
 import {Device} from "../../store/devices";
+import ZK from "../../packages/js_zklib/ZK";
 
-const useDeviceValue = ({device}: { device: Device }) => {
+const useDeviceValue = ({device, connection}: { device: Device, connection: ZK }) => {
   return {
-    device
+    device,
+    connection
   };
 }
 

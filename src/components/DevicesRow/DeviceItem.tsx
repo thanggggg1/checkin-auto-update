@@ -1,10 +1,11 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
-import { deleteDevices, Device } from "../../store/devices";
-import { Card, Popconfirm } from "antd";
+import React, { memo, useEffect, useState } from "react";
+import { Device } from "../../store/devices";
+import { Card } from "antd";
 import ZK from "../../packages/js_zklib/ZK";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
 import { DeviceProvider } from "./context";
+import { useUpdateEffect } from "react-use";
 
 const Wrapper = styled(Card)`
   flex: 0 0 220px;
@@ -19,41 +20,73 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
   const [state, setState] = useState("Pending");
   const [realtimeState, setRealtimeState] = useState("Pending");
 
-  useEffect(() => {
-    const connection = new ZK({
+  const [connection, setConnection] = useState<ZK>(() => {
+    return new ZK({
       port: device.port,
       connectionType: device.connection,
       timeout: 10000,
       inport: 5200,
       ip: device.ip,
     });
+  });
 
+  useUpdateEffect(() => {
+    setConnection(
+      new ZK({
+        port: device.port,
+        connectionType: device.connection,
+        timeout: 10000,
+        inport: 5200,
+        ip: device.ip,
+      })
+    );
+  }, [device]);
+
+  useEffect(() => {
+    let interval = 0;
     connection.connect().then(async () => {
       setState("Connected");
 
+      // @todo clear
       connection.zklib.socket.on("close", () => {
         setState("Closed");
         setRealtimeState("Closed");
       });
 
-      connection.startMon({
-        start: (err) => {
-          if (err) return setRealtimeState("Timed out");
-          setRealtimeState("Started");
-        },
-        onatt: (log) => {
-          console.log("onatt", log);
-        },
-      });
+      setRealtimeState("Pending");
+      interval = setInterval(() => {
+        connection.startMon({
+          start: (err) => {
+            if (err) return setRealtimeState("Timed out");
+            setRealtimeState("Started");
+          },
+          onatt: (log) => {
+            console.log("onatt", log);
+          },
+        });
+      }, 3000);
     });
 
     return () => {
+      clearInterval(interval);
       connection.disconnect();
     };
-  }, [device]);
+  }, [connection]);
+
+  useEffect(() => {
+    let interval = 0;
+    if (state !== "Connected") {
+      interval = setInterval(() => {
+        connection.connect();
+      }, 3000);
+    }
+    return () => {
+      clearInterval(interval);
+    };
+  }, [state]);
 
   return (
-    <DeviceProvider device={device}>
+    <DeviceProvider device={device} connection={connection}>
       <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
         <InfoRow>IP: {device.ip}</InfoRow>
         <InfoRow>Status: {state}</InfoRow>
