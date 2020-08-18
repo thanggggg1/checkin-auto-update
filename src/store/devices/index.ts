@@ -15,8 +15,8 @@ export const {
   multiDelete: deleteDevices,
 } = createDynamicReducer<Device>("devices", "ip", {
   byKey: {
-    "10.20.2.31": {
-      ip: "10.20.2.31",
+    "10.20.2.30": {
+      ip: "10.20.2.30",
       connection: "tcp",
       name: "Test device",
       port: 4370,

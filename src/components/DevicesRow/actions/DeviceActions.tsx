@@ -4,6 +4,7 @@ import DeleteDevice from "./DeleteDevice";
 import SyncAttendances from "./SyncAttendances";
 import EnableDevice from "./EnableDevice";
 import Reconnect from "./Reconnect";
+import DisableDevice from "./DisableDevice";
 
 const DeviceActions = memo(function DeviceActions(props) {
   return (
@@ -13,6 +14,9 @@ const DeviceActions = memo(function DeviceActions(props) {
       </Menu.Item>
       <Menu.Item>
         <EnableDevice />
+      </Menu.Item>
+      <Menu.Item>
+        <DisableDevice />
       </Menu.Item>
       <Menu.Item>
         <Reconnect />
