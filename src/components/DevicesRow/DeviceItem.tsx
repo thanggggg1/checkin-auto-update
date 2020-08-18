@@ -1,11 +1,12 @@
 import React, { memo, useEffect, useState } from "react";
 import { Device, syncDevices } from "../../store/devices";
-import { Card } from "antd";
+import { Card, Row } from "antd";
 import ZK from "../../packages/js_zklib/ZK";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
 import { DeviceProvider } from "./context";
 import { useAsyncRetry, useUpdateEffect } from "react-use";
+import SyncTag from "./tags/SyncTag";
 
 const Wrapper = styled(Card)`
   flex: 0 0 220px;
@@ -85,31 +86,16 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
     };
   }, [state]);
 
-  // useAsyncRetry(async () => {
-  //   if (state !== "Connected") return;
-  //
-  //   const interval = setInterval(async () => {
-  //     const freeSizes = await connection.getFreeSizes();
-  //     syncDevices([
-  //       {
-  //         ...device,
-  //         ...freeSizes,
-  //       },
-  //     ]);
-  //
-  //     console.log("freeSizes", freeSizes);
-  //   }, 10000);
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, [connection, state, device]);
-
   return (
     <DeviceProvider device={device} connection={connection}>
       <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
         <InfoRow>IP: {device.ip}</InfoRow>
         <InfoRow>Status: {state}</InfoRow>
         <InfoRow>Realtime status: {realtimeState}</InfoRow>
+
+        <Row>
+          <SyncTag />
+        </Row>
       </Wrapper>
     </DeviceProvider>
   );
