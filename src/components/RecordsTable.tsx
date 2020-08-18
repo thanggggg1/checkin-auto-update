@@ -1,7 +1,8 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { Table } from "antd";
 import { AttendanceRecord } from "../store/records";
 import { useSelector } from "react-redux";
+import { useDebounce, useThrottle } from "react-use";
 
 const columns = [
   {
@@ -31,6 +32,7 @@ const selector = (state: any): Record<string, AttendanceRecord> =>
 
 const RecordsTable = memo(function RecordsTable() {
   const records = useSelector(selector) || {};
+  const recordsThrottled = useThrottle(records, 3000);
 
   const dataSource = useMemo(() => {
     return Object.values(records)
@@ -42,7 +44,7 @@ const RecordsTable = memo(function RecordsTable() {
         time: record.timeFormatted,
         date: record.dateFormatted,
       }));
-  }, []);
+  }, [recordsThrottled]);
 
   return <Table columns={columns} dataSource={dataSource} />;
 });

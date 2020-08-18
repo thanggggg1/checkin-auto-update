@@ -1,11 +1,11 @@
 import React, { memo, useEffect, useState } from "react";
-import { Device, syncDevices } from "../../store/devices";
-import { Card, Row } from "antd";
+import { Device } from "../../store/devices";
+import { Card } from "antd";
 import ZK from "../../packages/js_zklib/ZK";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
 import { DeviceProvider } from "./context";
-import { useAsyncRetry, useUpdateEffect } from "react-use";
+import { useUpdateEffect } from "react-use";
 import SyncTag from "./tags/SyncTag";
 
 const Wrapper = styled(Card)`
@@ -14,6 +14,14 @@ const Wrapper = styled(Card)`
 
 const InfoRow = styled.p`
   margin-bottom: 0;
+`;
+
+const TagsWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow-x: scroll;
 `;
 
 const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
@@ -93,9 +101,9 @@ const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
         <InfoRow>Status: {state}</InfoRow>
         <InfoRow>Realtime status: {realtimeState}</InfoRow>
 
-        <Row>
+        <TagsWrapper>
           <SyncTag />
-        </Row>
+        </TagsWrapper>
       </Wrapper>
     </DeviceProvider>
   );
