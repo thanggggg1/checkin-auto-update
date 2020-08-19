@@ -2,24 +2,18 @@ import { hot } from "react-hot-loader/root";
 import React, { memo } from "react";
 import ReactDom from "react-dom";
 import "antd/dist/antd.css";
-import { Col, Layout, Row } from "antd";
 import { Provider } from "react-redux";
 import DevicesRow from "./components/DevicesRow";
 import { store } from "./store";
 import RecordsTable from "./components/RecordsTable";
+import AppNavBar from "./components/AppNavBar";
 
 const _App = memo(function App() {
   return (
     <Provider store={store}>
-      <Layout>
-        <Row style={{ alignItems: "center" }}>
-          <Col>
-            <h1 style={{ margin: 0 }}>Base Checkin Station</h1>
-          </Col>
-        </Row>
-        <DevicesRow />
-        <RecordsTable />
-      </Layout>
+      <AppNavBar />
+      <DevicesRow />
+      <RecordsTable />
     </Provider>
   );
 });

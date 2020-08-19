@@ -19,7 +19,7 @@ const setSetting = (key: string, value: any) => {
 
 export const createSetting = <T>(key: string, defaultValue: T) => {
   const set = (value: T) => setSetting(key, value);
-  const get = () => getStore().getState().settings[key] || defaultValue;
+  const get = (): T => getStore().getState().settings[key] || defaultValue;
 
   return {
     get,

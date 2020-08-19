@@ -10,6 +10,8 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
+      enableRemoteModule: true,
     },
   });
 
@@ -31,4 +33,5 @@ function createWindow() {
 }
 
 app.on("ready", createWindow);
+app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 app.allowRendererProcessReuse = true;
