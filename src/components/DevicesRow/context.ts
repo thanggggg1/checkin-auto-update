@@ -1,13 +1,14 @@
 import constate from "constate";
 import { Device } from "../../store/devices";
 import ZK from "../../packages/js_zklib/ZK";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAsyncFn } from "react-use";
 import {
   formatRawAttendanceRecords,
   syncAttendanceRecords,
 } from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
+import { Events, events } from "../../utils/events";
 
 export enum SyncState {
   NOT_STARTED,
@@ -38,6 +39,13 @@ const useDeviceValue = ({
   }, [connection, device]);
 
   useAutoAlertError(error);
+
+  useEffect(() => {
+    events.on(Events.MASS_SYNC, syncAttendances);
+    return () => {
+      events.off(Events.MASS_SYNC, syncAttendances);
+    };
+  }, [syncAttendances]);
 
   return {
     device,
