@@ -6,6 +6,7 @@ import Fetch from "../../utils/Fetch";
 import LogoutButton from "./components/LogoutButton";
 import PushButton from "./components/PushButton";
 import ButtonGroup from "antd/lib/button/button-group";
+import SyncButton from "./components/SyncButton";
 
 const Wrapper = styled(Row)`
   padding: 0 16px;
@@ -26,6 +27,7 @@ const AppNavBar = memo(function AppNavBar() {
       <Row>
         {token.token ? (
           <ButtonGroup>
+            <SyncButton />
             <PushButton />
             <LogoutButton />
           </ButtonGroup>

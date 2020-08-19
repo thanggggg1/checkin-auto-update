@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState } from "react";
-import { Button } from "antd";
+import { Button, Popover } from "antd";
 import { CloudUploadOutlined } from "@ant-design/icons/lib";
 import { getStore } from "../../../store/storeAccess";
 import { AttendanceRecord } from "../../../store/records";
@@ -32,9 +32,14 @@ const PushButton = memo(function PushButton() {
   }, []);
 
   return (
-    <Button onClick={onClick}>
-      <CloudUploadOutlined /> Push
-    </Button>
+    <Popover
+      title={"Push"}
+      content={"Push all attendance records to Base Checkin"}
+    >
+      <Button onClick={onClick}>
+        <CloudUploadOutlined /> Push
+      </Button>
+    </Popover>
   );
 });
 
