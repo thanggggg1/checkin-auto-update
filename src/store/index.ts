@@ -9,7 +9,7 @@ const rootReducer = combineReducers({
   devices: devicesReducer,
   records: recordsReducer,
   pushedRecords: pushedRecordsReducer,
-  settings: settingsReducer
+  settings: settingsReducer,
 });
 
 export const store = createStore(rootReducer);
