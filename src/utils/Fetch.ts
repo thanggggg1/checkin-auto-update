@@ -11,7 +11,7 @@ export interface TokenSetting {
   password: string;
 }
 
-const { get: getToken, set: setToken } = createSetting<TokenSetting>("token", {
+const { get: getToken, set: setToken, use: useToken } = createSetting<TokenSetting>("token", {
   token: "5-DO6dvW-kdg2YSKQ8bfQU9FWstJ4v1MxYOIpJajcvU",
   password: "123456",
 });
@@ -25,6 +25,7 @@ interface DefaultResponse {
 const Fetch = {
   getToken,
   setToken,
+  useToken,
 
   __getBaseUrl: (url: string) => {
     if (url.startsWith("@")) {

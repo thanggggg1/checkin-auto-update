@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getStore } from "../storeAccess";
+import {useSelector} from "react-redux";
 
 const initialState: Record<string, any> = {};
 
@@ -20,10 +21,13 @@ const setSetting = (key: string, value: any) => {
 export const createSetting = <T>(key: string, defaultValue: T) => {
   const set = (value: T) => setSetting(key, value);
   const get = (): T => getStore().getState().settings[key] || defaultValue;
+  // @ts-ignore
+  const use = (): T => useSelector(state => state.settings[key] || defaultValue);
 
   return {
     get,
     set,
+    use
   };
 };
 
