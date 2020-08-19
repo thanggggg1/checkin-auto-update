@@ -1,10 +1,11 @@
 import React, { memo } from "react";
 import { styled } from "../../global";
-import { Button, Row } from "antd";
-import { LoginOutlined } from "@ant-design/icons";
+import { Row } from "antd";
 import LoginButton from "./components/LoginButton";
 import Fetch from "../../utils/Fetch";
 import LogoutButton from "./components/LogoutButton";
+import PushButton from "./components/PushButton";
+import ButtonGroup from "antd/lib/button/button-group";
 
 const Wrapper = styled(Row)`
   padding: 0 16px;
@@ -17,13 +18,21 @@ const AppName = styled.h1`
 `;
 const AppNavBar = memo(function AppNavBar() {
   const token = Fetch.useToken();
-  console.log("token", token);
 
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
       <AppName>Base Checkin Station</AppName>
 
-      <Row>{token.token ? <LogoutButton /> : <LoginButton />}</Row>
+      <Row>
+        {token.token ? (
+          <ButtonGroup>
+            <PushButton />
+            <LogoutButton />
+          </ButtonGroup>
+        ) : (
+          <LoginButton />
+        )}
+      </Row>
     </Wrapper>
   );
 });
