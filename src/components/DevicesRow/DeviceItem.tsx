@@ -1,11 +1,9 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo } from "react";
 import { Device } from "../../store/devices";
 import { Card } from "antd";
-import ZK from "../../packages/js_zklib/ZK";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
-import { DeviceProvider } from "./context";
-import { useUpdateEffect } from "react-use";
+import { ConnectionState, DeviceProvider, useCurrentDevice } from "./context";
 import SyncTag from "./tags/SyncTag";
 
 const Wrapper = styled(Card)`
@@ -24,87 +22,34 @@ const TagsWrapper = styled.div`
   overflow-x: scroll;
 `;
 
-const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
-  // device state
-  const [state, setState] = useState("Pending");
-  const [realtimeState, setRealtimeState] = useState("Pending");
-
-  const [connection, setConnection] = useState<ZK>(() => {
-    return new ZK({
-      port: device.port,
-      connectionType: device.connection,
-      timeout: 10000,
-      inport: 5200,
-      ip: device.ip,
-    });
-  });
-
-  useUpdateEffect(() => {
-    setConnection(
-      new ZK({
-        port: device.port,
-        connectionType: device.connection,
-        timeout: 5000,
-        inport: 5200,
-        ip: device.ip,
-      })
-    );
-  }, [device]);
-
-  useEffect(() => {
-    let interval = 0;
-    connection.connect().then(async () => {
-      setState("Connected");
-
-      // @todo clear
-      connection.zklib.socket.on("close", () => {
-        setState("Closed");
-        setRealtimeState("Closed");
-      });
-
-      setRealtimeState("Pending");
-      interval = setInterval(() => {
-        connection.startMon({
-          start: (err) => {
-            if (err) return setRealtimeState("Timed out");
-            setRealtimeState("Started");
-          },
-          onatt: (log) => {
-            console.log("onatt", log);
-          },
-        });
-      }, 3000);
-    });
-
-    return () => {
-      clearInterval(interval);
-      connection.disconnect();
-    };
-  }, [connection]);
-
-  useEffect(() => {
-    let interval = 0;
-    if (state !== "Connected") {
-      interval = setInterval(() => {
-        connection.connect();
-      }, 3000);
-    }
-    return () => {
-      clearInterval(interval);
-    };
-  }, [state]);
+const DeviceInfo = memo(function DeviceInfo() {
+  const { device, state, realtimeState } = useCurrentDevice();
 
   return (
-    <DeviceProvider device={device} connection={connection}>
-      <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
-        <InfoRow>IP: {device.ip}</InfoRow>
-        <InfoRow>Status: {state}</InfoRow>
-        <InfoRow>Realtime status: {realtimeState}</InfoRow>
+    <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
+      <InfoRow>IP: {device.ip}</InfoRow>
+      <InfoRow>
+        Status:{" "}
+        {(() => {
+          if (state === ConnectionState.CONNECTED) return "Connected";
+          if (state === ConnectionState.CLOSED) return "Closed";
+          if (state === ConnectionState.PENDING) return "Pending";
+          return "";
+        })()}
+      </InfoRow>
+      <InfoRow>Realtime status: {realtimeState}</InfoRow>
 
-        <TagsWrapper>
-          <SyncTag />
-        </TagsWrapper>
-      </Wrapper>
+      <TagsWrapper>
+        <SyncTag />
+      </TagsWrapper>
+    </Wrapper>
+  );
+});
+
+const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
+  return (
+    <DeviceProvider device={device}>
+      <DeviceInfo />
     </DeviceProvider>
   );
 });

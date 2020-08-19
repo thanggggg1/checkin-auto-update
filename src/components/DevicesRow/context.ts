@@ -1,8 +1,8 @@
 import constate from "constate";
-import { Device } from "../../store/devices";
+import {deleteDevices, Device} from "../../store/devices";
 import ZK from "../../packages/js_zklib/ZK";
-import { useEffect, useState } from "react";
-import { useAsyncFn } from "react-use";
+import {useCallback, useEffect, useState} from "react";
+import { useAsyncFn, useUpdateEffect } from "react-use";
 import {
   formatRawAttendanceRecords,
   syncAttendanceRecords,
@@ -16,14 +16,81 @@ export enum SyncState {
   PROCESSING,
 }
 
-const useDeviceValue = ({
-  device,
-  connection,
-}: {
-  device: Device;
-  connection: ZK;
-}) => {
+export enum ConnectionState {
+  PENDING,
+  CONNECTED,
+  CLOSED,
+}
+
+const useDeviceValue = ({ device }: { device: Device }) => {
+  const [state, setState] = useState(ConnectionState.PENDING);
   const [syncState, setSyncState] = useState<SyncState>(SyncState.NOT_STARTED);
+  const [realtimeState, setRealtimeState] = useState("Pending");
+  const [connection, setConnection] = useState<ZK>(() => {
+    return new ZK({
+      port: device.port,
+      connectionType: device.connection,
+      timeout: 10000,
+      inport: 5200,
+      ip: device.ip,
+    });
+  });
+
+  useUpdateEffect(() => {
+    setConnection(
+      new ZK({
+        port: device.port,
+        connectionType: device.connection,
+        timeout: 5000,
+        inport: 5200,
+        ip: device.ip,
+      })
+    );
+  }, [device]);
+
+  useEffect(() => {
+    let interval = 0;
+    connection.connect().then(async () => {
+      setState(ConnectionState.CONNECTED);
+
+      // @todo clear
+      // @ts-ignore
+      connection.zklib.socket.on("close", () => {
+        setState(ConnectionState.CLOSED);
+        setRealtimeState("Closed");
+      });
+
+      setRealtimeState("Pending");
+      interval = setInterval(() => {
+        connection.startMon({
+          start: (err) => {
+            if (err) return setRealtimeState("Timed out");
+            setRealtimeState("Started");
+          },
+          onatt: (log) => {
+            console.log("onatt", log);
+          },
+        });
+      }, 3000);
+    });
+
+    return () => {
+      clearInterval(interval);
+      connection.disconnect();
+    };
+  }, [connection]);
+
+  useEffect(() => {
+    let interval = 0;
+    if (state !== ConnectionState.CONNECTED) {
+      interval = setInterval(() => {
+        connection.connect();
+      }, 3000);
+    }
+    return () => {
+      clearInterval(interval);
+    };
+  }, [state]);
 
   const [{ error }, syncAttendances] = useAsyncFn(async () => {
     try {
@@ -47,11 +114,33 @@ const useDeviceValue = ({
     };
   }, [syncAttendances]);
 
+  const enableDevice = useCallback(() => {
+    return connection.enableDevice();
+  }, [connection]);
+
+  const disableDevice = useCallback(() => {
+    return connection.disableDevice();
+  }, [connection]);
+
+  const reconnect = useCallback(() => {
+    return connection.connect();
+  }, [connection]);
+
+  const deleteDevice = useCallback(() => {
+    deleteDevices([device.ip]);
+  }, [device.ip]);
+
   return {
     device,
     connection,
     syncState,
     syncAttendances,
+    state,
+    realtimeState,
+    enableDevice,
+    disableDevice,
+    reconnect,
+    deleteDevice
   };
 };
 
