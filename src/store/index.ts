@@ -4,6 +4,8 @@ import { setStore } from "./storeAccess";
 import { recordsReducer } from "./records";
 import { pushedRecordsReducer } from "./pushedRecords";
 import { settingsReducer } from "./settings";
+import { persistStore, persistReducer } from "redux-persist";
+import createElectronStorage from "redux-persist-electron-storage";
 
 const rootReducer = combineReducers({
   devices: devicesReducer,
@@ -12,6 +14,16 @@ const rootReducer = combineReducers({
   settings: settingsReducer,
 });
 
-export const store = createStore(rootReducer);
+const persistedReducer = persistReducer(
+  {
+    key: "root",
+    storage: createElectronStorage(),
+  },
+  rootReducer
+);
+
+export const store = createStore(persistedReducer);
+export const persistor = persistStore(store);
+
 setDevicesStore(store);
 setStore(store);

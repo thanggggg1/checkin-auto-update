@@ -4,16 +4,19 @@ import ReactDom from "react-dom";
 import "antd/dist/antd.css";
 import { Provider } from "react-redux";
 import DevicesRow from "./components/DevicesRow";
-import { store } from "./store";
+import { persistor, store } from "./store";
 import RecordsTable from "./components/RecordsTable";
 import AppNavBar from "./components/AppNavBar";
+import { PersistGate } from "redux-persist/integration/react";
 
 const _App = memo(function App() {
   return (
     <Provider store={store}>
-      <AppNavBar />
-      <DevicesRow />
-      <RecordsTable />
+      <PersistGate persistor={persistor}>
+        <AppNavBar />
+        <DevicesRow />
+        <RecordsTable />
+      </PersistGate>
     </Provider>
   );
 });
