@@ -34,7 +34,7 @@ module.exports = {
     publicPath: '/',
   },
   output: {
-    path: path.resolve(__dirname, '../dist/renderer'),
+    path: path.resolve(__dirname, './dist/renderer'),
     filename: 'js/[name].js',
     publicPath: './',
   },

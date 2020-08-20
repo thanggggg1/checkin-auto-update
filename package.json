@@ -12,9 +12,10 @@
   "scripts": {
     "dev:electron": "NODE_ENV=development webpack --config webpack.electron.config.js --mode development && electron .",
     "dev:react": "NODE_ENV=development webpack-dev-server --config webpack.react.config.js --mode development",
-    "build": "NODE_ENV=production webpack --config webpack.electron.config.js --mode production",
+    "prod:react": "NODE_ENV=production webpack --config webpack.react.config.js --mode production",
+    "build": "NODE_ENV=production webpack --config webpack.electron.config.js --mode production && electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder -mwl"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
@@ -70,5 +71,8 @@
     "directories": {
       "output": "electron-output"
     }
-  }
+  },
+  "files": [
+    "./dist/renderer/"
+  ]
 }

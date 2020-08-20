@@ -7,7 +7,7 @@ let mainWindow: Electron.BrowserWindow | null;
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 800,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,
@@ -20,7 +20,7 @@ function createWindow() {
   } else {
     mainWindow.loadURL(
       url.format({
-        pathname: path.join(__dirname, "../index.html"),
+        pathname: path.join(app.getAppPath(), "./dist/renderer/index.html"),
         protocol: "file:",
         slashes: true,
       })

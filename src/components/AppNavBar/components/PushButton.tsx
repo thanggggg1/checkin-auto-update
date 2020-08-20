@@ -43,7 +43,7 @@ const PushButton = memo(function PushButton() {
     >
       <Button disabled={loading} onClick={onClick}>
         {loading ? (
-          `Pushing ${pushingPercent}%...`
+          `Pushing ${Math.floor(pushingPercent * 10000) / 100}%...`
         ) : (
           <>
             <CloudUploadOutlined /> Push
