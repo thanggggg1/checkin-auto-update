@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "license": "MIT",
   "main": "./dist/main.js",
+  "description": "Base Checkin Station. Manage & Realtime attendance update for checkin.base.vn",
+  "author": {
+    "email": "dev.base.vn@gmail.com",
+    "name": "Base.vn",
+    "url": "https://base.vn"
+  },
   "scripts": {
     "dev:electron": "NODE_ENV=development webpack --config webpack.electron.config.js --mode development && electron .",
-    "dev:react": "NODE_ENV=development webpack-dev-server --config webpack.react.config.js --mode development"
+    "dev:react": "NODE_ENV=development webpack-dev-server --config webpack.react.config.js --mode development",
+    "build": "NODE_ENV=production webpack --config webpack.electron.config.js --mode production",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
@@ -21,6 +30,7 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "css-loader": "^4.2.1",
     "electron": "^9.2.0",
+    "electron-builder": "^22.8.0",
     "html-webpack-plugin": "^4.3.0",
     "prettier": "^2.0.5",
     "react-hot-loader": "^4.12.21",
@@ -51,5 +61,14 @@
     "redux-persist": "^6.0.0",
     "redux-persist-electron-storage": "^2.1.0",
     "styled-components": "^5.1.1"
+  },
+  "build": {
+    "appId": "vn.base.checkinstation",
+    "productName": "Base Checkin Station",
+    "copyright": "Copyright © 2020 Base.vn",
+    "extends": null,
+    "directories": {
+      "output": "electron-output"
+    }
   }
 }
