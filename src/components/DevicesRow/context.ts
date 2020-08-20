@@ -1,7 +1,7 @@
 import constate from "constate";
-import {deleteDevices, Device} from "../../store/devices";
+import { deleteDevices, Device } from "../../store/devices";
 import ZK from "../../packages/js_zklib/ZK";
-import {useCallback, useEffect, useState} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAsyncFn, useUpdateEffect } from "react-use";
 import {
   formatRawAttendanceRecords,
@@ -93,6 +93,8 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   }, [state]);
 
   const [{ error }, syncAttendances] = useAsyncFn(async () => {
+    if (state !== ConnectionState.CONNECTED) return;
+
     try {
       setSyncState(SyncState.GETTING_DATA);
       const attendance = await connection.getAttendance();
@@ -103,7 +105,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       setSyncState(SyncState.NOT_STARTED);
       throw e;
     }
-  }, [connection, device]);
+  }, [connection, state, device]);
 
   useAutoAlertError(error);
 
@@ -140,7 +142,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     enableDevice,
     disableDevice,
     reconnect,
-    deleteDevice
+    deleteDevice,
   };
 };
 
