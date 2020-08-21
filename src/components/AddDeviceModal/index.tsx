@@ -48,6 +48,23 @@ const AddDeviceModal = memo(function AddDeviceModal(
 
   const onOk = useCallback(() => {
     // @todo Validate device
+
+    if (!device.ip || !device.name || !device.port) {
+      return Modal.error({
+        title: "Please enter all required fields",
+      });
+    }
+
+    if (
+      !/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+        device.ip
+      )
+    ) {
+      return Modal.error({
+        title: "Please enter an valid IP address",
+      });
+    }
+
     syncDevices([device]);
     props.onClose();
   }, [device, props.onClose]);
