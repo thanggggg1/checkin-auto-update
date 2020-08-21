@@ -10,6 +10,9 @@ const Wrapper = styled(Row)`
   align-items: center;
   width: 100%;
   overflow-x: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const AddButton = styled(Button)`
