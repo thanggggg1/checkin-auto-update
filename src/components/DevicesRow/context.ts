@@ -22,6 +22,11 @@ export enum ConnectionState {
   PENDING,
   CONNECTED,
   CLOSED,
+  REFUSED,
+  HOSTDOWN,
+  TIMEOUT,
+  RESET,
+  EHOSTUNREACH
 }
 
 const useDeviceValue = ({ device }: { device: Device }) => {
@@ -100,6 +105,21 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           setState(ConnectionState.CONNECTED);
         } catch (e) {
           console.log("connect error", e);
+          if (e.errno === "ECONNREFUSED") {
+            return setState(ConnectionState.REFUSED);
+          }
+          if (e.errno === "EHOSTDOWN") {
+            return setState(ConnectionState.HOSTDOWN);
+          }
+          if (e.errno === "ETIMEDOUT") {
+            return setState(ConnectionState.TIMEOUT);
+          }
+          if (e.errno === "ECONNRESET") {
+            return setState(ConnectionState.RESET);
+          }
+          if (e.errno === "EHOSTUNREACH") {
+            return setState(ConnectionState.EHOSTUNREACH)
+          }
           setState(ConnectionState.PENDING);
         }
       }
