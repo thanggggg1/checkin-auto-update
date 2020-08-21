@@ -26,7 +26,7 @@ export enum ConnectionState {
   HOSTDOWN,
   TIMEOUT,
   RESET,
-  EHOSTUNREACH
+  EHOSTUNREACH,
 }
 
 const useDeviceValue = ({ device }: { device: Device }) => {
@@ -59,36 +59,46 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   useEffect(() => {
     let interval = 0;
 
-    connection.createSocket().then(() => {
-      // @todo clear
-      // @ts-ignore
-      connection.zklib.socket.on("close", () => {
-        setState(ConnectionState.CLOSED);
-        setRealtimeState("Closed");
-      });
+    connection
+      .createSocket()
+      .then(() => {
+        // @todo clear
+        // @ts-ignore
+        connection.zklib.socket.on("close", () => {
+          setState(ConnectionState.CLOSED);
+          setRealtimeState("Closed");
+        });
 
-      // @ts-ignore
-      connection.zklib.socket.on("connection", () => {
-        setState(ConnectionState.CONNECTED);
-      });
+        // @ts-ignore
+        connection.zklib.socket.on("connection", () => {
+          setState(ConnectionState.CONNECTED);
+        });
 
-      connection.connect().then(async () => {
-        setState(ConnectionState.CONNECTED);
-        setRealtimeState("Pending");
+        connection
+          .connect()
+          .then(async () => {
+            setState(ConnectionState.CONNECTED);
+            setRealtimeState("Pending");
 
-        interval = setInterval(() => {
-          connection.startMon({
-            start: (err) => {
-              if (err) return setRealtimeState("Timed out");
-              setRealtimeState("Started");
-            },
-            onatt: (log) => {
-              console.log("onatt", log);
-            },
+            interval = setInterval(() => {
+              connection.startMon({
+                start: (err) => {
+                  if (err) return setRealtimeState("Timed out");
+                  setRealtimeState("Started");
+                },
+                onatt: (log) => {
+                  console.log("onatt", log);
+                },
+              });
+            }, 3000);
+          })
+          .catch((e) => {
+            console.log("first connection error: " + device.ip, e);
           });
-        }, 3000);
+      })
+      .catch((e) => {
+        console.log("create socket error: " + device.ip, e);
       });
-    });
 
     return () => {
       clearInterval(interval);
@@ -118,7 +128,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
             return setState(ConnectionState.RESET);
           }
           if (e.errno === "EHOSTUNREACH") {
-            return setState(ConnectionState.EHOSTUNREACH)
+            return setState(ConnectionState.EHOSTUNREACH);
           }
           setState(ConnectionState.PENDING);
         }
