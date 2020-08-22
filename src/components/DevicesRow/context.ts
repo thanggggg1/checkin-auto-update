@@ -36,10 +36,10 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const [realtimeState, setRealtimeState] = useState("Pending");
   const [connection, setConnection] = useState<ZK>(() => {
     return new ZK({
-      port: device.port,
-      connectionType: device.connection,
+      port: device.port || "4370",
+      connectionType: device.connection || "tcp",
       timeout: 3000,
-      inport: 5200,
+      inport: device.inport || 5200,
       ip: device.ip,
     });
   });
@@ -47,14 +47,14 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   useUpdateEffect(() => {
     setConnection(
       new ZK({
-        port: device.port,
-        connectionType: device.connection,
+        port: device.port || "4370",
+        connectionType: device.connection || "tcp",
         timeout: 3000,
-        inport: 5200,
+        inport: device.inport || 5200,
         ip: device.ip,
       })
     );
-  }, [device.ip, device.port, device.connection]);
+  }, [device.ip, device.port, device.connection, device.inport]);
 
   useEffect(() => {
     let interval = 0;

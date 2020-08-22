@@ -1198,6 +1198,11 @@
     "@types/prop-types" "*"
     csstype "^3.0.2"
 
+"@types/set-interval-async@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/set-interval-async/-/set-interval-async-1.0.0.tgz#7769973e0ded3faee36018795a92b6ba239d668e"
+  integrity sha512-4twO6B7/dcd+lMyIHwUm/S1RMvVOsgZf0sCevNNCnwyAxn7t9mxLfuZxIGFimYCPhLjJYccsvo4HhXxp4UDoBg==
+
 "@types/source-list-map@*":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@types/source-list-map/-/source-list-map-0.1.2.tgz#0078836063ffaf17412349bba364087e0ac02ec9"
