@@ -3,12 +3,13 @@ import { deleteDevices, Device } from "../../store/devices";
 import ZK from "../../packages/js_zklib/ZK";
 import { useCallback, useEffect, useState } from "react";
 import { useAsyncFn, useLatest, useUpdateEffect } from "react-use";
-import { syncAttendanceRecords } from "../../store/records";
+import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
 import { setIntervalAsync } from "set-interval-async/dynamic";
 import { clearIntervalAsync } from "set-interval-async";
 import moment from "moment";
+import Fetch from "../../utils/Fetch";
 
 export enum SyncState {
   NOT_STARTED,
@@ -111,16 +112,21 @@ const useDeviceValue = ({ device }: { device: Device }) => {
         onatt: (log) => {
           console.log("onatt", log);
           const mm = moment(log.time);
+
+          const record: AttendanceRecord = {
+            dateFormatted: mm.format("DD/MM/YYYY"),
+            timeFormatted: mm.format("HH:mm"),
+            deviceIp: device.ip,
+            timestamp: mm.valueOf(),
+            uid: log.userId,
+            id: `${log.userId}_${mm.valueOf()}`,
+          };
+
           syncAttendanceRecords([
-            {
-              dateFormatted: mm.format("DD/MM/YYYY"),
-              timeFormatted: mm.format("HH:mm"),
-              deviceIp: device.ip,
-              timestamp: mm.valueOf(),
-              uid: log.userId,
-              id: `${log.userId}_${mm.valueOf()}`,
-            },
+            record
           ]);
+
+          Fetch.realtimePush(record);
         },
       });
     }, 3000);

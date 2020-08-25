@@ -81,6 +81,21 @@ const Fetch = {
     }
   },
 
+  realtimePush: async function (record: AttendanceRecord) {
+    const token = getToken();
+
+    if (!token.token) throw new Error("INVALID TOKEN");
+
+    await this.post("@checkin/v1/client/realtime", {
+      client_token: token.token,
+      client_password: token.password,
+      user_code: record.uid,
+      ts: Math.round(record.timestamp / 1000),
+    });
+
+    addPushedRecords([record.id]);
+  },
+
   massPush: async function (records: AttendanceRecord[]) {
     interface MassPushLog {
       user_code: string | number;
