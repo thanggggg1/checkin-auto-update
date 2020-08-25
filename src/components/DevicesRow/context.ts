@@ -2,15 +2,13 @@ import constate from "constate";
 import { deleteDevices, Device } from "../../store/devices";
 import ZK from "../../packages/js_zklib/ZK";
 import { useCallback, useEffect, useState } from "react";
-import { useAsync, useAsyncFn, useLatest, useUpdateEffect } from "react-use";
-import {
-  formatRawAttendanceRecords,
-  syncAttendanceRecords,
-} from "../../store/records";
+import { useAsyncFn, useLatest, useUpdateEffect } from "react-use";
+import { syncAttendanceRecords } from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
 import { setIntervalAsync } from "set-interval-async/dynamic";
 import { clearIntervalAsync } from "set-interval-async";
+import moment from "moment";
 
 export enum SyncState {
   NOT_STARTED,
@@ -141,20 +139,29 @@ const useDeviceValue = ({ device }: { device: Device }) => {
 
   const [{ error }, syncAttendances] = useAsyncFn(async () => {
     if (state !== ConnectionState.CONNECTED) return;
-
-    const attendances = await connection.zklib.getAttendances((progress) => {
-      console.log("progress", progress);
-    });
-
-    console.log("attendances", attendances);
-
-    return;
-
     try {
-      setSyncState(SyncState.GETTING_DATA);
-      const attendance = await connection.getAttendance();
+      const attendances = await connection.zklib.getAttendances(
+        (current, total) => {
+          console.log("progress", current, total);
+        }
+      );
+
+      console.log("attendances", attendances);
       setSyncState(SyncState.PROCESSING);
-      syncAttendanceRecords(formatRawAttendanceRecords(attendance, device.ip));
+      syncAttendanceRecords(
+        // @ts-ignore
+        attendances.data.map((attendance) => {
+          const mm = moment(attendance.recordTime);
+          return {
+            id: `${attendance.deviceUserId}_${mm.valueOf()}`,
+            uid: attendance.deviceUserId,
+            deviceIp: attendance.ip,
+            timestamp: attendance.recordTime.valueOf(),
+            timeFormatted: mm.format("HH:mm"),
+            dateFormatted: mm.format("DD/MM/YYYY"),
+          };
+        })
+      );
       setSyncState(SyncState.NOT_STARTED);
     } catch (e) {
       setSyncState(SyncState.NOT_STARTED);
