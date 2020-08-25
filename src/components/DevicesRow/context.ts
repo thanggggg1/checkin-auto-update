@@ -38,7 +38,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     return new ZK({
       port: device.port || "4370",
       connectionType: device.connection || "tcp",
-      timeout: 3000,
+      timeout: 5000,
       inport: device.inport || 5200,
       ip: device.ip,
     });
@@ -49,7 +49,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       new ZK({
         port: device.port || "4370",
         connectionType: device.connection || "tcp",
-        timeout: 3000,
+        timeout: 5000,
         inport: device.inport || 5200,
         ip: device.ip,
       })
@@ -142,6 +142,14 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const [{ error }, syncAttendances] = useAsyncFn(async () => {
     if (state !== ConnectionState.CONNECTED) return;
 
+    const attendances = await connection.zklib.getAttendances((progress) => {
+      console.log("progress", progress);
+    });
+
+    console.log("attendances", attendances);
+
+    return;
+
     try {
       setSyncState(SyncState.GETTING_DATA);
       const attendance = await connection.getAttendance();
@@ -157,22 +165,22 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   useAutoAlertError(error);
 
   // Update free space continuously
-  useAsync(async () => {
-    const interval = setIntervalAsync(async () => {
-      try {
-        if (latestState.current !== ConnectionState.CONNECTED) return;
-        console.log("start getting freesizes", device.ip);
-        const freeSizes = await connection.getFreeSizes();
-        console.log("freeSizes", freeSizes);
-      } catch (e) {
-        setState(ConnectionState.PENDING);
-      }
-    }, 5000);
-
-    return () => {
-      clearIntervalAsync(interval);
-    };
-  }, [connection]);
+  // useAsync(async () => {
+  //   const interval = setIntervalAsync(async () => {
+  //     try {
+  //       if (latestState.current !== ConnectionState.CONNECTED) return;
+  //       console.log("start getting freesizes", device.ip);
+  //       const freeSizes = await connection.getFreeSizes();
+  //       console.log("freeSizes", freeSizes);
+  //     } catch (e) {
+  //       setState(ConnectionState.PENDING);
+  //     }
+  //   }, 5000);
+  //
+  //   return () => {
+  //     clearIntervalAsync(interval);
+  //   };
+  // }, [connection]);
 
   useEffect(() => {
     events.on(Events.MASS_SYNC, syncAttendances);
