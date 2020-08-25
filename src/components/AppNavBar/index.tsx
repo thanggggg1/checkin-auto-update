@@ -7,6 +7,7 @@ import LogoutButton from "./components/LogoutButton";
 import PushButton from "./components/PushButton";
 import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
+import ClearRecordsButton from "./components/ClearRecordsButton";
 
 const Wrapper = styled(Row)`
   padding: 0 16px;
@@ -25,6 +26,8 @@ const AppNavBar = memo(function AppNavBar() {
       <AppName>Base Checkin Station</AppName>
 
       <Row>
+        <ClearRecordsButton />
+
         {token.token ? (
           <ButtonGroup>
             <SyncButton />
