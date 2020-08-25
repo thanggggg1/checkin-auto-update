@@ -76,19 +76,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           .connect()
           .then(async () => {
             setState(ConnectionState.CONNECTED);
-            setRealtimeState("Pending");
-
-            interval = setInterval(() => {
-              connection.startMon({
-                start: (err) => {
-                  if (err) return setRealtimeState("Timed out");
-                  setRealtimeState("Started");
-                },
-                onatt: (log) => {
-                  console.log("onatt", log);
-                },
-              });
-            }, 3000);
           })
           .catch((e) => {
             console.log("first connection error: " + device.ip, e);
@@ -103,6 +90,45 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       connection.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (state !== ConnectionState.CONNECTED) return;
+
+    setRealtimeState("Pending");
+
+    let clearFn = null;
+    let interval = setInterval(() => {
+      if (state !== ConnectionState.CONNECTED) return;
+
+      if (clearFn) clearFn();
+
+      clearFn = connection.startMon({
+        start: (err) => {
+          if (err) return setRealtimeState("Timed out");
+          setRealtimeState("Started");
+        },
+        onatt: (log) => {
+          console.log("onatt", log);
+          const mm = moment(log.time);
+          syncAttendanceRecords([
+            {
+              dateFormatted: mm.format("DD/MM/YYYY"),
+              timeFormatted: mm.format("HH:mm"),
+              deviceIp: device.ip,
+              timestamp: mm.valueOf(),
+              uid: log.userId,
+              id: `${log.userId}_${mm.valueOf()}`,
+            },
+          ]);
+        },
+      });
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      clearFn();
+    };
+  }, [state, device.ip]);
 
   useEffect(() => {
     const interval = setIntervalAsync(async () => {
@@ -146,7 +172,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
         }
       );
 
-      console.log("attendances", attendances);
       setSyncState(SyncState.PROCESSING);
       syncAttendanceRecords(
         // @ts-ignore
