@@ -32,6 +32,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const latestState = useLatest(state);
   const [syncState, setSyncState] = useState<SyncState>(SyncState.NOT_STARTED);
   const [realtimeState, setRealtimeState] = useState("Pending");
+  const [syncPercent, setSyncPercent] = useState(0);
   const [connection, setConnection] = useState<ZK>(() => {
     return new ZK({
       port: device.port || "4370",
@@ -169,6 +170,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       const attendances = await connection.zklib.getAttendances(
         (current, total) => {
           console.log("progress", current, total);
+          setSyncPercent(Math.round((current * 100) / total));
         }
       );
 
@@ -248,6 +250,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     disableDevice,
     reconnect,
     deleteDevice,
+    syncPercent,
   };
 };
 

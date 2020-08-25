@@ -3,7 +3,7 @@ import { Tag } from "antd";
 import { SyncState, useCurrentDevice } from "../context";
 
 const SyncTag = memo(function SyncTag() {
-  const { syncState } = useCurrentDevice();
+  const { syncState, syncPercent } = useCurrentDevice();
 
   if (syncState === SyncState.NOT_STARTED) return null;
   return (
@@ -11,7 +11,8 @@ const SyncTag = memo(function SyncTag() {
       Sync:{" "}
       {(() => {
         if (syncState === SyncState.PROCESSING) return "Processing";
-        if (syncState === SyncState.GETTING_DATA) return "Getting data";
+        if (syncState === SyncState.GETTING_DATA)
+          return `Getting data: ${syncPercent}%`;
         return "";
       })()}
     </Tag>
