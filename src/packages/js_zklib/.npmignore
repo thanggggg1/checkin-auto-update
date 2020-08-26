@@ -1,0 +1,7 @@
+__mocks__
+__tests__
+.vscode
+scripts
+
+.travis.yml
+jsconfig.json
