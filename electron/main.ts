@@ -1,6 +1,7 @@
 import { app, BrowserWindow, nativeImage } from "electron";
 import * as path from "path";
 import * as url from "url";
+import os from "os";
 
 let mainWindow: Electron.BrowserWindow | null;
 
@@ -9,7 +10,9 @@ function createWindow() {
     width: 800,
     height: 880,
     icon: nativeImage.createFromPath(
-      path.join(app.getAppPath(), "./dist/assets/AppIcon.icns")
+      os.platform() === "win32"
+        ? path.join(app.getAppPath(), "./dist/assets/AppIcon.ico")
+        : path.join(app.getAppPath(), "./dist/assets/AppIcon.icns")
     ),
     title: "Base Checkin Station",
     webPreferences: {

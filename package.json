@@ -77,7 +77,8 @@
     },
     "mac": {
       "icon": "./assets/AppIcon.icns"
-    }
+    },
+    "win": "./assets/AppIcon.ico"
   },
   "files": [
     "./dist/renderer/"
