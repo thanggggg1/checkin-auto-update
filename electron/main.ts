@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, nativeImage } from "electron";
 import * as path from "path";
 import * as url from "url";
 
@@ -7,7 +7,11 @@ let mainWindow: Electron.BrowserWindow | null;
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 860,
+    height: 880,
+    icon: nativeImage.createFromPath(
+      path.join(app.getAppPath(), "./dist/assets/AppIcon.icns")
+    ),
+    title: "Base Checkin Station",
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,
