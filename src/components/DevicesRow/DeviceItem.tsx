@@ -20,6 +20,9 @@ const TagsWrapper = styled.div`
   flex-wrap: nowrap;
   align-items: center;
   overflow-x: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const DeviceInfo = memo(function DeviceInfo() {
