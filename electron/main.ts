@@ -25,6 +25,7 @@ function createWindow() {
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL(`http://localhost:4000`);
   } else {
+    mainWindow.setMenu(null);
     mainWindow.loadURL(
       url.format({
         pathname: path.join(app.getAppPath(), "./dist/renderer/index.html"),
