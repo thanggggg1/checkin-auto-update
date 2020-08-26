@@ -122,9 +122,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
             id: `${log.userId}_${mm.valueOf()}`,
           };
 
-          syncAttendanceRecords([
-            record
-          ]);
+          syncAttendanceRecords([record]);
 
           Fetch.realtimePush(record);
         },
