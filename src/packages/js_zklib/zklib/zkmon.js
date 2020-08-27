@@ -1,7 +1,6 @@
 
-const { createChkSum, createHeader, removeTcpHeader } = require('./utils');
-const { Commands, USHRT_MAX } = require('./constants');
-const {parse} = require('./att_parser_legacy');
+const { createHeader, removeTcpHeader } = require('./utils');
+const { Commands, ConnectionTypes } = require('./constants');
 
 module.exports = class {
     /**
@@ -15,6 +14,9 @@ module.exports = class {
         //   this.createSocket();
 
         const monFn = ret => {
+            if (this.connectionType === ConnectionTypes.UDP) {
+                ret = removeTcpHeader(ret);
+            }
             if (ret.length === 40) {
                 return opts.onatt(decodeRecordRealTimeLog40(ret));
             }
