@@ -26,8 +26,6 @@ const AppNavBar = memo(function AppNavBar() {
       <AppName>Base Checkin Station</AppName>
 
       <Row>
-        <ClearRecordsButton />
-
         {token.token ? (
           <ButtonGroup>
             <SyncButton />

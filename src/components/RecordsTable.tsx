@@ -1,8 +1,9 @@
-import React, { memo, useMemo, useState } from "react";
-import { Table } from "antd";
-import { AttendanceRecord } from "../store/records";
+import React, { memo, useCallback, useMemo } from "react";
+import { Button, Modal, Table } from "antd";
+import { AttendanceRecord, clearAttendanceRecords } from "../store/records";
 import { useSelector } from "react-redux";
-import { useDebounce, useThrottle } from "react-use";
+import { useThrottle } from "react-use";
+import { DeleteOutlined } from "@ant-design/icons";
 
 const columns = [
   {
@@ -30,6 +31,24 @@ const columns = [
 const selector = (state: any): Record<string, AttendanceRecord> =>
   state.records;
 
+const ClearRecordsButton = memo(function ClearRecordsButton() {
+  const onPress = useCallback(() => {
+    Modal.confirm({
+      title: "Are you sure to clear all records",
+      content: "You cannot undone this action",
+      onOk: () => {
+        clearAttendanceRecords();
+      },
+      okCancel: true,
+    });
+  }, []);
+  return (
+    <Button onClick={onPress} danger>
+      <DeleteOutlined /> Clear all records
+    </Button>
+  );
+});
+
 const RecordsTable = memo(function RecordsTable() {
   const records = useSelector(selector) || {};
   const recordsThrottled = useThrottle(records, 3000);
@@ -46,7 +65,11 @@ const RecordsTable = memo(function RecordsTable() {
       }));
   }, [recordsThrottled]);
 
-  return <Table columns={columns} dataSource={dataSource} />;
+  const footer = useCallback(() => {
+    return <ClearRecordsButton />;
+  }, []);
+
+  return <Table columns={columns} dataSource={dataSource} footer={footer} />;
 });
 
 export default RecordsTable;
