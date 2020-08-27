@@ -86,12 +86,19 @@ const Fetch = {
 
     if (!token.token) throw new Error("INVALID TOKEN");
 
-    await this.post("@checkin/v1/client/realtime", {
-      client_token: token.token,
-      client_password: token.password,
-      user_code: record.uid,
-      ts: Math.round(record.timestamp / 1000),
-    });
+    try {
+      await this.post("@checkin/v1/client/realtime", {
+        client_token: token.token,
+        client_password: token.password,
+        user_code: record.uid,
+        ts: Math.round(record.timestamp / 1000),
+      });
+    } catch (e) {
+      if (e.message === "INVALID_CLIENT") {
+        setToken({ token: "", password: "" });
+      }
+      throw e;
+    }
 
     addPushedRecords([record.id]);
   },
@@ -150,33 +157,43 @@ const Fetch = {
     });
 
     const token = getToken();
-    const { data } = await this.post<{
-      data: {
-        errors: {
-          message: string;
-          user_code?: number;
-        }[];
-      };
-    }>("@checkin/v1/client/mass_sync", {
-      client_token: token.token,
-      client_password: token.password,
-      logs: JSON.stringify(Object.values(logs)),
-    });
+    try {
+      const { data } = await this.post<{
+        data: {
+          errors: {
+            message: string;
+            user_code?: number;
+          }[];
+        };
+      }>("@checkin/v1/client/mass_sync", {
+        client_token: token.token,
+        client_password: token.password,
+        logs: JSON.stringify(Object.values(logs)),
+      });
 
-    data.data.errors.forEach(
-      (error: { message: string; user_code: string | number }) => {
-        if (error.message === "INVALID EMPLOYEE") {
-          willBeAddedToPushedRecordsArray.delete(error.user_code);
+      data.data.errors.forEach(
+        (error: { message: string; user_code: string | number }) => {
+          if (error.message === "INVALID EMPLOYEE") {
+            willBeAddedToPushedRecordsArray.delete(error.user_code);
+          }
         }
-      }
-    );
+      );
 
-    // start add to pushed records
-    let pushRecordIds: string[] = [];
-    willBeAddedToPushedRecordsArray.forEach((set) => {
-      pushRecordIds = [...pushRecordIds, ...Array.from(set)];
-    });
-    addPushedRecords(pushRecordIds);
+      // start add to pushed records
+      let pushRecordIds: string[] = [];
+      willBeAddedToPushedRecordsArray.forEach((set) => {
+        pushRecordIds = [...pushRecordIds, ...Array.from(set)];
+      });
+      addPushedRecords(pushRecordIds);
+    } catch (e) {
+      if (e.message === "INVALID_CLIENT") {
+        setToken({
+          token: "",
+          password: "",
+        });
+      }
+      throw e;
+    }
   },
 };
 
