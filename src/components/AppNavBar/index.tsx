@@ -26,15 +26,17 @@ const AppNavBar = memo(function AppNavBar() {
       <AppName>Base Checkin Station</AppName>
 
       <Row>
-        {token.token ? (
-          <ButtonGroup>
-            <SyncButton />
-            <PushButton />
-            <LogoutButton />
-          </ButtonGroup>
-        ) : (
-          <LoginButton />
-        )}
+        <ButtonGroup>
+          <SyncButton />
+          {token.token ? (
+            <>
+              <PushButton />
+              <LogoutButton />
+            </>
+          ) : (
+            <LoginButton />
+          )}
+        </ButtonGroup>
       </Row>
     </Wrapper>
   );

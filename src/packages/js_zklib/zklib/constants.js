@@ -42,6 +42,16 @@ exports.Commands = Object.freeze({
   TZ_WRQ: 28,
   UNLOCK: 31,
   REG_EVENT: 500, // Register the Event
+
+  EF_ATTLOG:1,
+  EF_FINGER:2,
+  EF_ENROLLUSER:4,
+  EF_ENROLLFINGER:8,
+  EF_BUTTON:16,
+  EF_UNLOCK:32,
+  EF_VERIFY:128,
+  EF_FPFTR:256,
+  EF_ALARM:512
 });
 
 exports.Levels = Object.freeze({

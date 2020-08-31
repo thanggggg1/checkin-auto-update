@@ -6,9 +6,12 @@ const net = require('net');
 const mixin = require('./mixin');
 const attParserLegacy = require('./att_parser_legacy');
 const attParserV660 = require('./att_parser_v6.60');
-const { defaultTo, createHeader, checkValid, removeTcpHeader, decodeTCPHeader, decodeUDPHeader, MAX_CHUNK, USHRT_MAX, checkNotEventTCP, checkNotEventUDP, exportErrorMessage, parseBufferByBytesRange } = require('./utils');
+const { defaultTo, createHeader, checkValid, removeTcpHeader, decodeTCPHeader, decodeUDPHeader, MAX_CHUNK, USHRT_MAX, checkNotEventTCP, checkNotEventUDP, exportErrorMessage, createChkSum } = require('./utils');
 const { Commands, ConnectionTypes, REQUEST_DATA } = require('./constants');
-const {encode, decode} = require('./timestamp_parser');
+const {decode} = require('./timestamp_parser');
+
+
+const REQUEST_TIMEOUT = 10 * 60 * 1000; //10 minutes
 
 /**
   @typedef {object} Options
@@ -72,7 +75,7 @@ class ZKLib {
     }
 
     updateReplyId() {
-        if (this.reply_id === 65534) this.reply_id = 0;
+        if (this.reply_id === 65534) this.reply_id = 1;
         this.reply_id++;
         return this.reply_id;
     }
@@ -86,7 +89,7 @@ class ZKLib {
     executeCmd(command, data, cb) {
         if (command === Commands.CONNECT) {
             this.session_id = 0;
-            this.reply_id = 0;
+            this.reply_id = 1;
         } else {
             this.updateReplyId();
         }
@@ -290,17 +293,19 @@ class ZKLib {
     freeData2 = Bluebird.promisify(this.freeData);
 
     sendChunkRequest(start, size) {
-        this.updateReplyId();
+        const reply_id = this.updateReplyId();
         const reqData = Buffer.alloc(8)
         reqData.writeUInt32LE(start, 0)
         reqData.writeUInt32LE(size, 4)
-        const buf = createHeader(Commands.DATA_RDY, this.session_id, this.session_id, reqData, this.connectionType)
+        const buf = createHeader(Commands.DATA_RDY, this.session_id, reply_id, reqData, this.connectionType);
 
         this.socket.write(buf, null, err => {
             if (err) {
                 console.log(`[TCP][SEND_CHUNK_REQUEST]` + err.toString())
             }
-        })
+        });
+
+        return reply_id;
     }
 
 
@@ -311,16 +316,16 @@ class ZKLib {
 
 
             const internalCallback = (data) => {
-                this.socket.removeListener('data', handleOnData)
+                this.socket.removeListener(this.DATA_EVENT, handleOnData)
                 timer && clearTimeout(timer)
                 return resolve(data);
             }
 
             const handleOnData = (data) => {
                 replyBuffer = Buffer.concat([replyBuffer, data])
-                if (checkNotEventTCP(data)) return;
+                if (this.connectionType === ConnectionTypes.TCP ? checkNotEventTCP(data) : checkNotEventUDP(data)) return;
                 clearTimeout(timer)
-                const header = decodeTCPHeader(replyBuffer.subarray(0,16));
+                const header = this.connectionType === ConnectionTypes.TCP ? decodeTCPHeader(replyBuffer.subarray(0,16)) : decodeUDPHeader(replyBuffer.subarray(0,16));
                 if(header.commandId === Commands.DATA){
                     timer = setTimeout(()=>{
                         internalCallback(replyBuffer)
@@ -328,7 +333,7 @@ class ZKLib {
                 }else{
                     timer = setTimeout(() => {
                         reject(new Error('TIMEOUT_ON_RECEIVING_REQUEST_DATA'))
-                    }, this.timeout)
+                    }, REQUEST_TIMEOUT)
 
                     const packetLength = data.readUIntLE(4, 2)
                     if (packetLength > 8) {
@@ -367,10 +372,11 @@ class ZKLib {
      */
     readWithBuffer = (reqData, cb = null) => {
         return new Promise(async (resolve, reject) => {
-            this.updateReplyId();
-            const buf = createHeader(Commands.DATA_WRRQ, this.session_id, this.reply_id, reqData, this.connectionType);
+            const reply_id = this.updateReplyId();
+            const buf = createHeader(Commands.DATA_WRRQ, this.session_id, reply_id, reqData, this.connectionType);
             let reply = await this.requestData(buf);
-            const header = this.connectionType === 'tcp' ? decodeTCPHeader(reply.subarray(0, 16)) : decodeUDPHeader(reply.subarray(0, 16));
+            const header = this.connectionType === ConnectionTypes.TCP ? decodeTCPHeader(reply.subarray(0, 16)) : decodeUDPHeader(reply.subarray(0, 16));
+
             switch (header.commandId) {
                 case Commands.DATA: {
                     return resolve({ data: reply.subarray(16), mode: 8 })
@@ -385,43 +391,59 @@ class ZKLib {
                     // We need to split the data to many chunks to receive , because it's to large
                     // After receiving all chunk data , we concat it to TotalBuffer variable , that 's the data we want
                     let remain = size % MAX_CHUNK
-                    let numberChunks = Math.round(size - remain) / MAX_CHUNK
+                    let numberChunks = (size - remain) / MAX_CHUNK
                     let totalPackets = numberChunks + (remain > 0 ? 1 : 0)
                     let replyData = Buffer.from([])
-
 
                     let totalBuffer = Buffer.from([])
                     let realTotalBuffer = Buffer.from([])
 
+                    const replyIds = new Set();
 
-                    const timeout = 10000;
                     let timer = setTimeout(() => {
                         internalCallback(replyData, new Error('TIMEOUT WHEN RECEIVING PACKET'))
-                    }, timeout)
+                    }, REQUEST_TIMEOUT)
 
 
                     const internalCallback = (replyData, err = null) => {
-                        this.socket && this.socket.removeListener('data', handleOnData)
+                        this.socket && this.socket.removeListener(this.DATA_EVENT, handleOnData)
                         timer && clearTimeout(timer);
 
                         if (err) return reject(err);
                         return resolve({data: replyData, size});
                     }
 
+                    const timeout = 30000;
                     const handleOnData = (reply) => {
-                        if (checkNotEventTCP(reply)) return;
+                        const header = decodeTCPHeader(reply);
+
+                        console.log('header', header);
+
+                        if (this.connectionType === ConnectionTypes.TCP ? checkNotEventTCP(reply) : checkNotEventUDP(reply)) return;
+
                         clearTimeout(timer)
                         timer = setTimeout(() => {
                             internalCallback(replyData,
                               new Error(`TIME OUT !! ${totalPackets} PACKETS REMAIN !`))
-                        }, timeout)
+                        }, timeout);
 
                         totalBuffer = Buffer.concat([totalBuffer, reply])
                         const packetLength = totalBuffer.readUIntLE(4, 2)
+
                         if (totalBuffer.length >= 8 + packetLength) {
 
                             realTotalBuffer = Buffer.concat([realTotalBuffer, totalBuffer.subarray(16, 8 + packetLength)])
                             totalBuffer = totalBuffer.subarray(8 + packetLength)
+
+                            console.log('a', {
+                                realTotalBuffer: realTotalBuffer.length,
+                                max_chunk: MAX_CHUNK + 8,
+                                remain: remain+8,
+                                totalBuffer: totalBuffer.length,
+                                totalPackets,
+                                replyData: replyData.length,
+                                packetLength,
+                            });
 
                             if ((totalPackets > 1 && realTotalBuffer.length === MAX_CHUNK + 8)
                               || (totalPackets === 1 && realTotalBuffer.length === remain + 8)) {
@@ -430,11 +452,12 @@ class ZKLib {
                                 totalBuffer = Buffer.from([])
                                 realTotalBuffer = Buffer.from([])
 
-                                totalPackets -= 1
+
+                                totalPackets--
                                 cb && cb(replyData.length, size)
 
-                                if (replyData.length === size) {
-
+                                console.log('diff', totalPackets, remain, replyData.length, size);
+                                if (replyData.length == size) {
                                     internalCallback(replyData)
                                 }
                             }
@@ -445,13 +468,15 @@ class ZKLib {
                         internalCallback(replyData, new Error('Socket is disconnected unexpectedly'))
                     })
 
-                    this.socket.on('data', handleOnData);
+                    this.socket.on(this.DATA_EVENT, handleOnData);
 
                     for (let i = 0; i <= numberChunks; i++) {
                         if (i === numberChunks) {
-                            this.sendChunkRequest(numberChunks * MAX_CHUNK, remain)
+                            const replyId = this.sendChunkRequest(numberChunks * MAX_CHUNK, remain);
+                            replyIds.add(replyId);
                         } else {
-                            this.sendChunkRequest(i * MAX_CHUNK, MAX_CHUNK)
+                            const replyId = this.sendChunkRequest(i * MAX_CHUNK, MAX_CHUNK);
+                            replyIds.add(replyId);
                         }
                     }
 
@@ -465,12 +490,9 @@ class ZKLib {
     }
 
     async getAttendances(callbackInProcess = () => { }) {
-
         await this.freeData2();
         const data = await this.readWithBuffer(REQUEST_DATA.GET_ATTENDANCE_LOGS, callbackInProcess);
-
         const RECORD_PACKET_SIZE = 40
-
         let recordData = data.data.subarray(4)
         let records = []
         while (recordData.length >= RECORD_PACKET_SIZE) {

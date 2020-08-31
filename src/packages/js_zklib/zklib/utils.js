@@ -20,14 +20,14 @@ exports.createHeader = (command, session_id, reply_id, data, prefix) => {
     buf.writeUInt16LE(command, 0);
     buf.writeUInt16LE(0, 2);
     buf.writeUInt16LE(session_id, 4);
-    buf.writeUInt16LE(reply_id, 6);
+    buf.writeUInt16LE(reply_id - 1, 6);
 
     dataBuffer.copy(buf, 8);
 
     const chksum2 = createChkSum(buf);
     buf.writeUInt16LE(chksum2, 2);
 
-    reply_id = (reply_id + 1) % USHRT_MAX;
+    reply_id = (reply_id) % USHRT_MAX;
     buf.writeUInt16LE(reply_id, 6);
 
     if (!prefix || prefix === 'udp') {
@@ -35,9 +35,9 @@ exports.createHeader = (command, session_id, reply_id, data, prefix) => {
     }
 
     if (prefix === 'tcp') {
-        const prefixBuf = Buffer.from([0x50, 0x50, 0x82, 0x7d, 0x13, 0x00, 0x00, 0x00])
+        const prefixBuf = Buffer.from([0x50, 0x50, 0x82, 0x7d, 0x00, 0x00, 0x00, 0x00])
 
-        prefixBuf.writeUInt16LE(buf.length, 4)
+        prefixBuf.writeUInt16LE(buf.length, 4);
 
         return Buffer.concat([prefixBuf, buf]);
     }
@@ -146,7 +146,7 @@ module.exports.checkNotEventTCP = (data)=> {
     try{
         data = removeTcpHeader(data)
         const commandId = data.readUIntLE(0,2)
-        const event = data.readUIntLE(4,2)
+        const event = data.readUIntLE(4,2);
         return event === Commands.EF_ATTLOG && commandId === Commands.REG_EVENT
     }catch(err){
         return false

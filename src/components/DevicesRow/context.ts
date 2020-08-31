@@ -94,16 +94,20 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   }, []);
 
   useEffect(() => {
-    if (state !== ConnectionState.CONNECTED) return;
+    if (
+      state !== ConnectionState.CONNECTED ||
+      syncState !== SyncState.NOT_STARTED
+    )
+      return;
 
     setRealtimeState("Pending");
 
     let clearFn = null;
-    let interval = setInterval(() => {
-      if (state !== ConnectionState.CONNECTED) return;
+    //let interval = setInterval(() => {
+    if (state !== ConnectionState.CONNECTED) return;
 
-      if (clearFn) clearFn();
-
+    if (clearFn) clearFn();
+    try {
       clearFn = connection.startMon({
         start: (err) => {
           if (err) return setRealtimeState("Timed out");
@@ -127,13 +131,16 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           Fetch.realtimePush(record);
         },
       });
-    }, 3000);
+    } catch (e) {
+      console.log("eee", e);
+    }
+    //}, 3000);
 
     return () => {
       clearInterval(interval);
-      clearFn();
+      clearFn?.();
     };
-  }, [state, device.ip]);
+  }, [state, device.ip, syncState]);
 
   useEffect(() => {
     const interval = setIntervalAsync(async () => {
@@ -171,12 +178,16 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const [{ error }, syncAttendances] = useAsyncFn(async () => {
     if (state !== ConnectionState.CONNECTED) return;
     try {
+      setSyncState(SyncState.GETTING_DATA);
+
       const attendances = await connection.zklib.getAttendances(
         (current, total) => {
-          console.log("progress", current, total);
+          console.log("progress", device.ip, current, total);
           setSyncPercent(Math.round((current * 100) / total));
         }
       );
+
+      console.log("attendances", attendances);
 
       setSyncState(SyncState.PROCESSING);
       syncAttendanceRecords(
@@ -193,9 +204,13 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           };
         })
       );
-      setSyncState(SyncState.NOT_STARTED);
+      requestAnimationFrame(() => {
+        setSyncState(SyncState.NOT_STARTED);
+      });
     } catch (e) {
-      setSyncState(SyncState.NOT_STARTED);
+      requestAnimationFrame(() => {
+        setSyncState(SyncState.NOT_STARTED);
+      });
       throw e;
     }
   }, [connection, state, device]);
