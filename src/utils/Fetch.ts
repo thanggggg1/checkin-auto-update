@@ -17,8 +17,8 @@ export interface TokenSetting {
 const { get: getToken, set: setToken, use: useToken } = createSetting<
   TokenSetting
 >("token", {
-  token: "5-DO6dvW-kdg2YSKQ8bfQU9FWstJ4v1MxYOIpJajcvU",
-  password: "123456",
+  token: "",
+  password: "",
 });
 
 interface BaseResponse {
