@@ -35,7 +35,7 @@ exports.createHeader = (command, session_id, reply_id, data, prefix) => {
     }
 
     if (prefix === 'tcp') {
-        const prefixBuf = Buffer.from([0x50, 0x50, 0x82, 0x7d, 0x00, 0x00, 0x00, 0x00])
+        const prefixBuf = Buffer.from([0x50, 0x50, 0x82, 0x7d, 0x13, 0x00, 0x00, 0x00])
 
         prefixBuf.writeUInt16LE(buf.length, 4);
 

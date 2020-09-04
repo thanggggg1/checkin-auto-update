@@ -170,6 +170,7 @@ class ZKLib {
         });
 
         socket.once('connect', () => {
+            console.log('connected');
             cb();
         });
 
@@ -261,6 +262,7 @@ class ZKLib {
     }
 
     closeSocket() {
+        console.log('close socket');
         if (this.connectionType === ConnectionTypes.UDP) {
             this.closeUdpSocket(this.socket);
         } else {
