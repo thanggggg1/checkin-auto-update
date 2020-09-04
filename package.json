@@ -1,6 +1,6 @@
 {
   "name": "base-checkin-station-desktop",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": "MIT",
   "main": "./dist/main.js",
   "description": "Base Checkin Station. Manage & Realtime attendance update for checkin.base.vn",
@@ -10,10 +10,10 @@
     "url": "https://base.vn"
   },
   "scripts": {
-    "dev:electron": "cross-env NODE_ENV=development cp -r ./assets ./dist && webpack --config webpack.electron.config.js --mode development && electron .",
+    "dev:electron": "cross-env NODE_ENV=development webpack --config webpack.electron.config.js --mode development && electron .",
     "dev:react": "cross-env NODE_ENV=development webpack-dev-server --config webpack.react.config.js --mode development",
     "prod:react": "cross-env NODE_ENV=production webpack --config webpack.react.config.js --mode production",
-    "prod:electron": "cross-env NODE_ENV=production cp -r ./assets ./dist && webpack --config webpack.electron.config.js --mode production",
+    "prod:electron": "cross-env NODE_ENV=production webpack --config webpack.electron.config.js --mode production",
     "pack": "electron-builder --dir",
     "dist-mac": "electron-builder -m",
     "dist-linux": "electron-builder -l --ia32",
