@@ -14,8 +14,7 @@ module.exports = class {
         //   this.createSocket();
 
         const monFn = ret => {
-            console.log('ret', ret);
-            if (this.connectionType === ConnectionTypes.UDP) {
+            if (this.connectionType === ConnectionTypes.TCP) {
                 ret = removeTcpHeader(ret);
             }
             if (ret.length === 40) {

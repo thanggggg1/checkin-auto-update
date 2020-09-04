@@ -372,13 +372,22 @@ class ZKLib {
      * readWithBuffer will reject error if it'wrong when starting request data
      * readWithBuffer will return { data: replyData , err: Error } when receiving requested data
      */
-    readWithBuffer = (reqData, cb = null) => {
+    readWithBuffer(reqData, cb = null) {
         return new Promise(async (resolve, reject) => {
-            const reply_id = this.updateReplyId();
-            const buf = createHeader(Commands.DATA_WRRQ, this.session_id, reply_id, reqData, this.connectionType);
-            let reply = await this.requestData(buf);
-            const header = this.connectionType === ConnectionTypes.TCP ? decodeTCPHeader(reply.subarray(0, 16)) : decodeUDPHeader(reply.subarray(0, 16));
 
+            let reply_chunk = 0 ;
+            let counter = 0 ;
+            this.updateReplyId();
+            const buf = createHeader(Commands.DATA_WRRQ, this.session_id, this.reply_id, reqData, this.connectionType)
+            let reply = null
+
+            try {
+                reply = await this.requestData(buf)
+            } catch (err) {
+                reject(err)
+            }
+
+            const header = this.connectionType === 'tcp' ? decodeTCPHeader(reply.subarray(0, 16)) : decodeUDPHeader(reply.subarray(0, 16));
             switch (header.commandId) {
                 case Commands.DATA: {
                     return resolve({ data: reply.subarray(16), mode: 8 })
@@ -400,8 +409,7 @@ class ZKLib {
                     let totalBuffer = Buffer.from([])
                     let realTotalBuffer = Buffer.from([])
 
-                    const replyIds = new Set();
-
+                    const timeout = 10000;
                     let timer = setTimeout(() => {
                         internalCallback(replyData, new Error('TIMEOUT WHEN RECEIVING PACKET'))
                     }, REQUEST_TIMEOUT)
@@ -415,37 +423,32 @@ class ZKLib {
                         return resolve({data: replyData, size});
                     }
 
-                    const timeout = 30000;
                     const handleOnData = (reply) => {
-                        const header = decodeTCPHeader(reply);
+                        console.log('reply', reply);
 
-                        console.log('header', header);
-
+                        reply_chunk += reply.length;
                         if (this.connectionType === ConnectionTypes.TCP ? checkNotEventTCP(reply) : checkNotEventUDP(reply)) return;
 
                         clearTimeout(timer)
                         timer = setTimeout(() => {
                             internalCallback(replyData,
                               new Error(`TIME OUT !! ${totalPackets} PACKETS REMAIN !`))
-                        }, timeout);
+                        }, timeout)
 
                         totalBuffer = Buffer.concat([totalBuffer, reply])
                         const packetLength = totalBuffer.readUIntLE(4, 2)
-
+                        console.log('packetLength', packetLength);
                         if (totalBuffer.length >= 8 + packetLength) {
-
-                            realTotalBuffer = Buffer.concat([realTotalBuffer, totalBuffer.subarray(16, 8 + packetLength)])
+                            realTotalBuffer = Buffer.concat([realTotalBuffer, totalBuffer.subarray(16, 8 + packetLength)]);
+                            if(reply_chunk >= MAX_CHUNK * (counter)){
+                                if(counter === numberChunks){
+                                    this.sendChunkRequest(numberChunks * MAX_CHUNK, remain)
+                                }else{
+                                    this.sendChunkRequest(counter * MAX_CHUNK, MAX_CHUNK)
+                                }
+                                counter ++;
+                            }
                             totalBuffer = totalBuffer.subarray(8 + packetLength)
-
-                            console.log('a', {
-                                realTotalBuffer: realTotalBuffer.length,
-                                max_chunk: MAX_CHUNK + 8,
-                                remain: remain+8,
-                                totalBuffer: totalBuffer.length,
-                                totalPackets,
-                                replyData: replyData.length,
-                                packetLength,
-                            });
 
                             if ((totalPackets > 1 && realTotalBuffer.length === MAX_CHUNK + 8)
                               || (totalPackets === 1 && realTotalBuffer.length === remain + 8)) {
@@ -454,12 +457,9 @@ class ZKLib {
                                 totalBuffer = Buffer.from([])
                                 realTotalBuffer = Buffer.from([])
 
-
                                 totalPackets--
                                 cb && cb(replyData.length, size)
-
-                                console.log('diff', totalPackets, remain, replyData.length, size);
-                                if (replyData.length == size) {
+                                if (replyData.length === size) {
                                     internalCallback(replyData)
                                 }
                             }
@@ -470,22 +470,20 @@ class ZKLib {
                         internalCallback(replyData, new Error('Socket is disconnected unexpectedly'))
                     })
 
-                    this.socket.on(this.DATA_EVENT, handleOnData);
+                    this.socket.on('data', handleOnData);
 
-                    for (let i = 0; i <= numberChunks; i++) {
-                        if (i === numberChunks) {
-                            const replyId = this.sendChunkRequest(numberChunks * MAX_CHUNK, remain);
-                            replyIds.add(replyId);
-                        } else {
-                            const replyId = this.sendChunkRequest(i * MAX_CHUNK, MAX_CHUNK);
-                            replyIds.add(replyId);
-                        }
+                    if(counter === numberChunks){
+                        this.sendChunkRequest(numberChunks * MAX_CHUNK, remain)
+                    }else{
+                        this.sendChunkRequest(counter * MAX_CHUNK, MAX_CHUNK)
                     }
+                    counter ++;
+
 
                     break;
                 }
                 default: {
-                    throw new Error('ERROR_IN_UNHANDLE_CMD ' + exportErrorMessage(header.commandId))
+                    reject(new Error('ERROR_IN_UNHANDLE_CMD ' + exportErrorMessage(header.commandId)))
                 }
             }
         })
