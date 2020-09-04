@@ -6,8 +6,6 @@ import { useAsyncFn, useLatest, useUpdateEffect } from "react-use";
 import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
-import { setIntervalAsync } from "set-interval-async/dynamic";
-import { clearIntervalAsync } from "set-interval-async";
 import moment from "moment";
 import Fetch from "../../utils/Fetch";
 
@@ -30,7 +28,6 @@ export enum ConnectionState {
 
 const useDeviceValue = ({ device }: { device: Device }) => {
   const [state, setState] = useState(ConnectionState.PENDING);
-  const latestState = useLatest(state);
   const [syncState, setSyncState] = useState<SyncState>(SyncState.NOT_STARTED);
   const [realtimeState, setRealtimeState] = useState("Pending");
   const [syncPercent, setSyncPercent] = useState(0);
@@ -47,7 +44,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   useUpdateEffect(() => {
     setConnection(
       new ZK({
-        port: device.port || "4370",
+        port: device.port || 4370,
         connectionType: device.connection || "tcp",
         timeout: 5000,
         inport: device.inport || 5200,
@@ -57,121 +54,41 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   }, [device.ip, device.port, device.connection, device.inport]);
 
   useEffect(() => {
-    let interval = 0;
-
-    connection
-      .createSocket()
-      .then(() => {
-        // @todo clear
-        // @ts-ignore
-        connection.zklib.socket.on("close", () => {
-          setState(ConnectionState.CLOSED);
-          setRealtimeState("Closed");
-        });
-
-        // @ts-ignore
-        connection.zklib.socket.on("connection", () => {
-          setState(ConnectionState.CONNECTED);
-        });
-
         connection
           .connect()
           .then(async () => {
             setState(ConnectionState.CONNECTED);
+
+            connection.startMon({
+              start: (err) => {
+                if (err) return setRealtimeState("Timed out");
+                setRealtimeState("Started");
+              },
+              onatt: (log) => {
+                console.log("onatt", log);
+                const mm = moment(log.time);
+
+                const record: AttendanceRecord = {
+                  dateFormatted: mm.format("DD/MM/YYYY"),
+                  timeFormatted: mm.format("HH:mm"),
+                  deviceIp: device.ip,
+                  timestamp: mm.valueOf(),
+                  uid: log.userId,
+                  id: `${log.userId}_${mm.valueOf()}`,
+                };
+
+                syncAttendanceRecords([record]);
+
+                Fetch.realtimePush(record);
+              },
+            });
           })
           .catch((e) => {
             console.log("first connection error: " + device.ip, e);
           });
-      })
-      .catch((e) => {
-        console.log("create socket error: " + device.ip, e);
-      });
 
     return () => {
-      clearInterval(interval);
       connection.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (
-      state !== ConnectionState.CONNECTED ||
-      syncState !== SyncState.NOT_STARTED
-    )
-      return;
-
-    setRealtimeState("Pending");
-
-    let clearFn = null;
-    //let interval = setInterval(() => {
-    if (state !== ConnectionState.CONNECTED) return;
-
-    if (clearFn) clearFn();
-    try {
-      clearFn = connection.startMon({
-        start: (err) => {
-          if (err) return setRealtimeState("Timed out");
-          setRealtimeState("Started");
-        },
-        onatt: (log) => {
-          console.log("onatt", log);
-          const mm = moment(log.time);
-
-          const record: AttendanceRecord = {
-            dateFormatted: mm.format("DD/MM/YYYY"),
-            timeFormatted: mm.format("HH:mm"),
-            deviceIp: device.ip,
-            timestamp: mm.valueOf(),
-            uid: log.userId,
-            id: `${log.userId}_${mm.valueOf()}`,
-          };
-
-          syncAttendanceRecords([record]);
-
-          Fetch.realtimePush(record);
-        },
-      });
-    } catch (e) {
-      console.log("eee", e);
-    }
-    //}, 3000);
-
-    return () => {
-      clearInterval(interval);
-      clearFn?.();
-    };
-  }, [state, device.ip, syncState]);
-
-  useEffect(() => {
-    const interval = setIntervalAsync(async () => {
-      if (latestState.current !== ConnectionState.CONNECTED) {
-        try {
-          console.log("trying to connect", device.ip);
-          await connection.connect();
-          setState(ConnectionState.CONNECTED);
-        } catch (e) {
-          console.log("connect error", e);
-          if (e.errno === "ECONNREFUSED") {
-            return setState(ConnectionState.REFUSED);
-          }
-          if (e.errno === "EHOSTDOWN") {
-            return setState(ConnectionState.HOSTDOWN);
-          }
-          if (e.errno === "ETIMEDOUT") {
-            return setState(ConnectionState.TIMEOUT);
-          }
-          if (e.errno === "ECONNRESET") {
-            return setState(ConnectionState.RESET);
-          }
-          if (e.errno === "EHOSTUNREACH") {
-            return setState(ConnectionState.EHOSTUNREACH);
-          }
-          setState(ConnectionState.PENDING);
-        }
-      }
-    }, 3000);
-    return () => {
-      clearIntervalAsync(interval);
     };
   }, []);
 
@@ -186,8 +103,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           setSyncPercent(Math.round((current * 100) / total));
         }
       );
-
-      console.log("attendances", attendances);
 
       setSyncState(SyncState.PROCESSING);
       syncAttendanceRecords(
