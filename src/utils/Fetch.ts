@@ -152,7 +152,7 @@ const Fetch = {
         deviceUserId: record.uid,
         id: record.id,
         ip: record.deviceIp,
-        time: record.timestamp,
+        time: Math.floor(record.timestamp / 1000),
       });
     });
 
