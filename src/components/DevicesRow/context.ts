@@ -2,7 +2,7 @@ import constate from "constate";
 import { deleteDevices, Device } from "../../store/devices";
 import ZK from "../../packages/js_zklib/ZK";
 import { useCallback, useEffect, useState } from "react";
-import { useAsyncFn, useLatest, useUpdateEffect } from "react-use";
+import { useAsyncFn, useUpdateEffect } from "react-use";
 import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
