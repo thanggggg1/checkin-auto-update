@@ -97,12 +97,16 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     try {
       setSyncState(SyncState.GETTING_DATA);
 
+      await connection.disableDevice();
+
+      // @ts-ignore
       const attendances = await connection.zklib.getAttendances(
-        (current, total) => {
-          console.log("progress", device.ip, current, total);
+        (current: number, total: number) => {
           setSyncPercent(Math.round((current * 100) / total));
         }
       );
+
+      await connection.enableDevice();
 
       setSyncState(SyncState.PROCESSING);
       syncAttendanceRecords(
@@ -122,7 +126,10 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       requestAnimationFrame(() => {
         setSyncState(SyncState.NOT_STARTED);
       });
+
+      connection.enableDevice();
     } catch (e) {
+      connection.enableDevice();
       requestAnimationFrame(() => {
         setSyncState(SyncState.NOT_STARTED);
       });
