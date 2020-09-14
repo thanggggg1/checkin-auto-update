@@ -293,6 +293,7 @@ class ZKLib {
     }
 
     freeData2 = Bluebird.promisify(this.freeData);
+    disableDevice2 = Bluebird.promisify(this.disableDevice);
 
     sendChunkRequest(start, size) {
         const reply_id = this.updateReplyId();
@@ -424,8 +425,6 @@ class ZKLib {
                     }
 
                     const handleOnData = (reply) => {
-                        console.log('reply', reply);
-
                         reply_chunk += reply.length;
                         if (this.connectionType === ConnectionTypes.TCP ? checkNotEventTCP(reply) : checkNotEventUDP(reply)) return;
 
@@ -433,11 +432,10 @@ class ZKLib {
                         timer = setTimeout(() => {
                             internalCallback(replyData,
                               new Error(`TIME OUT !! ${totalPackets} PACKETS REMAIN !`))
-                        }, timeout)
+                        }, 30000)
 
                         totalBuffer = Buffer.concat([totalBuffer, reply])
                         const packetLength = totalBuffer.readUIntLE(4, 2)
-                        console.log('packetLength', packetLength);
                         if (totalBuffer.length >= 8 + packetLength) {
                             realTotalBuffer = Buffer.concat([realTotalBuffer, totalBuffer.subarray(16, 8 + packetLength)]);
                             if(reply_chunk >= MAX_CHUNK * (counter)){
@@ -491,6 +489,7 @@ class ZKLib {
 
     async getAttendances(callbackInProcess = () => { }) {
         await this.freeData2();
+        await this.disableDevice2();
         const data = await this.readWithBuffer(REQUEST_DATA.GET_ATTENDANCE_LOGS, callbackInProcess);
         const RECORD_PACKET_SIZE = 40
         let recordData = data.data.subarray(4)
