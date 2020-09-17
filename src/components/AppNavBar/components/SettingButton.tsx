@@ -1,10 +1,25 @@
-import React, { memo } from "react";
+import React, { memo, SyntheticEvent, useCallback } from "react";
 import { Button, Modal, Input } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
 import useBoolean from "../../../hooks/useBoolean";
+import {
+  setAutoPushLogsMinutes,
+  useAutoPushLogsMinutes,
+} from "../../../store/settings/autoPush";
 
 const SettingButton = memo(function SettingButton() {
   const [isVisible, show, hide] = useBoolean();
+
+  const autoPushLogsMinutes = useAutoPushLogsMinutes();
+
+  const onChange = useCallback((event: SyntheticEvent<HTMLInputElement>) => {
+    const { name, value } = event.currentTarget;
+
+    if (name === "autoPushMinutes") {
+      if (Number(value) % 15 !== 0) return;
+      return setAutoPushLogsMinutes(Number(value));
+    }
+  }, []);
 
   return (
     <>
@@ -13,28 +28,34 @@ const SettingButton = memo(function SettingButton() {
       </Button>
       <Modal visible={isVisible} onCancel={hide} onOk={hide} title={"Settings"}>
         <Input
-          addonBefore={"Auto sync time"}
+          name={"autoSyncMinutes"}
+          addonBefore={"Auto sync every"}
           type={"number"}
           addonAfter={"minutes"}
           placeholder={"Ex: 15, 0 means disabled"}
           step={15}
           min={0}
           max={4320} // 72 hours, 3 days
+          onChange={onChange}
         />
         <br />
         <br />
         <Input
-          addonBefore={"Auto push time"}
+          name={"autoPushMinutes"}
+          addonBefore={"Auto push every"}
           type={"number"}
           addonAfter={"minutes"}
           placeholder={"Ex: 15, 0 means disabled"}
           step={15}
           min={0}
           max={4320} // 72 hours, 3 days
+          onChange={onChange}
+          value={autoPushLogsMinutes}
         />
         <br />
         <br />
         <Input
+          name={"pushLogsFrom"}
           addonBefore={"Push logs from"}
           type={"number"}
           addonAfter={"minutes from now"}
@@ -42,6 +63,7 @@ const SettingButton = memo(function SettingButton() {
           step={30}
           min={0}
           max={4320} // 72 hours, 3 days
+          onChange={onChange}
         />
       </Modal>
     </>
