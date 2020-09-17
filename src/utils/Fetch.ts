@@ -4,6 +4,8 @@ import qs from "querystring";
 import { AttendanceRecord } from "../store/records";
 import moment from "moment";
 import { addPushedRecords } from "../store/pushedRecords";
+import _ from "lodash";
+import { setPushingPercent } from "../store/settings/pushingPercent";
 
 axios.defaults.baseURL = "https://base.vn";
 axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -195,6 +197,26 @@ const Fetch = {
       throw e;
     }
   },
+
+  massPushSplitByChunks: async function (
+    logs: AttendanceRecord[],
+    progressCallback?: (current: number, total: number) => any,
+  ) {
+    const chunks = _.chunk(logs, 1000);
+
+    setPushingPercent(0);
+
+    let index = 0;
+    for (const chunk of chunks) {
+      await this.massPush(chunk as AttendanceRecord[]);
+      progressCallback?.(index + 1, chunks.length);
+      setPushingPercent(Math.floor(index + (1 / chunks.length) * 10000) / 100);
+      index++;
+    }
+
+    setPushingPercent(0);
+  },
+
 };
 
 export default Fetch;
