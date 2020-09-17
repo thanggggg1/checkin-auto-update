@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {getStore} from "../storeAccess";
 
 export type PushedRecordState = string[];
@@ -14,6 +14,17 @@ const {reducer, actions} = createSlice({
     },
   },
 });
+
+export const pushedRecordSelector = (state: any) => state.pushedRecords as string[];
+
+export const getPushedRecordIds = (): string[] => {
+  return pushedRecordSelector(getStore().getState());
+}
+
+const pushedRecordSetSelector = createSelector(pushedRecordSelector, res => new Set(res));
+export const getPushedRecordIdSet = () => {
+  return pushedRecordSetSelector(getStore().getState());
+}
 
 export const addPushedRecords = (recordIds: string[]) => {
   return getStore().dispatch(actions.addPushedRecords(recordIds));

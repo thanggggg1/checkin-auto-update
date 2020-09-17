@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import moment from "moment";
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getStore } from "../storeAccess";
+import { getPushedRecordIdSet } from "../pushedRecords";
 
 export interface AttendanceRecord {
   id: string;
@@ -10,14 +10,6 @@ export interface AttendanceRecord {
   timeFormatted: string;
   dateFormatted: string;
 }
-
-export type RawAttendanceRecord = {
-  [x in string | number]: any;
-} & {
-  id: number;
-  uid: number;
-  timestamp: Date;
-};
 
 const initialState: Record<string, AttendanceRecord> = {};
 const { actions, reducer: recordsReducer } = createSlice({
@@ -39,7 +31,41 @@ export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
   getStore().dispatch(actions.addRecords(records));
 };
 
+export const recordsSelector = (state: any) => state.records as Record<string, AttendanceRecord>;
+export const recordsArrSelector = createSelector(recordsSelector, res => Object.values(res));
+export const getAllRecordsArr = () => recordsArrSelector(getStore().getState());
+
 export const clearAttendanceRecords = () =>
   getStore().dispatch(actions.clearAll());
+
+export const filterRecords = (
+  records: AttendanceRecord[],
+  options?: {
+    startTime?: number;
+    endTime?: number;
+    onlyNotPushed?: boolean;
+    onlyInEmployeeCheckinCodes?: boolean;
+  }
+) => {
+  const pushedIdSet = options?.onlyNotPushed
+    ? getPushedRecordIdSet()
+    : new Set<string>();
+
+  return records.filter((record) => {
+    // onlyNotPushed
+    if (options?.onlyNotPushed && pushedIdSet.has(record.id)) return false;
+
+    // startTime
+    if (options?.startTime && record.timestamp < options.startTime)
+      return false;
+
+    // endTime
+    if (options?.endTime && record.timestamp > options.endTime) return false;
+
+    // @todo onlyInEmployeeCheckinCodes
+
+    return true;
+  });
+};
 
 export { recordsReducer };
