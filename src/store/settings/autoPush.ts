@@ -9,15 +9,23 @@ const {
 const {
   get: getLastAutoPushLogsTime,
   set: setLastAutoPushLogsTime,
-  use: useLastAutoPushLogsTime
+  use: useLastAutoPushLogsTime,
 } = createSetting<number>("lastAutoPushLogsTime", 0);
+
+const {
+  get: getPushLogsFromMinutes,
+  set: setPushLogsFromMinutes,
+  use: usePushLogsFromMinutes,
+} = createSetting<number>("pushLogsFromMinutes", 30);
 
 export {
   getAutoPushLogsMinutes,
   setAutoPushLogsMinutes,
   useAutoPushLogsMinutes,
-
   getLastAutoPushLogsTime,
   setLastAutoPushLogsTime,
-  useLastAutoPushLogsTime
-}
+  useLastAutoPushLogsTime,
+  getPushLogsFromMinutes,
+  setPushLogsFromMinutes,
+  usePushLogsFromMinutes,
+};

@@ -4,7 +4,9 @@ import { SettingOutlined } from "@ant-design/icons";
 import useBoolean from "../../../hooks/useBoolean";
 import {
   setAutoPushLogsMinutes,
+  setPushLogsFromMinutes,
   useAutoPushLogsMinutes,
+  usePushLogsFromMinutes,
 } from "../../../store/settings/autoPush";
 import {
   setAutoSyncLogsMinutes,
@@ -16,6 +18,7 @@ const SettingButton = memo(function SettingButton() {
 
   const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
+  const pushLogsFromMinutes = usePushLogsFromMinutes();
 
   const onChange = useCallback((event: SyntheticEvent<HTMLInputElement>) => {
     const { name, value } = event.currentTarget;
@@ -28,6 +31,11 @@ const SettingButton = memo(function SettingButton() {
     if (name === "autoPushMinutes") {
       if (Number(value) % 15 !== 0) return;
       return setAutoPushLogsMinutes(Number(value));
+    }
+
+    if (name === "pushLogsFrom") {
+      if (Number(value) % 30 !== 0) return;
+      return setPushLogsFromMinutes(Number(value));
     }
   }, []);
 
@@ -72,9 +80,10 @@ const SettingButton = memo(function SettingButton() {
           addonAfter={"minutes from now"}
           placeholder={"Ex: 30"}
           step={30}
-          min={0}
+          min={30}
           max={4320} // 72 hours, 3 days
           onChange={onChange}
+          value={pushLogsFromMinutes}
         />
       </Modal>
     </>
