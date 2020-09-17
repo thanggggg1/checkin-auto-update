@@ -1,6 +1,7 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getStore } from "../storeAccess";
 import { getPushedRecordIdSet } from "../pushedRecords";
+import { getCheckinCodesSet } from "../settings/checkinCodes";
 
 export interface AttendanceRecord {
   id: string;
@@ -31,8 +32,11 @@ export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
   getStore().dispatch(actions.addRecords(records));
 };
 
-export const recordsSelector = (state: any) => state.records as Record<string, AttendanceRecord>;
-export const recordsArrSelector = createSelector(recordsSelector, res => Object.values(res));
+export const recordsSelector = (state: any) =>
+  state.records as Record<string, AttendanceRecord>;
+export const recordsArrSelector = createSelector(recordsSelector, (res) =>
+  Object.values(res)
+);
 export const getAllRecordsArr = () => recordsArrSelector(getStore().getState());
 
 export const clearAttendanceRecords = () =>
@@ -51,6 +55,10 @@ export const filterRecords = (
     ? getPushedRecordIdSet()
     : new Set<string>();
 
+  const checkinCodes = options?.onlyInEmployeeCheckinCodes
+    ? getCheckinCodesSet()
+    : new Set<number>();
+
   return records.filter((record) => {
     // onlyNotPushed
     if (options?.onlyNotPushed && pushedIdSet.has(record.id)) return false;
@@ -62,7 +70,12 @@ export const filterRecords = (
     // endTime
     if (options?.endTime && record.timestamp > options.endTime) return false;
 
-    // @todo onlyInEmployeeCheckinCodes
+    // checkinCodes
+    if (
+      options?.onlyInEmployeeCheckinCodes &&
+      checkinCodes.has(Number(record.uid))
+    )
+      return true;
 
     return true;
   });

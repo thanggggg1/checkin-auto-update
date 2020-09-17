@@ -6,6 +6,7 @@ import moment from "moment";
 import { addPushedRecords } from "../store/pushedRecords";
 import _ from "lodash";
 import { setPushingPercent } from "../store/settings/pushingPercent";
+import { setCheckinCodes } from "../store/settings/checkinCodes";
 
 axios.defaults.baseURL = "https://base.vn";
 axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -81,6 +82,24 @@ const Fetch = {
       }
       throw e;
     }
+  },
+
+  requestCheckinCodes: async function () {
+    const token = getToken();
+
+    if (!token.token) throw new Error('INVALID TOKEN');
+
+    const {data} = await this.post<{checkin_codes: string[]}>(
+      '@checkin/v1/client/checkin_codes',
+      {
+        client_token: token.token,
+        client_password: token.password,
+      },
+    );
+
+    setCheckinCodes(data.checkin_codes.map(Number));
+
+    return data.checkin_codes;
   },
 
   realtimePush: async function (record: AttendanceRecord) {

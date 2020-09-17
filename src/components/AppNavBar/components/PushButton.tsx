@@ -13,6 +13,7 @@ const PushButton = memo(function PushButton() {
     await Fetch.massPushSplitByChunks(
       filterRecords(getAllRecordsArr(), {
         onlyNotPushed: true,
+        onlyInEmployeeCheckinCodes: true
       })
     );
   }, []);
