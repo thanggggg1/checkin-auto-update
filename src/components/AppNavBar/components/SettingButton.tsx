@@ -6,14 +6,24 @@ import {
   setAutoPushLogsMinutes,
   useAutoPushLogsMinutes,
 } from "../../../store/settings/autoPush";
+import {
+  setAutoSyncLogsMinutes,
+  useAutoSyncLogsMinutes,
+} from "../../../store/settings/autoSync";
 
 const SettingButton = memo(function SettingButton() {
   const [isVisible, show, hide] = useBoolean();
 
+  const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
 
   const onChange = useCallback((event: SyntheticEvent<HTMLInputElement>) => {
     const { name, value } = event.currentTarget;
+
+    if (name === "autoSyncMinutes") {
+      if (Number(value) % 15 !== 0) return;
+      return setAutoSyncLogsMinutes(Number(value));
+    }
 
     if (name === "autoPushMinutes") {
       if (Number(value) % 15 !== 0) return;
@@ -37,6 +47,7 @@ const SettingButton = memo(function SettingButton() {
           min={0}
           max={4320} // 72 hours, 3 days
           onChange={onChange}
+          value={autoSyncLogsMinutes}
         />
         <br />
         <br />
