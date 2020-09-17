@@ -12,6 +12,9 @@ const {reducer, actions} = createSlice({
       action.payload.map((recordId) => set.add(recordId));
       return Array.from(set);
     },
+    reset() {
+      return initialState;
+    }
   },
 });
 
@@ -29,6 +32,8 @@ export const getPushedRecordIdSet = () => {
 export const addPushedRecords = (recordIds: string[]) => {
   return getStore().dispatch(actions.addPushedRecords(recordIds));
 }
+
+export const resetPushedRecords = () => getStore().dispatch(actions.reset());
 
 export {
   reducer as pushedRecordsReducer

@@ -12,6 +12,10 @@ import {
   setAutoSyncLogsMinutes,
   useAutoSyncLogsMinutes,
 } from "../../../store/settings/autoSync";
+import ClearRecordsButton from "./ClearRecordsButton";
+import ClearPushedEvidentsButton from "./ClearPushedEvidentsButton";
+import ButtonGroup from "antd/es/button/button-group";
+import UpdateCheckinCodesButton from "./UpdateCheckinCodesButton";
 
 const SettingButton = memo(function SettingButton() {
   const [isVisible, show, hide] = useBoolean();
@@ -44,7 +48,13 @@ const SettingButton = memo(function SettingButton() {
       <Button onClick={show}>
         <SettingOutlined /> Settings
       </Button>
-      <Modal visible={isVisible} onCancel={hide} onOk={hide} title={"Settings"}>
+      <Modal
+        visible={isVisible}
+        onCancel={hide}
+        onOk={hide}
+        title={"Settings"}
+        width={560}
+      >
         <Input
           name={"autoSyncMinutes"}
           addonBefore={"Auto sync every"}
@@ -85,6 +95,15 @@ const SettingButton = memo(function SettingButton() {
           onChange={onChange}
           value={pushLogsFromMinutes}
         />
+
+        <br />
+        <br />
+
+        <ButtonGroup>
+          <UpdateCheckinCodesButton />
+          <ClearRecordsButton />
+          <ClearPushedEvidentsButton />
+        </ButtonGroup>
       </Modal>
     </>
   );
