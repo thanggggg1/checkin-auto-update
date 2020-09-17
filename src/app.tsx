@@ -8,6 +8,7 @@ import { persistor, store } from "./store";
 import RecordsTable from "./components/RecordsTable";
 import AppNavBar from "./components/AppNavBar";
 import { PersistGate } from "redux-persist/integration/react";
+import AutoTasks from "./components/AutoTasks";
 
 const _App = memo(function App() {
   return (
@@ -16,6 +17,7 @@ const _App = memo(function App() {
         <AppNavBar />
         <DevicesRow />
         <RecordsTable />
+        <AutoTasks />
       </PersistGate>
     </Provider>
   );
