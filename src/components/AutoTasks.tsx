@@ -6,11 +6,15 @@ import {
 } from "../store/settings/autoSync";
 import {
   getLastAutoPushLogsTime,
+  getPushLogsFromMinutes,
   setLastAutoPushLogsTime,
   useAutoPushLogsMinutes,
   usePushLogsFromMinutes,
 } from "../store/settings/autoPush";
 import { Events, events } from "../utils/events";
+import Fetch from "../utils/Fetch";
+import { filterRecords, getAllRecordsArr } from "../store/records";
+import moment from "moment";
 
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 
@@ -44,7 +48,7 @@ export const AutoTasks = memo(function AutoTasks() {
       /**
        * AUTO PUSH
        */
-      (() => {
+      (async () => {
         if (autoPushLogsMinutes === 0) return;
 
         const lastAutoPushLogsTime = getLastAutoPushLogsTime();
@@ -54,7 +58,14 @@ export const AutoTasks = memo(function AutoTasks() {
         // start auto push
         console.log("fire autoPush");
 
-        // @todo
+        await Fetch.massPushSplitByChunks(
+          filterRecords(getAllRecordsArr(), {
+            startTime: moment()
+              .subtract(getPushLogsFromMinutes(), "minutes")
+              .valueOf(),
+            onlyNotPushed: true,
+          })
+        );
 
         // save last auto push
         setLastAutoPushLogsTime(Date.now());
