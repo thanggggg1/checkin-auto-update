@@ -130,6 +130,9 @@ const Fetch = {
   },
 
   massPush: async function (records: AttendanceRecord[]) {
+    const token = getToken();
+    if (!token.token) return;
+
     interface MassPushLog {
       user_code: string | number;
       dates: {
@@ -182,7 +185,6 @@ const Fetch = {
       });
     });
 
-    const token = getToken();
     try {
       const { data } = await this.post<{
         data: {
