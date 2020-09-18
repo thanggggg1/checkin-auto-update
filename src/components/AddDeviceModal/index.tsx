@@ -8,6 +8,7 @@ import React, {
 import { Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, syncDevices } from "../../store/devices";
+import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
 
 const defaultValue: Device = {
   name: "",
@@ -22,6 +23,7 @@ export interface AddDeviceModalProps extends ModalProps {
 const AddDeviceModal = memo(function AddDeviceModal(
   props: AddDeviceModalProps
 ) {
+  useLanguage();
   const [device, setDevice] = useState<Device>(defaultValue);
 
   const values = useMemo(() => {
@@ -51,7 +53,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
 
     if (!device.ip || !device.name || !device.port) {
       return Modal.error({
-        title: "Please enter all required fields",
+        title: t('please_enter_all_required_fields'),
+        ...antdModalLanguageProps
       });
     }
 
@@ -61,7 +64,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
       )
     ) {
       return Modal.error({
-        title: "Please enter an valid IP address",
+        title: t('please_enter_an_valid_ip_address'),
+        ...antdModalLanguageProps
       });
     }
 
@@ -70,26 +74,26 @@ const AddDeviceModal = memo(function AddDeviceModal(
   }, [device, props.onClose]);
 
   return (
-    <Modal title={"Add device"} onOk={onOk} {...props}>
+    <Modal title={t('add_device')} onOk={onOk} {...props} {...antdModalLanguageProps}>
       <Input
-        addonBefore={"Device name"}
-        placeholder={"Ex: Main door attendance machine"}
+        addonBefore={t('device_name')}
+        placeholder={t('device_name_placeholder')}
         value={device.name}
         onChange={values.onNameChange}
       />
       <br />
       <br />
       <Input
-        addonBefore={"Device IP"}
-        placeholder={"Ex: 192.168.0.5, 10.20.0.4"}
+        addonBefore={t('device_ip')}
+        placeholder={t('device_ip_placeholder')}
         value={device.ip}
         onChange={values.onIpChange}
       />
       <br />
       <br />
       <Input
-        addonBefore={"Device Port"}
-        placeholder={"Default port is 4370"}
+        addonBefore={t('device_port')}
+        placeholder={t('device_port_placeholder')}
         value={device.port}
         onChange={values.onPortChange}
       />

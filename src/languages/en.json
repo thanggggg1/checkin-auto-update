@@ -52,5 +52,9 @@
   "clear_records_confirm_title": "Are you sure to clear all records?",
   "clear_records_confirm_description": "This action just clear all records in this application only, the data in your attendance machine or uploaded data won't be affected",
   "clear_pushed_evidents_confirm_title": "Are you sure to clear all pushed evidents?",
-  "clear_pushed_evidents_confirm_desc": "Pushed evidents are that check if a log is pushed to server or not. This action won't affect your attendance data, but your next push maybe more slower."
+  "clear_pushed_evidents_confirm_desc": "Pushed evidents are that check if a log is pushed to server or not. This action won't affect your attendance data, but your next push maybe more slower.",
+  "unknown": "Unknown",
+  "please_enter_all_required_fields": "Please enter all required fields",
+  "please_enter_an_valid_ip_address": "Please enter an valid IP address",
+  "device_port_placeholder": "Default port is 4370"
 }

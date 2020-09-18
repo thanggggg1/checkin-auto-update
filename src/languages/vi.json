@@ -52,5 +52,9 @@
   "clear_records_confirm_title": "Bạn có chắc chắn muốn xóa tất cả bản ghi?",
   "clear_records_confirm_description": "Hành động này chỉ xóa các bản ghi trên ứng dụng này, các dữ liệu trên máy chấm công và dữ liệu trên Base HRM sẽ không bị ảnh hưởng",
   "clear_pushed_evidents_confirm_title": "Bạn có chắc muốn xóa tất cả bằng chứng đẩy",
-  "clear_pushed_evidents_confirm_desc": "Bằng chứng đẩy là những dữ liệu được ghi lại nhằm kiểm tra xem các bản ghi đã được đẩy lên máy chủ hay chưa. Việc xóa bằng chứng này không làm ảnh hưởng tới dữ liệu chấm công của bạn. Tuy nhiên, có thể khiến lần đẩy tiếp theo sẽ chậm hơn bình thường."
+  "clear_pushed_evidents_confirm_desc": "Bằng chứng đẩy là những dữ liệu được ghi lại nhằm kiểm tra xem các bản ghi đã được đẩy lên máy chủ hay chưa. Việc xóa bằng chứng này không làm ảnh hưởng tới dữ liệu chấm công của bạn. Tuy nhiên, có thể khiến lần đẩy tiếp theo sẽ chậm hơn bình thường.",
+  "unknown": "Không rõ",
+  "please_enter_all_required_fields": "Vui lòng điền tất cả các trường bắt buộc",
+  "please_enter_an_valid_ip_address": "Vui lòng nhập địa chỉ IP đúng định dạng",
+  "device_port_placeholder": "Cổng mặc định là 4370"
 }

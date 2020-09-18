@@ -1,9 +1,10 @@
 import React, { memo, useMemo, useState } from "react";
-import { Button, Col, Row } from "antd";
+import { Button, Row } from "antd";
 import AddDeviceModal from "../AddDeviceModal";
 import { useDevicesRecord } from "../../store/devices";
 import DeviceItem from "./DeviceItem";
 import { styled } from "../../global";
+import { t, useLanguage } from "../../store/settings/languages";
 
 const Wrapper = styled(Row)`
   flex-wrap: nowrap;
@@ -22,6 +23,7 @@ const AddButton = styled(Button)`
 `;
 
 const DevicesRow = memo(function DevicesRow() {
+  useLanguage();
   const [isAddDeviceModalVisible, setAddDeviceModalVisible] = useState(false);
   const devices = useDevicesRecord();
 
@@ -39,7 +41,7 @@ const DevicesRow = memo(function DevicesRow() {
           return <DeviceItem key={device.ip} device={device} />;
         })}
         <AddButton type={"dashed"} onClick={values.openModal}>
-          + Add device
+          + {t("add_device")}
         </AddButton>
       </Wrapper>
       <AddDeviceModal

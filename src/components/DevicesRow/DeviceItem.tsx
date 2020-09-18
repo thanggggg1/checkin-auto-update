@@ -5,6 +5,7 @@ import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
 import { ConnectionState, DeviceProvider, useCurrentDevice } from "./context";
 import SyncTag from "./tags/SyncTag";
+import { t, useLanguage } from "../../store/settings/languages";
 
 const Wrapper = styled(Card)`
   flex: 0 0 220px;
@@ -26,6 +27,7 @@ const TagsWrapper = styled.div`
 `;
 
 const DeviceInfo = memo(function DeviceInfo() {
+  useLanguage();
   const { device, connectionState, freeSizes } = useCurrentDevice();
 
   return (
@@ -33,24 +35,24 @@ const DeviceInfo = memo(function DeviceInfo() {
       <InfoRow>IP: {device.ip}</InfoRow>
       <InfoRow>
         {[
-          (freeSizes.logs || 0) + " logs",
-          (freeSizes.users || 0) + " users",
+          t('logs', {count: freeSizes.logs || 0}),
+          t('users', {count: freeSizes.users || 0}),
           Math.floor(
             ((freeSizes.logs || 0) / (freeSizes.capacity || 1)) * 10000
           ) /
             100 +
-            "% used",
+            "% " + t('used'),
         ].join(" - ")}
       </InfoRow>
       <InfoRow>
-        Status:{" "}
+        {t('status')}:{" "}
         {(() => {
           if (connectionState === ConnectionState.CONNECTED) return "Connected";
           if (connectionState === ConnectionState.CONNECTING)
-            return "Connecting";
+            return t('connecting');
           if (connectionState === ConnectionState.DISCONNECTED)
-            return "Disconnected";
-          return "Unknown";
+            return t('connected');
+          return t('unknown');
         })()}
       </InfoRow>
 
