@@ -1,4 +1,4 @@
-import React, { memo, SyntheticEvent, useCallback } from "react";
+import React, { memo, SyntheticEvent, useCallback, useMemo } from "react";
 import { Button, Modal, Input } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
 import useBoolean from "../../../hooks/useBoolean";
@@ -6,16 +6,19 @@ import {
   setAutoPushLogsMinutes,
   setPushLogsFromMinutes,
   useAutoPushLogsMinutes,
+  useLastAutoPushLogsTime,
   usePushLogsFromMinutes,
 } from "../../../store/settings/autoPush";
 import {
   setAutoSyncLogsMinutes,
   useAutoSyncLogsMinutes,
+  useLastAutoSyncLogsTime,
 } from "../../../store/settings/autoSync";
 import ClearRecordsButton from "./ClearRecordsButton";
 import ClearPushedEvidentsButton from "./ClearPushedEvidentsButton";
 import ButtonGroup from "antd/es/button/button-group";
 import UpdateCheckinCodesButton from "./UpdateCheckinCodesButton";
+import moment from "moment";
 
 const SettingButton = memo(function SettingButton() {
   const [isVisible, show, hide] = useBoolean();
@@ -23,6 +26,29 @@ const SettingButton = memo(function SettingButton() {
   const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
   const pushLogsFromMinutes = usePushLogsFromMinutes();
+
+  const lastAutoSyncLogsTime = useLastAutoSyncLogsTime();
+  const lastAutoSyncLogsMoment = useMemo(() => moment(lastAutoSyncLogsTime), [
+    lastAutoSyncLogsTime,
+  ]);
+  const willAutoSyncAtMoment = useMemo(
+    () => lastAutoSyncLogsMoment.clone().add(autoSyncLogsMinutes, "minutes"),
+    [lastAutoSyncLogsMoment, autoSyncLogsMinutes]
+  );
+
+  const lastAutoPushLogsTime = useLastAutoPushLogsTime();
+  const lastAutoPushLogsMoment = useMemo(() => moment(lastAutoPushLogsTime), [
+    lastAutoPushLogsTime,
+  ]);
+  const willAutoPushAtMoment = useMemo(
+    () => lastAutoPushLogsMoment.clone().add(autoPushLogsMinutes, "minutes"),
+    [lastAutoPushLogsMoment, autoPushLogsMinutes]
+  );
+
+  const willPushLogsFromMoment = useMemo(
+    () => willAutoPushAtMoment.clone().subtract(pushLogsFromMinutes, "minutes"),
+    [willAutoPushAtMoment, pushLogsFromMinutes]
+  );
 
   const onChange = useCallback((event: SyntheticEvent<HTMLInputElement>) => {
     const { name, value } = event.currentTarget;
@@ -68,6 +94,15 @@ const SettingButton = memo(function SettingButton() {
           value={autoSyncLogsMinutes}
         />
         <br />
+        <span>
+          Last auto sync: {lastAutoSyncLogsMoment.format("HH:mm:ss DD/MM/YYYY")}
+        </span>
+        <br />
+        <span>
+          The next auto sync is:{" "}
+          {willAutoSyncAtMoment.format("HH:mm:ss DD/MM/YYYY")}
+        </span>
+        <br />
         <br />
         <Input
           name={"autoPushMinutes"}
@@ -82,6 +117,15 @@ const SettingButton = memo(function SettingButton() {
           value={autoPushLogsMinutes}
         />
         <br />
+        <span>
+          Last auto push: {lastAutoPushLogsMoment.format("HH:mm:ss DD/MM/YYYY")}
+        </span>
+        <br />
+        <span>
+          The next auto push is:{" "}
+          {willAutoPushAtMoment.format("HH:mm:ss DD/MM/YYYY")}
+        </span>
+        <br />
         <br />
         <Input
           name={"pushLogsFrom"}
@@ -95,7 +139,10 @@ const SettingButton = memo(function SettingButton() {
           onChange={onChange}
           value={pushLogsFromMinutes}
         />
-
+        <span>
+          Logs from {willPushLogsFromMoment.format("HH:mm:ss DD/MM/YYYY")} to
+          now will be pushed in the next auto push
+        </span>
         <br />
         <br />
 

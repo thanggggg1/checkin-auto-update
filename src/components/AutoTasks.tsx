@@ -19,7 +19,7 @@ import moment from "moment";
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 
 const useAutoFetchCheckinCodes = () => {
-  const {token} = Fetch.useToken();
+  const { token } = Fetch.useToken();
 
   useEffect(() => {
     if (!token) return;
@@ -27,13 +27,16 @@ const useAutoFetchCheckinCodes = () => {
     Fetch.requestCheckinCodes();
 
     // Auto request every 12 hours
-    const interval = setInterval(Fetch.requestCheckinCodes, 12 * 60 * 60 * 1000);
+    const interval = setInterval(
+      Fetch.requestCheckinCodes,
+      12 * 60 * 60 * 1000
+    );
 
     return () => {
       clearInterval(interval);
-    }
+    };
   }, [token]);
-}
+};
 
 export const AutoTasks = memo(function AutoTasks() {
   const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
@@ -93,7 +96,7 @@ export const AutoTasks = memo(function AutoTasks() {
     return () => {
       clearInterval(interval);
     };
-  }, [autoPushLogsMinutes, autoPushLogsMinutes, pushLogsFromMinutes]);
+  }, [autoSyncLogsMinutes, autoPushLogsMinutes, pushLogsFromMinutes]);
 
   useAutoFetchCheckinCodes();
 
