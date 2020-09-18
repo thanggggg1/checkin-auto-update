@@ -6,6 +6,8 @@ export interface Device {
   name: string;
   port: number;
   connection: "tcp" | "udp";
+  inport?: number;
+  timeout?: number;
 }
 
 export const {

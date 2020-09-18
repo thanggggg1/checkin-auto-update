@@ -1,22 +1,13 @@
 import React, { memo } from "react";
 import { Tag } from "antd";
-import { SyncState, useCurrentDevice } from "../context";
+import { useCurrentDevice } from "../context";
 
 const SyncTag = memo(function SyncTag() {
-  const { syncState, syncPercent } = useCurrentDevice();
+  const { syncPercent } = useCurrentDevice();
 
-  if (syncState === SyncState.NOT_STARTED) return null;
-  return (
-    <Tag>
-      Sync:{" "}
-      {(() => {
-        if (syncState === SyncState.PROCESSING) return "Processing";
-        if (syncState === SyncState.GETTING_DATA)
-          return `Getting data: ${syncPercent}%`;
-        return "";
-      })()}
-    </Tag>
-  );
+  if (syncPercent === 0) return null;
+
+  return <Tag>Sync: ${syncPercent}%</Tag>;
 });
 
 export default SyncTag;

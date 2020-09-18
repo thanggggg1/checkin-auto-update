@@ -1,161 +1,195 @@
 import constate from "constate";
 import { deleteDevices, Device } from "../../store/devices";
-import ZK from "../../packages/js_zklib/ZK";
-import { useCallback, useEffect, useState } from "react";
-import { useAsyncFn, useUpdateEffect } from "react-use";
+import ZK, { ZKFreeSizes } from "../../packages/js_zklib/ZK";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAsyncFn } from "react-use";
 import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
 import moment from "moment";
 import Fetch from "../../utils/Fetch";
-
-export enum SyncState {
-  NOT_STARTED,
-  GETTING_DATA,
-  PROCESSING,
-}
+import useAsyncEffect from "../../utils/useAsyncEffect";
 
 export enum ConnectionState {
-  PENDING,
-  CONNECTED,
-  CLOSED,
-  REFUSED,
-  HOSTDOWN,
-  TIMEOUT,
-  RESET,
-  EHOSTUNREACH,
+  DISCONNECTED = 0,
+  CONNECTING = 1,
+  CONNECTED = 2,
 }
 
 const useDeviceValue = ({ device }: { device: Device }) => {
-  const [state, setState] = useState(ConnectionState.PENDING);
-  const [syncState, setSyncState] = useState<SyncState>(SyncState.NOT_STARTED);
-  const [realtimeState, setRealtimeState] = useState("Pending");
+  const [connectionState, setConnectionState] = useState<ConnectionState>(
+    ConnectionState.DISCONNECTED
+  );
   const [syncPercent, setSyncPercent] = useState(0);
-  const [connection, setConnection] = useState<ZK>(() => {
-    return new ZK({
-      port: device.port || "4370",
-      connectionType: device.connection || "tcp",
-      timeout: 5000,
-      inport: device.inport || 5200,
-      ip: device.ip,
-    });
+  const [freeSizes, setFreeSizes] = useState<ZKFreeSizes>({
+    capacity: 0,
+    logs: 0,
+    users: 0,
   });
 
-  useUpdateEffect(() => {
-    setConnection(
-      new ZK({
-        port: device.port || 4370,
-        connectionType: device.connection || "tcp",
-        timeout: 5000,
-        inport: device.inport || 5200,
-        ip: device.ip,
+  const connection = useMemo(() => {
+    return new ZK({
+      ip: device.ip,
+      timeout: device.timeout || 3000,
+      inport: device.inport || 5200,
+      port: device.port,
+      connectionType: device.connection,
+    });
+  }, [device]);
+
+  /**
+   * CONNECT
+   */
+  const {
+    loading: connecting,
+    error: connectError,
+    value: cancelFn,
+    call: connect,
+  } = useAsyncEffect(async () => {
+    await connection.connect();
+    setConnectionState(ConnectionState.CONNECTED);
+  }, [connection]);
+
+  useAutoAlertError(connectError);
+
+  const canSendRequest =
+    !connecting &&
+    !connectError &&
+    connectionState === ConnectionState.CONNECTED;
+
+  /**
+   * DISABLE
+   */
+  const [
+    { loading: isDisabling, error: disableError },
+    disableDevice,
+  ] = useAsyncFn(async () => {
+    if (!canSendRequest) {
+      throw new Error("Socket is not connected");
+    }
+
+    await connection.disableDevice();
+  }, [canSendRequest, connection]);
+
+  useAutoAlertError(disableError);
+
+  /**
+   * ENABLE
+   */
+  const [{ error: enableError }, enableDevice] = useAsyncFn(async () => {
+    if (!canSendRequest) {
+      throw new Error("Socket is not connected");
+    }
+
+    await connection.enableDevice();
+  }, [connection, canSendRequest]);
+
+  useAutoAlertError(enableError);
+
+  /**
+   * SYNC ATTENDANCES
+   */
+  const [
+    {
+      value: attendances,
+      loading: isGettingAttendances,
+      error: getAttendancesError,
+    },
+    syncAttendances,
+  ] = useAsyncFn(async () => {
+    console.log("start syncing", canSendRequest);
+    setSyncPercent(0);
+
+    if (!canSendRequest) {
+      throw new Error("Socket is not connected");
+    }
+
+    await disableDevice();
+
+    const attendances = await connection.getAttendance((current, total) => {
+      setSyncPercent(Math.floor((current / total) * 10000) / 100);
+    });
+
+    setSyncPercent(0);
+
+    await enableDevice();
+
+    syncAttendanceRecords(
+      attendances.map((raw) => {
+        const mm = moment(raw.timestamp);
+        return {
+          uid: Number(raw.id),
+          timestamp: mm.valueOf(),
+          id: `${raw.id}_${mm.valueOf()}`,
+          dateFormatted: mm.format("DD/MM/YYYY"),
+          deviceIp: device.ip,
+          timeFormatted: mm.format("HH:mm"),
+        };
       })
     );
-  }, [device.ip, device.port, device.connection, device.inport]);
 
+    return attendances;
+  }, [connection, canSendRequest, disableDevice, enableDevice, device.ip]);
+
+  useAutoAlertError(getAttendancesError);
+
+  /**
+   * REALTIME
+   */
   useEffect(() => {
-        connection
-          .connect()
-          .then(async () => {
-            setState(ConnectionState.CONNECTED);
+    if (!canSendRequest) return;
 
-            connection.startMon({
-              start: (err) => {
-                if (err) return setRealtimeState("Timed out");
-                setRealtimeState("Started");
-              },
-              onatt: (log) => {
-                console.log("onatt", log);
-                const mm = moment(log.time);
+    const start = connection.startMon({
+      start: (err) => {
+        console.log("start mon err", err);
+      },
+      onatt: (ret) => {
+        const mm = moment(ret.time);
+        const log: AttendanceRecord = {
+          uid: Number(ret.userId),
+          timestamp: mm.valueOf(),
+          id: `${ret.userId}_${mm.valueOf()}`,
+          dateFormatted: mm.format("DD/MM/YYYY"),
+          deviceIp: device.ip,
+          timeFormatted: mm.format("HH:mm"),
+        };
 
-                const record: AttendanceRecord = {
-                  dateFormatted: mm.format("DD/MM/YYYY"),
-                  timeFormatted: mm.format("HH:mm"),
-                  deviceIp: device.ip,
-                  timestamp: mm.valueOf(),
-                  uid: log.userId,
-                  id: `${log.userId}_${mm.valueOf()}`,
-                };
+        Fetch.realtimePush(log);
 
-                syncAttendanceRecords([record]);
-
-                Fetch.realtimePush(record);
-              },
-            });
-          })
-          .catch((e) => {
-            console.log("first connection error: " + device.ip, e);
-          });
+        syncAttendanceRecords([log]);
+      },
+    });
 
     return () => {
-      connection.disconnect();
+      start();
     };
-  }, []);
+  }, [connection, canSendRequest, device.ip]);
 
-  const [{ error }, syncAttendances] = useAsyncFn(async () => {
-    if (state !== ConnectionState.CONNECTED) return;
-    try {
-      setSyncState(SyncState.GETTING_DATA);
-
-      await connection.disableDevice();
-
+  /**
+   * FREE SIZES
+   */
+  useEffect(() => {
+    const handler = async () => {
       // @ts-ignore
-      const attendances = await connection.zklib.getAttendances(
-        (current: number, total: number) => {
-          setSyncPercent(Math.round((current * 100) / total));
-        }
-      );
+      if (!connection.zklib?.socket?.writable) {
+        setConnectionState(ConnectionState.DISCONNECTED);
+        return;
+      }
+      try {
+        const freeSizes = await connection.getFreeSizes();
+        setFreeSizes(freeSizes);
+      } catch (e) {
+        console.log("get free sizes error", e);
+        setConnectionState(ConnectionState.DISCONNECTED);
+      }
+    };
 
-      await connection.enableDevice();
+    const interval = setInterval(handler, 5000);
 
-      setSyncState(SyncState.PROCESSING);
-      syncAttendanceRecords(
-        // @ts-ignore
-        attendances.data.map((attendance) => {
-          const mm = moment(attendance.recordTime);
-          return {
-            id: `${attendance.deviceUserId}_${mm.valueOf()}`,
-            uid: attendance.deviceUserId,
-            deviceIp: attendance.ip,
-            timestamp: attendance.recordTime.valueOf(),
-            timeFormatted: mm.format("HH:mm"),
-            dateFormatted: mm.format("DD/MM/YYYY"),
-          };
-        })
-      );
-      requestAnimationFrame(() => {
-        setSyncState(SyncState.NOT_STARTED);
-      });
-
-      connection.enableDevice();
-    } catch (e) {
-      connection.enableDevice();
-      requestAnimationFrame(() => {
-        setSyncState(SyncState.NOT_STARTED);
-      });
-      throw e;
-    }
-  }, [connection, state, device]);
-
-  useAutoAlertError(error);
-
-  // Update free space continuously
-  // useAsync(async () => {
-  //   const interval = setIntervalAsync(async () => {
-  //     try {
-  //       if (latestState.current !== ConnectionState.CONNECTED) return;
-  //       console.log("start getting freesizes", device.ip);
-  //       const freeSizes = await connection.getFreeSizes();
-  //       console.log("freeSizes", freeSizes);
-  //     } catch (e) {
-  //       setState(ConnectionState.PENDING);
-  //     }
-  //   }, 5000);
-  //
-  //   return () => {
-  //     clearIntervalAsync(interval);
-  //   };
-  // }, [connection]);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [canSendRequest, connection]);
 
   useEffect(() => {
     events.on(Events.MASS_SYNC, syncAttendances);
@@ -164,17 +198,26 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     };
   }, [syncAttendances]);
 
-  const enableDevice = useCallback(() => {
-    return connection.enableDevice();
-  }, [connection]);
+  /**
+   * AUTO RECONNECT
+   */
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("start reconnect", connecting, connectionState);
+      if (connecting) return;
+      if (
+        connectionState === ConnectionState.CONNECTED ||
+        connectionState === ConnectionState.CONNECTING
+      )
+        return;
 
-  const disableDevice = useCallback(() => {
-    return connection.disableDevice();
-  }, [connection]);
+      connect();
+    }, 5000);
 
-  const reconnect = useCallback(() => {
-    return connection.connect();
-  }, [connection]);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [connectionState, connecting, connect]);
 
   const deleteDevice = useCallback(() => {
     deleteDevices([device.ip]);
@@ -183,15 +226,14 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   return {
     device,
     connection,
-    syncState,
     syncAttendances,
-    state,
-    realtimeState,
+    connectionState,
     enableDevice,
     disableDevice,
-    reconnect,
+    reconnect: connect,
     deleteDevice,
     syncPercent,
+    freeSizes,
   };
 };
 

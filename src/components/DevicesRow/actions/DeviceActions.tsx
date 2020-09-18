@@ -1,12 +1,11 @@
 import React, { memo, useCallback } from "react";
 import { Menu, Modal } from "antd";
-import { ConnectionState, SyncState, useCurrentDevice } from "../context";
+import { ConnectionState, useCurrentDevice } from "../context";
 
 const DeviceActions = memo(function DeviceActions(props) {
   const {
     syncAttendances,
-    syncState,
-    state,
+    connectionState,
     enableDevice,
     disableDevice,
     reconnect,
@@ -24,27 +23,26 @@ const DeviceActions = memo(function DeviceActions(props) {
     <Menu {...props}>
       <Menu.Item
         disabled={
-          syncState !== SyncState.NOT_STARTED ||
-          state !== ConnectionState.CONNECTED
+          connectionState !== ConnectionState.CONNECTED
         }
         onClick={syncAttendances}
       >
         <span>Sync attendances</span>
       </Menu.Item>
       <Menu.Item
-        disabled={state !== ConnectionState.CONNECTED}
+        disabled={connectionState !== ConnectionState.CONNECTED}
         onClick={enableDevice}
       >
         <span>Enable</span>
       </Menu.Item>
       <Menu.Item
-        disabled={state !== ConnectionState.CONNECTED}
+        disabled={connectionState !== ConnectionState.CONNECTED}
         onClick={disableDevice}
       >
         <span>Disable</span>
       </Menu.Item>
       <Menu.Item
-        disabled={state !== ConnectionState.CLOSED}
+        disabled={connectionState !== ConnectionState.DISCONNECTED}
         onClick={reconnect}
       >
         <span>Reconnect</span>

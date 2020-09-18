@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Device } from "../../store/devices";
-import { Card, Popover } from "antd";
+import { Card } from "antd";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
 import { ConnectionState, DeviceProvider, useCurrentDevice } from "./context";
@@ -26,53 +26,33 @@ const TagsWrapper = styled.div`
 `;
 
 const DeviceInfo = memo(function DeviceInfo() {
-  const { device, state, realtimeState } = useCurrentDevice();
+  const { device, connectionState, freeSizes } = useCurrentDevice();
 
   return (
     <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
       <InfoRow>IP: {device.ip}</InfoRow>
-      <Popover
-        content={
-          <div>
-            <p>
-              Pending: This app is trying to connect to the device
-              <br />
-              Connected: This app is connected to this device
-              <br />
-              Closed: The connection is closed, this app will auto connect later
-              <br />
-              Refused: The device is refused this app to connect, maybe another
-              app is connected to this device
-              <br />
-              Host down: Cannot connect to the device, please check the
-              connection
-              <br />
-              Timeout: The device take so long to response, or have no response
-              at all
-              <br />
-              Connection reset: The device closed this connection.
-              <br />
-              Host unreach: Cannot reach to the device
-            </p>
-          </div>
-        }
-      >
-        <InfoRow>
-          Status:{" "}
-          {(() => {
-            if (state === ConnectionState.CONNECTED) return "Connected";
-            if (state === ConnectionState.CLOSED) return "Closed";
-            if (state === ConnectionState.REFUSED) return "Refused";
-            if (state === ConnectionState.HOSTDOWN) return "Host down";
-            if (state === ConnectionState.PENDING) return "Pending";
-            if (state === ConnectionState.TIMEOUT) return "Timed out";
-            if (state === ConnectionState.RESET) return "Connection reset";
-            if (state === ConnectionState.EHOSTUNREACH) return "Host unreach";
-            return "";
-          })()}
-        </InfoRow>
-      </Popover>
-      <InfoRow>Realtime status: {realtimeState}</InfoRow>
+      <InfoRow>
+        {[
+          (freeSizes.logs || 0) + " logs",
+          (freeSizes.users || 0) + " users",
+          Math.floor(
+            ((freeSizes.logs || 0) / (freeSizes.capacity || 1)) * 10000
+          ) /
+            100 +
+            "% used",
+        ].join(" - ")}
+      </InfoRow>
+      <InfoRow>
+        Status:{" "}
+        {(() => {
+          if (connectionState === ConnectionState.CONNECTED) return "Connected";
+          if (connectionState === ConnectionState.CONNECTING)
+            return "Connecting";
+          if (connectionState === ConnectionState.DISCONNECTED)
+            return "Disconnected";
+          return "Unknown";
+        })()}
+      </InfoRow>
 
       <TagsWrapper>
         <SyncTag />

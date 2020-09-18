@@ -1,6 +1,18 @@
 import {MonitorOptions, ZKLib} from './index';
 import Bluebird from 'bluebird';
 
+export interface RawAttendance {
+  state: number;
+  timestamp: Date;
+  id: number; // user_id
+}
+
+export interface ZKFreeSizes {
+  users: number;
+  logs: number;
+  capacity: number;
+}
+
 export default class ZK {
   zklib: ZKLib;
 
@@ -19,7 +31,7 @@ export default class ZK {
   getTime: () => Bluebird<Date>;
   setTime: (date: Date) => Bluebird<void>;
 
-  getAttendance: () => Bluebird<any[]>;
+  getAttendance: (progress?: (current: number, total: number) => void) => Bluebird<RawAttendance[]>;
   clearAttendanceLog: () => Bluebird<void[]>;
 
   delUser: (uid: string) => Bluebird<void>;
@@ -29,11 +41,7 @@ export default class ZK {
 
   enableDevice: () => Bluebird<void>;
   disableDevice: () => Bluebird<void>;
-  getFreeSizes: () => Bluebird<{
-    users: number;
-    logs: number;
-    capacity: number;
-  }>;
+  getFreeSizes: () => Bluebird<ZKFreeSizes>;
 
   constructor(options: {
     ip: string;
@@ -84,5 +92,5 @@ export default class ZK {
     return Bluebird.promisify(this.zklib[method].bind(this.zklib));
   };
 
-  startMon = (options: MonitorOptions) => this.zklib.startMon(options);
+  startMon = (options: MonitorOptions): () => void => this.zklib.startMon(options);
 }

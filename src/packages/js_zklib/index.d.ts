@@ -137,7 +137,7 @@ export class ZKLib {
    * START OF ZKMON
    */
   decodeAttLog(buf: any): any;
-  startMon(options: MonitorOptions): void; // Untested
+  startMon(options: MonitorOptions): () => void;
 
   /**
    * START OF ZKDEVICE
