@@ -3,35 +3,14 @@ import { Table } from "antd";
 import { AttendanceRecord } from "../store/records";
 import { useSelector } from "react-redux";
 import { useThrottle } from "react-use";
-
-const columns = [
-  {
-    title: "Checkin code",
-    key: "checkin-code",
-    dataIndex: "uid",
-  },
-  {
-    title: "Device",
-    key: "device",
-    dataIndex: "device",
-  },
-  {
-    title: "Time",
-    key: "time",
-    dataIndex: "time",
-  },
-  {
-    title: "Date",
-    key: "date",
-    dataIndex: "date",
-  },
-];
+import { useLanguage, t } from "../store/settings/languages";
 
 const selector = (state: any): Record<string, AttendanceRecord> =>
   state.records;
 
-
 const RecordsTable = memo(function RecordsTable() {
+  const lang = useLanguage();
+
   const records = useSelector(selector) || {};
   const recordsThrottled = useThrottle(records, 3000);
 
@@ -46,6 +25,32 @@ const RecordsTable = memo(function RecordsTable() {
         date: record.dateFormatted,
       }));
   }, [recordsThrottled]);
+
+  const columns = useMemo(
+    () => [
+      {
+        title: t("checkin_code"),
+        key: "checkin-code",
+        dataIndex: "uid",
+      },
+      {
+        title: t("device"),
+        key: "device",
+        dataIndex: "device",
+      },
+      {
+        title: t("time"),
+        key: "time",
+        dataIndex: "time",
+      },
+      {
+        title: t("date"),
+        key: "date",
+        dataIndex: "date",
+      },
+    ],
+    [lang]
+  );
 
   return <Table columns={columns} dataSource={dataSource} />;
 });
