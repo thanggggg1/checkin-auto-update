@@ -2,19 +2,19 @@ import React, { memo, useCallback } from "react";
 import { Button, Popover } from "antd";
 import { DownloadOutlined } from "@ant-design/icons/lib";
 import { Events, events } from "../../../utils/events";
+import { useLanguage, t } from "../../../store/settings/languages";
 
 const SyncButton = memo(function SyncButton() {
+  useLanguage();
+
   const onClick = useCallback(() => {
     events.emit(Events.MASS_SYNC);
   }, []);
 
   return (
-    <Popover
-      title={"Sync"}
-      content={"Download attendances from attendance device"}
-    >
+    <Popover title={t("sync")} content={t("sync_desc")}>
       <Button onClick={onClick}>
-        <DownloadOutlined /> Sync
+        <DownloadOutlined /> {t("sync")}
       </Button>
     </Popover>
   );

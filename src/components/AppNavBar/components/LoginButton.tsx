@@ -3,8 +3,14 @@ import { Button, Input, Modal } from "antd";
 import { LoginOutlined } from "@ant-design/icons/lib";
 import { useAsyncFn, useBoolean } from "react-use";
 import Fetch from "../../../utils/Fetch";
+import {
+  useLanguage,
+  t,
+  antdModalLanguageProps,
+} from "../../../store/settings/languages";
 
 const LoginButton = memo(function LoginButton() {
+  useLanguage();
   const [visible, toggle] = useBoolean(false);
   const token = useRef<string>("");
   const password = useRef<string>("");
@@ -31,20 +37,26 @@ const LoginButton = memo(function LoginButton() {
   return (
     <>
       <Button type={"primary"} icon={<LoginOutlined />} onClick={toggle}>
-        Login
+        {t("login")}
       </Button>
-      <Modal title={"Login"} visible={visible} onCancel={toggle} onOk={onOk}>
+      <Modal
+        title={t("login")}
+        visible={visible}
+        onCancel={toggle}
+        onOk={onOk}
+        {...antdModalLanguageProps}
+      >
         <Input
           addonBefore={"Token"}
-          placeholder={"Token from Checkin client"}
+          placeholder={t("token_from_checkin_client")}
           name={"token"}
           onChange={onChange}
         />
         <br />
         <br />
         <Input
-          addonBefore={"Password"}
-          placeholder={"Password from Checkin client"}
+          addonBefore={t("password")}
+          placeholder={t("password_from_checkin_client")}
           name={"password"}
           onChange={onChange}
         />
