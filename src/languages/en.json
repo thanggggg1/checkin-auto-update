@@ -38,7 +38,7 @@
   "last_auto_push": "Last auto push",
   "the_next_auto_sync_is": "The next auto sync is",
   "the_next_auto_push_is": "The next auto push is",
-  "logs_from_xxx_to_now_will_be_pushed": "Logs from {{time}} to now will be pushed in the next auto push",
+  "logs_from_xxx_to_now_will_be_pushed": "Logs from {{- time}} to now will be pushed in the next auto push",
   "password": "Password",
   "token_from_checkin_client": "Token from Checkin client",
   "password_from_checkin_client": "Password from Checkin client",
@@ -48,5 +48,9 @@
   "device_ip": "IP Address",
   "device_port": "Port",
   "device_name_placeholder": "Ex: Main door",
-  "device_ip_placeholder": "Ex: 192.168.0.5, 10.20.0.4"
+  "device_ip_placeholder": "Ex: 192.168.0.5, 10.20.0.4",
+  "clear_records_confirm_title": "Are you sure to clear all records?",
+  "clear_records_confirm_description": "This action just clear all records in this application only, the data in your attendance machine or uploaded data won't be affected",
+  "clear_pushed_evidents_confirm_title": "Are you sure to clear all pushed evidents?",
+  "clear_pushed_evidents_confirm_desc": "Pushed evidents are that check if a log is pushed to server or not. This action won't affect your attendance data, but your next push maybe more slower."
 }

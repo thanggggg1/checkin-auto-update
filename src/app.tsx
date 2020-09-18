@@ -9,6 +9,9 @@ import RecordsTable from "./components/RecordsTable";
 import AppNavBar from "./components/AppNavBar";
 import { PersistGate } from "redux-persist/integration/react";
 import AutoTasks from "./components/AutoTasks";
+import { initI18next } from "./store/settings/languages";
+
+initI18next();
 
 const _App = memo(function App() {
   return (

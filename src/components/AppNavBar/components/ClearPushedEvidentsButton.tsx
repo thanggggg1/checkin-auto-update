@@ -2,21 +2,29 @@ import React, { memo, useCallback } from "react";
 import { Button, Modal } from "antd";
 import { DeleteOutlined } from "@ant-design/icons/lib";
 import { resetPushedRecords } from "../../../store/pushedRecords";
+import {
+  antdModalLanguageProps,
+  t,
+  useLanguage,
+} from "../../../store/settings/languages";
 
 const ClearPushedEvidentsButton = memo(function ClearPushedEvidentsButton() {
+  useLanguage();
+
   const onPress = useCallback(() => {
     Modal.confirm({
-      title: "Are you sure to clear all pushed evidents",
-      content: "The next time you push may be slower than normal",
+      title: t("clear_pushed_evidents_confirm_title"),
+      content: t("clear_pushed_evidents_confirm_desc"),
       onOk: () => {
         resetPushedRecords();
       },
       okCancel: true,
+      ...antdModalLanguageProps,
     });
   }, []);
   return (
     <Button onClick={onPress} danger>
-      <DeleteOutlined /> Clear pushed evidents
+      <DeleteOutlined /> {t("clear_pushed_evidents")}
     </Button>
   );
 });

@@ -38,7 +38,7 @@
   "last_auto_push": "Lần tự đẩy gần nhất",
   "the_next_auto_sync_is": "Lần tự đồng bộ tiếp theo là",
   "the_next_auto_push_is": "Lần tự đẩy tiếp theo là",
-  "logs_from_xxx_to_now_will_be_pushed": "Các bản ghi từ {{time}} đến bây giờ sẽ được đẩy lên trong lần tự đẩy tiếp theo",
+  "logs_from_xxx_to_now_will_be_pushed": "Các bản ghi từ {{- time}} đến bây giờ sẽ được đẩy lên trong lần tự đẩy tiếp theo",
   "password": "Mật khẩu",
   "token_from_checkin_client": "Token lấy từ Checkin client",
   "password_from_checkin_client": "Mật khẩu lấy từ Checkin client",
@@ -48,5 +48,9 @@
   "device_ip": "Địa chỉ IP",
   "device_port": "Cổng kết nối",
   "device_name_placeholder": "Ví dụ: Cửa chính",
-  "device_ip_placeholder": "Ví dụ: 192.168.0.5, 10.20.0.4"
+  "device_ip_placeholder": "Ví dụ: 192.168.0.5, 10.20.0.4",
+  "clear_records_confirm_title": "Bạn có chắc chắn muốn xóa tất cả bản ghi?",
+  "clear_records_confirm_description": "Hành động này chỉ xóa các bản ghi trên ứng dụng này, các dữ liệu trên máy chấm công và dữ liệu trên Base HRM sẽ không bị ảnh hưởng",
+  "clear_pushed_evidents_confirm_title": "Bạn có chắc muốn xóa tất cả bằng chứng đẩy",
+  "clear_pushed_evidents_confirm_desc": "Bằng chứng đẩy là những dữ liệu được ghi lại nhằm kiểm tra xem các bản ghi đã được đẩy lên máy chủ hay chưa. Việc xóa bằng chứng này không làm ảnh hưởng tới dữ liệu chấm công của bạn. Tuy nhiên, có thể khiến lần đẩy tiếp theo sẽ chậm hơn bình thường."
 }

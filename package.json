@@ -57,6 +57,7 @@
     "bufferpack": "^0.0.6",
     "constate": "^2.0.0",
     "electron-store": "^6.0.0",
+    "i18next": "^19.7.0",
     "lodash": "^4.17.19",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
