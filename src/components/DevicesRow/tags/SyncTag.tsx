@@ -10,7 +10,7 @@ const SyncTag = memo(function SyncTag() {
 
   if (syncPercent === 0) return null;
 
-  return <Tag>{t('sync')}: ${syncPercent}%</Tag>;
+  return <Tag>{t('sync')}: {syncPercent}%</Tag>;
 });
 
 export default SyncTag;
