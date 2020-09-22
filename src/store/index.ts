@@ -18,6 +18,7 @@ const persistedReducer = persistReducer(
   {
     key: "root",
     storage: createElectronStorage(),
+    throttle: 5000
   },
   rootReducer
 );

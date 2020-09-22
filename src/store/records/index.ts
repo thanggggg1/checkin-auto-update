@@ -18,9 +18,12 @@ const { actions, reducer: recordsReducer } = createSlice({
   initialState,
   reducers: {
     addRecords(state, action: PayloadAction<AttendanceRecord[]>) {
-      action.payload.forEach((attendanceRecord) => {
-        state[attendanceRecord.id] = attendanceRecord;
+      const newState = { ...state };
+      action.payload.forEach((record) => {
+        newState[record.id] = record;
       });
+
+      return newState;
     },
     clearAll() {
       return initialState;
@@ -34,6 +37,7 @@ export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
 
 export const recordsSelector = (state: any) =>
   state.records as Record<string, AttendanceRecord>;
+
 export const recordsArrSelector = createSelector(recordsSelector, (res) =>
   Object.values(res)
 );
@@ -80,5 +84,8 @@ export const filterRecords = (
     return true;
   });
 };
+
+export const isRecordExists = (recordId: string) =>
+  !!recordsSelector(getStore().getState())[recordId];
 
 export { recordsReducer };

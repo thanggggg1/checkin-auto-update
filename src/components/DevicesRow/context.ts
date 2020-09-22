@@ -3,7 +3,11 @@ import { deleteDevices, Device } from "../../store/devices";
 import ZK, { ZKFreeSizes } from "../../packages/js_zklib/ZK";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAsyncFn } from "react-use";
-import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
+import {
+  AttendanceRecord,
+  isRecordExists,
+  syncAttendanceRecords,
+} from "../../store/records";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
 import moment from "moment";
@@ -129,17 +133,24 @@ const useDeviceValue = ({ device }: { device: Device }) => {
 
     attendances.data &&
       syncAttendanceRecords(
-        attendances.data.map((raw) => {
+        // filter exists & map at the same time (filter exists for performance)
+        attendances.data.reduce<AttendanceRecord[]>((filtered, raw) => {
+          const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
+
+          if (isRecordExists(id)) return filtered;
+
           const mm = moment(raw.recordTime);
-          return {
+          filtered.push({
             uid: Number(raw.deviceUserId),
             timestamp: mm.valueOf(),
-            id: `${raw.deviceUserId}_${mm.valueOf()}`,
+            id,
             dateFormatted: mm.format("DD/MM/YYYY"),
             deviceIp: device.ip,
             timeFormatted: mm.format("HH:mm"),
-          };
-        })
+          });
+
+          return filtered;
+        }, [])
       );
 
     return attendances;
@@ -230,7 +241,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
    */
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("start reconnect", connecting, connectionState);
       if (connecting) return;
       if (
         connectionState === ConnectionState.CONNECTED ||

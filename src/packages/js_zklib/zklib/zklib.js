@@ -507,13 +507,22 @@ class ZKLib {
     while (recordData.length >= RECORD_PACKET_SIZE) {
       const record = decodeRecordData40(recordData.subarray(0, RECORD_PACKET_SIZE));
 
-      if (!record.deviceUserId) continue;
+      if (!record.deviceUserId) {
+        recordData = recordData.subarray(RECORD_PACKET_SIZE);
+        continue;
+      }
 
       // if recordTime > 5 years with current time
-      if (record.recordTime.valueOf() > now + 5 * 365 * 12 * 60 * 60 * 1000) continue;
+      if (record.recordTime.valueOf() > now + 5 * 365 * 12 * 60 * 60 * 1000) {
+        recordData = recordData.subarray(RECORD_PACKET_SIZE);
+        continue;
+      }
 
       // if recordTime < 5 years with current time
-      if (record.recordTime.valueOf() < now - 5 * 365 * 12 * 60 * 60 * 1000) continue;
+      if (record.recordTime.valueOf() < now - 5 * 365 * 12 * 60 * 60 * 1000) {
+        recordData = recordData.subarray(RECORD_PACKET_SIZE);
+        continue;
+      }
 
       records.push({...record, ip: this.ip});
       recordData = recordData.subarray(RECORD_PACKET_SIZE);
