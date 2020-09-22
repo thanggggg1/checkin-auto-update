@@ -1,8 +1,11 @@
 import React, { memo, useCallback } from "react";
 import { Menu, Modal } from "antd";
 import { ConnectionState, useCurrentDevice } from "../context";
+import { t, useLanguage } from "../../../store/settings/languages";
 
 const DeviceActions = memo(function DeviceActions(props) {
+  useLanguage();
+
   const {
     syncAttendances,
     connectionState,
@@ -14,7 +17,7 @@ const DeviceActions = memo(function DeviceActions(props) {
 
   const onClickDeleteDevice = useCallback(() => {
     Modal.confirm({
-      title: "Are you sure to delete this device?",
+      title: t("delete_device_confirmation"),
       onOk: deleteDevice,
     });
   }, [deleteDevice]);
@@ -22,33 +25,31 @@ const DeviceActions = memo(function DeviceActions(props) {
   return (
     <Menu {...props}>
       <Menu.Item
-        disabled={
-          connectionState !== ConnectionState.CONNECTED
-        }
+        disabled={connectionState !== ConnectionState.CONNECTED}
         onClick={syncAttendances}
       >
-        <span>Sync attendances</span>
+        <span>{t("sync_attendances")}</span>
       </Menu.Item>
       <Menu.Item
         disabled={connectionState !== ConnectionState.CONNECTED}
         onClick={enableDevice}
       >
-        <span>Enable</span>
+        <span>{t("enable")}</span>
       </Menu.Item>
       <Menu.Item
         disabled={connectionState !== ConnectionState.CONNECTED}
         onClick={disableDevice}
       >
-        <span>Disable</span>
+        <span>{t("disable")}</span>
       </Menu.Item>
       <Menu.Item
         disabled={connectionState !== ConnectionState.DISCONNECTED}
         onClick={reconnect}
       >
-        <span>Reconnect</span>
+        <span>{t("reconnect")}</span>
       </Menu.Item>
       <Menu.Item onClick={onClickDeleteDevice}>
-        <span>Delete</span>
+        <span>{t("delete")}</span>
       </Menu.Item>
     </Menu>
   );

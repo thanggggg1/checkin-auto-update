@@ -56,5 +56,6 @@
   "unknown": "Không rõ",
   "please_enter_all_required_fields": "Vui lòng điền tất cả các trường bắt buộc",
   "please_enter_an_valid_ip_address": "Vui lòng nhập địa chỉ IP đúng định dạng",
-  "device_port_placeholder": "Cổng mặc định là 4370"
+  "device_port_placeholder": "Cổng mặc định là 4370",
+  "delete_device_confirmation": "Bạn có chắc chắn muốn xóa thiết bị này?"
 }
