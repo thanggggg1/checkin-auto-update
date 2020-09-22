@@ -505,6 +505,7 @@ class ZKLib {
     let records = [];
     while (recordData.length >= RECORD_PACKET_SIZE) {
       const record = decodeRecordData40(recordData.subarray(0, RECORD_PACKET_SIZE));
+      if (!record.deviceUserId) continue;
       records.push({...record, ip: this.ip});
       recordData = recordData.subarray(RECORD_PACKET_SIZE);
     }
