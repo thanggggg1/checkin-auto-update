@@ -8,12 +8,12 @@ import {
   isRecordExists,
   syncAttendanceRecords,
 } from "../../store/records";
-import useAutoAlertError from "../../hooks/useAutoAlertError";
 import { Events, events } from "../../utils/events";
 import moment from "moment";
 import Fetch from "../../utils/Fetch";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import _ from "lodash";
+import useAutoMessageError from "../../hooks/useAutoMessageError";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -59,7 +59,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     setConnectionState(ConnectionState.CONNECTED);
   }, [connection]);
 
-  useAutoAlertError(connectError);
+  useAutoMessageError(connectError);
 
   const canSendRequest =
     !connecting &&
@@ -80,7 +80,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     await connection.disableDevice();
   }, [canSendRequest, connection]);
 
-  useAutoAlertError(disableError);
+  useAutoMessageError(disableError);
 
   /**
    * ENABLE
@@ -93,7 +93,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     await connection.enableDevice();
   }, [connection, canSendRequest]);
 
-  useAutoAlertError(enableError);
+  useAutoMessageError(enableError);
 
   /**
    * SYNC ATTENDANCES

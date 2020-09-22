@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {Alert, Modal} from "antd";
+import {Modal} from "antd";
 
 const useAutoAlertError = (error?: Error) => {
   useEffect(() => {
