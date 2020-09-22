@@ -121,8 +121,18 @@ export class ZKLib {
    * START OF ZKATTENDANCE
    */
   decodeAttendanceData(data: any): any;
-  getAttendance(cb: DefaultCallback<any>): void;
+  getAttendance(progress?: (current: number, total: number) => void, cb: DefaultCallback<any>): void;
   clearAttendanceLog(cb: CallbackError): void;
+
+  getAttendances(progress?: (current: number, total: number) => void): Promise<{
+    data?: {
+      userSn: number,
+      deviceUserId: number,
+      recordTime: Date
+    }[],
+    err?: Error,
+    max: number
+  }>
 
   /**
    * START OF ZKUSER

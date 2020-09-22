@@ -25,7 +25,7 @@ module.exports = class {
         return cb(error, null);
       }
 
-      if (data.length === 8) {
+      if (data.length < 76) {
         return cb(new Error('Error while getting device info'), null);
       }
 

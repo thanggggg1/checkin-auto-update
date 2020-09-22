@@ -9,6 +9,7 @@ import { Events, events } from "../../utils/events";
 import moment from "moment";
 import Fetch from "../../utils/Fetch";
 import useAsyncEffect from "../../utils/useAsyncEffect";
+import _ from "lodash";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -20,7 +21,11 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const [connectionState, setConnectionState] = useState<ConnectionState>(
     ConnectionState.DISCONNECTED
   );
-  const [syncPercent, setSyncPercent] = useState(0);
+  const [syncPercent, _setSyncPercent] = useState(0);
+  const setSyncPercent = useMemo(
+    () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
+    [_setSyncPercent]
+  );
   const [freeSizes, setFreeSizes] = useState<ZKFreeSizes>({
     capacity: 0,
     logs: 0,
@@ -104,29 +109,38 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       throw new Error("Socket is not connected");
     }
 
+    setSyncPercent(0.01);
+
     await disableDevice();
 
-    const attendances = await connection.getAttendance((current, total) => {
-      setSyncPercent(Math.floor((current / total) * 10000) / 100);
-    });
+    setSyncPercent(0.02);
+
+    const attendances = await connection.zklib.getAttendances(
+      (current: number, total: number) => {
+        const percent = Math.floor((current / total) * 10000) / 100;
+        console.log("syncing " + device.ip, percent);
+        setSyncPercent(percent);
+      }
+    );
 
     setSyncPercent(0);
 
     await enableDevice();
 
-    syncAttendanceRecords(
-      attendances.map((raw) => {
-        const mm = moment(raw.timestamp);
-        return {
-          uid: Number(raw.id),
-          timestamp: mm.valueOf(),
-          id: `${raw.id}_${mm.valueOf()}`,
-          dateFormatted: mm.format("DD/MM/YYYY"),
-          deviceIp: device.ip,
-          timeFormatted: mm.format("HH:mm"),
-        };
-      })
-    );
+    attendances.data &&
+      syncAttendanceRecords(
+        attendances.data.map((raw) => {
+          const mm = moment(raw.recordTime);
+          return {
+            uid: Number(raw.deviceUserId),
+            timestamp: mm.valueOf(),
+            id: `${raw.deviceUserId}_${mm.valueOf()}`,
+            dateFormatted: mm.format("DD/MM/YYYY"),
+            deviceIp: device.ip,
+            timeFormatted: mm.format("HH:mm"),
+          };
+        })
+      );
 
     return attendances;
   }, [connection, canSendRequest, disableDevice, enableDevice, device.ip]);
@@ -165,31 +179,31 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     };
   }, [connection, canSendRequest, device.ip]);
 
-  /**
-   * FREE SIZES
-   */
-  useEffect(() => {
-    const handler = async () => {
-      // @ts-ignore
-      if (!connection.zklib?.socket?.writable) {
-        setConnectionState(ConnectionState.DISCONNECTED);
-        return;
-      }
-      try {
-        const freeSizes = await connection.getFreeSizes();
-        setFreeSizes(freeSizes);
-      } catch (e) {
-        console.log("get free sizes error", e);
-        setConnectionState(ConnectionState.DISCONNECTED);
-      }
-    };
-
-    const interval = setInterval(handler, 5000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [canSendRequest, connection]);
+  // /**
+  //  * FREE SIZES
+  //  */
+  // useEffect(() => {
+  //   const handler = async () => {
+  //     // @ts-ignore
+  //     if (!connection.zklib?.socket?.writable) {
+  //       setConnectionState(ConnectionState.DISCONNECTED);
+  //       return;
+  //     }
+  //     try {
+  //       const freeSizes = await connection.getFreeSizes();
+  //       setFreeSizes(freeSizes);
+  //     } catch (e) {
+  //       console.log("get free sizes error", e);
+  //       setConnectionState(ConnectionState.DISCONNECTED);
+  //     }
+  //   };
+  //
+  //   const interval = setInterval(handler, 5000);
+  //
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
+  // }, [canSendRequest, connection]);
 
   useEffect(() => {
     events.on(Events.MASS_SYNC, syncAttendances);

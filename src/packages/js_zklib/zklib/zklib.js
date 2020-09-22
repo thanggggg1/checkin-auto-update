@@ -422,7 +422,6 @@ class ZKLib {
           let totalBuffer = Buffer.from([]);
           let realTotalBuffer = Buffer.from([]);
 
-          const timeout = 10000;
           let timer = setTimeout(() => {
             internalCallback(replyData, new Error('TIMEOUT WHEN RECEIVING PACKET'));
           }, REQUEST_TIMEOUT);
@@ -441,7 +440,7 @@ class ZKLib {
 
             clearTimeout(timer);
             timer = setTimeout(() => {
-              internalCallback(replyData, new Error(`TIME OUT !! ${totalPackets} PACKETS REMAIN !`));
+              internalCallback(replyData);
             }, 30000);
 
             totalBuffer = Buffer.concat([totalBuffer, reply]);

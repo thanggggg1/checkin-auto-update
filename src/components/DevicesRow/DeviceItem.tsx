@@ -35,24 +35,25 @@ const DeviceInfo = memo(function DeviceInfo() {
       <InfoRow>IP: {device.ip}</InfoRow>
       <InfoRow>
         {[
-          t('logs', {count: freeSizes.logs || 0}),
-          t('users', {count: freeSizes.users || 0}),
+          t("logs", { count: freeSizes.logs || 0 }),
+          t("users", { count: freeSizes.users || 0 }),
           Math.floor(
             ((freeSizes.logs || 0) / (freeSizes.capacity || 1)) * 10000
           ) /
             100 +
-            "% " + t('used'),
+            "% " +
+            t("used"),
         ].join(" - ")}
       </InfoRow>
       <InfoRow>
-        {t('status')}:{" "}
+        {t("status")}:{" "}
         {(() => {
           if (connectionState === ConnectionState.CONNECTED) return "Connected";
           if (connectionState === ConnectionState.CONNECTING)
-            return t('connecting');
+            return t("connecting");
           if (connectionState === ConnectionState.DISCONNECTED)
-            return t('connected');
-          return t('unknown');
+            return t("disconnected");
+          return t("unknown");
         })()}
       </InfoRow>
 
