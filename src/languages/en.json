@@ -57,5 +57,9 @@
   "please_enter_all_required_fields": "Please enter all required fields",
   "please_enter_an_valid_ip_address": "Please enter an valid IP address",
   "device_port_placeholder": "Default port is 4370",
-  "delete_device_confirmation": "Are you sure to delete this device?"
+  "delete_device_confirmation": "Are you sure to delete this device?",
+  "pushing": "Pushing",
+  "start_time": "Start time",
+  "end_time": "End time",
+  "push_modal_desc": "Pick the start time & end time of the attendance logs you want to push"
 }
