@@ -61,5 +61,7 @@
   "pushing": "Đang đẩy",
   "start_time": "Thời gian bắt đầu",
   "end_time": "Thời gian kết thúc",
-  "push_modal_desc": "Chọn thời gian bắt đầu và thời gian kết thúc của những bản ghi mà bạn muốn đẩy"
+  "push_modal_desc": "Chọn thời gian bắt đầu và thời gian kết thúc của những bản ghi mà bạn muốn đẩy",
+  "logout_confirm_title": "Bạn có chắc chắn muốn đăng xuất",
+  "logout_confirm_desc": "Bạn sẽ không thể đẩy dữ liệu chấm công lên Base HRM"
 }

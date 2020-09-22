@@ -2,24 +2,28 @@ import React, { memo, useCallback } from "react";
 import { Button, Modal } from "antd";
 import { LogoutOutlined } from "@ant-design/icons/lib";
 import Fetch from "../../../utils/Fetch";
+import { useLanguage, t, antdModalLanguageProps } from "../../../store/settings/languages";
 
 const LogoutButton = memo(function LogoutButton() {
+  useLanguage();
+
   const onPress = useCallback(() => {
     Modal.confirm({
-      title: "Are you sure to logout",
-      content: "You will no longer can push attendance events to Base",
+      title: t('logout_confirm_title'),
+      content: t('logout_confirm_desc'),
       onOk: () => {
         Fetch.setToken({
           token: "",
           password: "",
         });
       },
+      ...antdModalLanguageProps
     });
   }, []);
 
   return (
     <Button onClick={onPress}>
-      Logout <LogoutOutlined />
+      {t('logout')} <LogoutOutlined />
     </Button>
   );
 });

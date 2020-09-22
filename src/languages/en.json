@@ -61,5 +61,7 @@
   "pushing": "Pushing",
   "start_time": "Start time",
   "end_time": "End time",
-  "push_modal_desc": "Pick the start time & end time of the attendance logs you want to push"
+  "push_modal_desc": "Pick the start time & end time of the attendance logs you want to push",
+  "logout_confirm_title": "Are you sure to logout?",
+  "logout_confirm_desc": "You can't pushing your data to Base HRM after logout"
 }
