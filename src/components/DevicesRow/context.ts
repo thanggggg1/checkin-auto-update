@@ -150,10 +150,13 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   /**
    * REALTIME
    */
-  useEffect(() => {
+  const {
+    value: clearRealtime,
+    call: startRealtimeAgain,
+  } = useAsyncEffect(async () => {
     if (!canSendRequest) return;
 
-    const start = connection.startMon({
+    return connection.startMon({
       start: (err) => {
         console.log("start mon err", err);
       },
@@ -173,44 +176,54 @@ const useDeviceValue = ({ device }: { device: Device }) => {
         syncAttendanceRecords([log]);
       },
     });
-
-    return () => {
-      start();
-    };
   }, [connection, canSendRequest, device.ip]);
 
-  // /**
-  //  * FREE SIZES
-  //  */
-  // useEffect(() => {
-  //   const handler = async () => {
-  //     // @ts-ignore
-  //     if (!connection.zklib?.socket?.writable) {
-  //       setConnectionState(ConnectionState.DISCONNECTED);
-  //       return;
-  //     }
-  //     try {
-  //       const freeSizes = await connection.getFreeSizes();
-  //       setFreeSizes(freeSizes);
-  //     } catch (e) {
-  //       console.log("get free sizes error", e);
-  //       setConnectionState(ConnectionState.DISCONNECTED);
-  //     }
-  //   };
-  //
-  //   const interval = setInterval(handler, 5000);
-  //
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, [canSendRequest, connection]);
+  useEffect(() => {
+    return () => {
+      clearRealtime?.();
+    };
+  }, [clearRealtime]);
+
+  /**
+   * FREE SIZES
+   */
+  useEffect(() => {
+    const handler = async () => {
+      // @ts-ignore
+      if (!connection.zklib?.socket?.writable) {
+        setConnectionState(ConnectionState.DISCONNECTED);
+        return;
+      }
+
+      if (isGettingAttendances) return;
+
+      try {
+        const freeSizes = await connection.getFreeSizes();
+        setFreeSizes(freeSizes);
+      } catch (e) {
+        console.log("get free sizes error", e);
+        setConnectionState(ConnectionState.DISCONNECTED);
+      }
+    };
+
+    const interval = setInterval(handler, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isGettingAttendances, connection]);
 
   useEffect(() => {
-    events.on(Events.MASS_SYNC, syncAttendances);
-    return () => {
-      events.off(Events.MASS_SYNC, syncAttendances);
+    const handler = () => {
+      if (isGettingAttendances) return;
+      syncAttendances();
     };
-  }, [syncAttendances]);
+
+    events.on(Events.MASS_SYNC, handler);
+    return () => {
+      events.off(Events.MASS_SYNC, handler);
+    };
+  }, [syncAttendances, isGettingAttendances]);
 
   /**
    * AUTO RECONNECT
@@ -225,7 +238,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       )
         return;
 
-      connect();
+      connect().then(startRealtimeAgain);
     }, 5000);
 
     return () => {
