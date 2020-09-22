@@ -145,8 +145,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     return attendances;
   }, [connection, canSendRequest, disableDevice, enableDevice, device.ip]);
 
-  useAutoAlertError(getAttendancesError);
-
   /**
    * REALTIME
    */
