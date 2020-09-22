@@ -29,9 +29,11 @@ const PushButton = memo(function PushButton() {
       filterRecords(getAllRecordsArr(), {
         onlyNotPushed: true,
         onlyInEmployeeCheckinCodes: true,
+        startTime: timeRange[0].clone().startOf("day").valueOf(),
+        endTime: timeRange[1].clone().startOf("day").valueOf(),
       })
     );
-  }, []);
+  }, [timeRange]);
 
   const showPushModal = useCallback(() => {
     setTimeRange([moment().subtract(3, "days"), moment()]);
