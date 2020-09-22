@@ -171,6 +171,8 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           timeFormatted: mm.format("HH:mm"),
         };
 
+        console.log("realtime log", log);
+
         Fetch.realtimePush(log);
 
         syncAttendanceRecords([log]);
