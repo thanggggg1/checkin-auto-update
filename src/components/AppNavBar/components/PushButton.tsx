@@ -30,7 +30,7 @@ const PushButton = memo(function PushButton() {
         onlyNotPushed: true,
         onlyInEmployeeCheckinCodes: true,
         startTime: timeRange[0].clone().startOf("day").valueOf(),
-        endTime: timeRange[1].clone().startOf("day").valueOf(),
+        endTime: timeRange[1].clone().endOf("day").valueOf(),
       })
     );
   }, [timeRange]);
