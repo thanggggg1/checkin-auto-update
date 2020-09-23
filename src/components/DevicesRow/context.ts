@@ -55,8 +55,14 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     value: cancelFn,
     call: connect,
   } = useAsyncEffect(async () => {
-    await connection.connect();
-    setConnectionState(ConnectionState.CONNECTED);
+    setConnectionState(ConnectionState.CONNECTING);
+    try {
+      await connection.connect();
+      setConnectionState(ConnectionState.CONNECTED);
+    } catch (e) {
+      setConnectionState(ConnectionState.DISCONNECTED);
+      throw e;
+    }
   }, [connection]);
 
   useAutoMessageError(connectError);
@@ -241,7 +247,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
    */
   useEffect(() => {
     const interval = setInterval(() => {
-      if (connecting) return;
       if (
         connectionState === ConnectionState.CONNECTED ||
         connectionState === ConnectionState.CONNECTING
@@ -254,7 +259,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     return () => {
       clearInterval(interval);
     };
-  }, [connectionState, connecting, connect]);
+  }, [connectionState, connect]);
 
   const deleteDevice = useCallback(() => {
     deleteDevices([device.ip]);
