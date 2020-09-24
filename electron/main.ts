@@ -7,7 +7,7 @@ let mainWindow: Electron.BrowserWindow | null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
+    width: process.env.NODE_ENV === "development" ? 1280 : 800,
     height: 880,
     icon: nativeImage.createFromPath(
       os.platform() === "win32"
@@ -24,6 +24,7 @@ function createWindow() {
 
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL(`http://localhost:4000`);
+    mainWindow.openDevTools();
   } else {
     mainWindow.setMenu(null);
     mainWindow.loadURL(
