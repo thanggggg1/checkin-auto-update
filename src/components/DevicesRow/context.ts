@@ -203,6 +203,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
 
   /**
    * FREE SIZES
+   * This is a heartbeat to check is connection still good.
    */
   useEffect(() => {
     const handler = async () => {
@@ -215,15 +216,16 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       if (isGettingAttendances) return;
 
       try {
-        const freeSizes = await connection.getFreeSizes();
-        setFreeSizes(freeSizes);
+        const serial = await connection.serialNumber();
+
+        console.log("serial", serial);
       } catch (e) {
-        console.log("get free sizes error", e);
+        console.log("get serial error", e);
         setConnectionState(ConnectionState.DISCONNECTED);
       }
     };
 
-    const interval = setInterval(handler, 5000);
+    const interval = setInterval(handler, 60 * 1000);
 
     return () => {
       clearInterval(interval);
@@ -254,7 +256,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
         return;
 
       connect().then(startRealtimeAgain);
-    }, 5000);
+    }, 30 * 1000);
 
     return () => {
       clearInterval(interval);
