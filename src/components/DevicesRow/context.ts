@@ -225,12 +225,12 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       }
     };
 
-    const interval = setInterval(handler, 60 * 1000);
+    const interval = setInterval(handler, (device.heartbeat || 1) * 60 * 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [isGettingAttendances, connection]);
+  }, [isGettingAttendances, connection, device.heartbeat]);
 
   useEffect(() => {
     const handler = () => {
@@ -256,12 +256,12 @@ const useDeviceValue = ({ device }: { device: Device }) => {
         return;
 
       connect().then(startRealtimeAgain);
-    }, 30 * 1000);
+    }, (device.autoReconnect || 30) * 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [connectionState, connect]);
+  }, [connectionState, connect, device.autoReconnect]);
 
   const deleteDevice = useCallback(() => {
     deleteDevices([device.ip]);

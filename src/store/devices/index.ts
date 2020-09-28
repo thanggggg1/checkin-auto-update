@@ -8,6 +8,8 @@ export interface Device {
   connection: "tcp" | "udp";
   inport?: number;
   timeout?: number;
+  heartbeat?: number;
+  autoReconnect?: number;
 }
 
 export const {
