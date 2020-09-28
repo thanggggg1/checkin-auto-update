@@ -23,12 +23,13 @@ const defaultValue: Device = {
 
 export interface AddDeviceModalProps extends ModalProps {
   onClose: () => void;
+  device?: Device;
 }
 const AddDeviceModal = memo(function AddDeviceModal(
   props: AddDeviceModalProps
 ) {
   useLanguage();
-  const [device, setDevice] = useState<Device>(defaultValue);
+  const [device, setDevice] = useState<Device>(props.device || defaultValue);
 
   const values = useMemo(() => {
     const onChange = (name: keyof Device, isNumber = false) => (

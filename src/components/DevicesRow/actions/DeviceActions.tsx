@@ -2,17 +2,21 @@ import React, { memo, useCallback } from "react";
 import { Menu, Modal } from "antd";
 import { ConnectionState, useCurrentDevice } from "../context";
 import { t, useLanguage } from "../../../store/settings/languages";
+import AddDeviceModal from "../../AddDeviceModal";
+import useBoolean from "../../../hooks/useBoolean";
 
 const DeviceActions = memo(function DeviceActions(props) {
   useLanguage();
+
+  const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
   const {
     syncAttendances,
     connectionState,
     enableDevice,
     disableDevice,
-    reconnect,
     deleteDevice,
+    device,
   } = useCurrentDevice();
 
   const onClickDeleteDevice = useCallback(() => {
@@ -42,11 +46,13 @@ const DeviceActions = memo(function DeviceActions(props) {
       >
         <span>{t("disable")}</span>
       </Menu.Item>
-      <Menu.Item
-        disabled={connectionState !== ConnectionState.DISCONNECTED}
-        onClick={reconnect}
-      >
-        <span>{t("reconnect")}</span>
+      <Menu.Item onClick={showEditDevice}>
+        <span>Edit</span>
+        <AddDeviceModal
+          onClose={hideEditDevice}
+          visible={isEditDeviceVisible}
+          device={device}
+        />
       </Menu.Item>
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
