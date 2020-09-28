@@ -82,8 +82,9 @@ const AddDeviceModal = memo(function AddDeviceModal(
 
   return (
     <Modal
-      title={t("add_device")}
+      title={props.device ? t("edit_device") : t("add_device")}
       onOk={onOk}
+      onCancel={props.onClose}
       {...props}
       {...antdModalLanguageProps}
     >
@@ -100,6 +101,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         placeholder={t("device_ip_placeholder")}
         value={device.ip}
         onChange={values.onIpChange}
+        disabled={!!props.device}
       />
       <br />
       <br />
@@ -120,10 +122,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
 
       <br />
       <Input
-        addonBefore={"Heartbeat rate"}
-        placeholder={t(
-          "The time rate to check if the device is still connected"
-        )}
+        addonBefore={t("heartbeat_rate")}
+        placeholder={t("heartbeat_rate_desc")}
         addonAfter={t("minutes")}
         value={device.heartbeat || 1}
         onChange={values.onHeartbeatChange}
@@ -131,15 +131,10 @@ const AddDeviceModal = memo(function AddDeviceModal(
         step={1}
         min={1}
       />
-      <p>
-        The time rate to check if the device is still connected. If your device
-        is low-end or not performance, set it higher.
-      </p>
+      <p>{t("heartbeat_rate_desc")}</p>
       <Input
-        addonBefore={"Auto reconnect rate"}
-        placeholder={t(
-          "The time rate to auto reconnect if device is not connected"
-        )}
+        addonBefore={t("auto_reconnect")}
+        placeholder={t("auto_reconnect_desc")}
         addonAfter={t("seconds")}
         value={device.autoReconnect || 30}
         onChange={values.onAutoReconnectChange}
@@ -147,10 +142,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         step={30}
         min={30}
       />
-      <p>
-        The time rate to auto reconnect if device is not connected. If your
-        device is low-end or not performance, set it higher.
-      </p>
+      <p>{t("auto_reconnect_desc")}</p>
     </Modal>
   );
 });

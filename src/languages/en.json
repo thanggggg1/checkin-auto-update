@@ -63,5 +63,12 @@
   "end_time": "End time",
   "push_modal_desc": "Pick the start time & end time of the attendance logs you want to push",
   "logout_confirm_title": "Are you sure to logout?",
-  "logout_confirm_desc": "You can't pushing your data to Base HRM after logout"
+  "logout_confirm_desc": "You can't pushing your data to Base HRM after logout",
+  "edit": "Edit",
+  "heartbeat_rate": "Heartbeat rate",
+  "heartbeat_rate_desc": "The rate to check the connection between this app and the attendance machine. If your machine is low-end or not performance, you should set it higher.",
+  "auto_reconnect": "Auto reconnect rate",
+  "auto_reconnect_desc": "The rate that this app will reconnect to the attendance machine if not connected.  If your machine is low-end or not performance, you should set it higher.",
+  "seconds": "seconds",
+  "edit_device": "Edit device"
 }

@@ -47,13 +47,13 @@ const DeviceActions = memo(function DeviceActions(props) {
         <span>{t("disable")}</span>
       </Menu.Item>
       <Menu.Item onClick={showEditDevice}>
-        <span>Edit</span>
-        <AddDeviceModal
-          onClose={hideEditDevice}
-          visible={isEditDeviceVisible}
-          device={device}
-        />
+        <span>{t("edit")}</span>
       </Menu.Item>
+      <AddDeviceModal
+        onClose={hideEditDevice}
+        visible={isEditDeviceVisible}
+        device={device}
+      />
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
       </Menu.Item>
