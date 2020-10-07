@@ -5,13 +5,13 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Input, Modal, Select } from "antd";
+import { Form, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, syncDevices } from "../../store/devices";
 import {
   antdModalLanguageProps,
-  t,
-  useLanguage,
+  t, translate,
+  useLanguage
 } from "../../store/settings/languages";
 
 const defaultValue: Device = {
@@ -20,6 +20,8 @@ const defaultValue: Device = {
   connection: "tcp",
   port: 4370,
 };
+
+const domainRegex = /^(?!-)(?:[a-zA-Z\d\-]{0,62}[a-zA-Z\d]\.){1,126}(?!\d+)[a-zA-Z\d]{1,63}$/;
 
 export interface AddDeviceModalProps extends ModalProps {
   onClose: () => void;
@@ -66,8 +68,14 @@ const AddDeviceModal = memo(function AddDeviceModal(
     }
 
     if (
-      !/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-        device.ip
+      !(
+        /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+          device.ip
+        ) ||
+        /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/.test(
+          device.ip
+        ) ||
+        domainRegex.test(device.ip)
       )
     ) {
       return Modal.error({
@@ -79,6 +87,12 @@ const AddDeviceModal = memo(function AddDeviceModal(
     syncDevices([device]);
     props.onClose();
   }, [device, props.onClose]);
+
+  const isIpDangerous = useMemo(() => {
+    return /^(?!-)(?:[a-zA-Z\d\-]{0,62}[a-zA-Z\d]\.){1,126}(?!\d+)[a-zA-Z\d]{1,63}$/.test(
+      device.ip
+    );
+  }, [device.ip]);
 
   return (
     <Modal
@@ -103,6 +117,11 @@ const AddDeviceModal = memo(function AddDeviceModal(
         onChange={values.onIpChange}
         disabled={!!props.device}
       />
+      {isIpDangerous && (
+        <span style={{ color: "#ff4d4f" }}>
+          {translate('ip_dangerous')}
+        </span>
+      )}
       <br />
       <br />
       <Input

@@ -70,5 +70,6 @@
   "auto_reconnect": "Tự kết nối lại",
   "auto_reconnect_desc": "Tần suất mà Checkin Station tự kết nối lại với máy chấm công nếu bị mất kết nối. Nếu máy chấm công đời cũ, hoặc yếu, nên chọn thời gian lớn hơn.",
   "seconds": "giây",
-  "edit_device": "Sửa thiết bị"
+  "edit_device": "Sửa thiết bị",
+  "ip_dangerous": "Thiết bị chấm công này nằm ngoài mạng nội bộ. Điều này rất nguy hiểm đến dữ liệu của bạn, vì ai cũng có thể truy cập đến thiết bị này và kết nối có thể không ổn định để có thể sử dụng."
 }

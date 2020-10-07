@@ -70,5 +70,6 @@
   "auto_reconnect": "Auto reconnect rate",
   "auto_reconnect_desc": "The rate that this app will reconnect to the attendance machine if not connected.  If your machine is low-end or not performance, you should set it higher.",
   "seconds": "seconds",
-  "edit_device": "Edit device"
+  "edit_device": "Edit device",
+  "ip_dangerous": "Your attendance machine is outside of this local network. This is very dangerous for your data because anyone can access this device and the network maybe not stable to use."
 }
