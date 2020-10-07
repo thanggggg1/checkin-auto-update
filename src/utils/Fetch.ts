@@ -18,6 +18,7 @@ axios.defaults.headers["Access-Control-Allow-Origin"] = "*";
 export interface TokenSetting {
   token: string;
   password: string;
+  sysDomain: string;
 }
 
 const { get: getToken, set: setToken, use: useToken } = createSetting<
@@ -25,6 +26,7 @@ const { get: getToken, set: setToken, use: useToken } = createSetting<
 >("token", {
   token: "",
   password: "",
+  sysDomain: "base.vn",
 });
 
 interface BaseResponse {
@@ -39,12 +41,18 @@ const Fetch = {
   useToken,
 
   __getBaseUrl: (url: string) => {
+    let { sysDomain } = getToken();
+    sysDomain = sysDomain || "base.vn";
+
     if (url.startsWith("@")) {
-      return url.replace(/^@(\w+)/g, "https://$1.base.vn");
+      return url.replace(/^@(\w+)/g, "https://$1." + sysDomain);
     }
 
     if (url.startsWith("base-")) {
-      return url.replace(/^base-(\w+):\/\//g, "https://$1.base.vn/$2");
+      return url.replace(
+        /^base-(\w+):\/\//g,
+        "https://$1." + sysDomain + "/$2"
+      );
     }
 
     return url;
@@ -121,7 +129,7 @@ const Fetch = {
       });
     } catch (e) {
       if (e.message === "INVALID_CLIENT") {
-        setToken({ token: "", password: "" });
+        setToken({ token: "", password: "", sysDomain: "base.vn" });
       }
       throw e;
     }
@@ -218,6 +226,7 @@ const Fetch = {
         setToken({
           token: "",
           password: "",
+          sysDomain: "base.vn",
         });
       }
       throw e;
