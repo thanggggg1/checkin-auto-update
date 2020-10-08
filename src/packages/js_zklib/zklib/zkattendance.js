@@ -93,9 +93,19 @@ module.exports = class {
           if (attendancesBuffer.length === total_bytes) {
             const atts = [];
 
+            const now = Date.now();
             for (let i = 0; i < attendancesBuffer.length - 2; i += ATTDATA_SIZE) {
               const att = this.decodeAttendanceData(attendancesBuffer.slice(i, i + ATTDATA_SIZE));
               progress && progress(i, attendancesBuffer.length - 2);
+
+              if (!att.id) continue;
+
+              // if recordTime > 5 years with current time
+              if (att.timestamp.valueOf() > now + 5 * 365 * 12 * 60 * 60 * 1000) continue;
+
+              // if recordTime < 5 years with current time
+              if (att.timestamp.valueOf() < now - 5 * 365 * 12 * 60 * 60 * 1000) continue;
+
               atts.push(att);
             }
 
