@@ -5,13 +5,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Form, Input, Modal, Select } from "antd";
+import { Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
-import { Device, syncDevices } from "../../store/devices";
+import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
 import {
   antdModalLanguageProps,
-  t, translate,
-  useLanguage
+  t,
+  translate,
+  useLanguage,
 } from "../../store/settings/languages";
 
 const defaultValue: Device = {
@@ -52,6 +53,9 @@ const AddDeviceModal = memo(function AddDeviceModal(
           ...old,
           connection: type,
         })),
+      onMethodChange: (method: Device["syncMethod"]) => {
+        setDevice((old) => ({ ...old, syncMethod: method }));
+      },
       onHeartbeatChange: onChange("heartbeat", true),
       onAutoReconnectChange: onChange("autoReconnect", true),
     };
@@ -118,9 +122,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         disabled={!!props.device}
       />
       {isIpDangerous && (
-        <span style={{ color: "#ff4d4f" }}>
-          {translate('ip_dangerous')}
-        </span>
+        <span style={{ color: "#ff4d4f" }}>{translate("ip_dangerous")}</span>
       )}
       <br />
       <br />
@@ -132,13 +134,22 @@ const AddDeviceModal = memo(function AddDeviceModal(
       />
       <br />
       <br />
-      <Input.Group>
-        <Select value={device.connection} onChange={values.onConnectionChange}>
-          <Select.Option value={"tcp"}>TCP</Select.Option>
-          <Select.Option value={"udp"}>UDP</Select.Option>
-        </Select>
-      </Input.Group>
+      <span className="ant-input-group-wrapper">
+        <span className="ant-input-wrapper ant-input-group">
+          <span className="ant-input-group-addon">
+            {translate("connection_type")}
+          </span>
+          <Select
+            value={device.connection}
+            onChange={values.onConnectionChange}
+          >
+            <Select.Option value={"tcp"}>TCP</Select.Option>
+            <Select.Option value={"udp"}>UDP</Select.Option>
+          </Select>
+        </span>
+      </span>
 
+      <br />
       <br />
       <Input
         addonBefore={t("heartbeat_rate")}
@@ -160,8 +171,27 @@ const AddDeviceModal = memo(function AddDeviceModal(
         type={"number"}
         step={30}
         min={30}
+        inputMode={"decimal"}
       />
       <p>{t("auto_reconnect_desc")}</p>
+      <span className="ant-input-group-wrapper">
+        <span className="ant-input-wrapper ant-input-group">
+          <span className="ant-input-group-addon">
+            {translate("sync_method")}
+          </span>
+          <Select
+            value={device.syncMethod || DeviceSyncMethod.LARGE_DATASET}
+            onChange={values.onMethodChange}
+          >
+            <Select.Option value={DeviceSyncMethod.LARGE_DATASET}>
+              Large dataset
+            </Select.Option>
+            <Select.Option value={DeviceSyncMethod.LEGACY}>
+              Legacy
+            </Select.Option>
+          </Select>
+        </span>
+      </span>
     </Modal>
   );
 });

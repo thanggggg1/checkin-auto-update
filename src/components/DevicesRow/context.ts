@@ -1,6 +1,11 @@
 import constate from "constate";
-import { deleteDevices, Device } from "../../store/devices";
-import ZK, { ZKFreeSizes } from "../../packages/js_zklib/ZK";
+import {
+  deleteDevices,
+  Device,
+  DeviceSyncMethod,
+  useDeviceSyncMethod,
+} from "../../store/devices";
+import ZK from "../../packages/js_zklib/ZK";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAsyncFn } from "react-use";
 import {
@@ -22,6 +27,7 @@ export enum ConnectionState {
 }
 
 const useDeviceValue = ({ device }: { device: Device }) => {
+  const syncMethod = useDeviceSyncMethod(device);
   const [connectionState, setConnectionState] = useState<ConnectionState>(
     ConnectionState.DISCONNECTED
   );
@@ -30,11 +36,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
     [_setSyncPercent]
   );
-  const [freeSizes, setFreeSizes] = useState<ZKFreeSizes>({
-    capacity: 0,
-    logs: 0,
-    users: 0,
-  });
 
   const connection = useMemo(() => {
     return new ZK({
@@ -52,7 +53,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const {
     loading: connecting,
     error: connectError,
-    value: cancelFn,
     call: connect,
   } = useAsyncEffect(async () => {
     setConnectionState(ConnectionState.CONNECTING);
@@ -75,10 +75,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   /**
    * DISABLE
    */
-  const [
-    { loading: isDisabling, error: disableError },
-    disableDevice,
-  ] = useAsyncFn(async () => {
+  const [{ error: disableError }, disableDevice] = useAsyncFn(async () => {
     if (!canSendRequest) {
       throw new Error("Socket is not connected");
     }
@@ -105,11 +102,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
    * SYNC ATTENDANCES
    */
   const [
-    {
-      value: attendances,
-      loading: isGettingAttendances,
-      error: getAttendancesError,
-    },
+    { loading: isGettingAttendances },
     syncAttendances,
   ] = useAsyncFn(async () => {
     console.log("start syncing", canSendRequest);
@@ -125,6 +118,44 @@ const useDeviceValue = ({ device }: { device: Device }) => {
 
     setSyncPercent(0.02);
 
+    if (syncMethod === DeviceSyncMethod.LEGACY) {
+      const attendances = await connection.getAttendance(
+        (current: number, total: number) => {
+          const percent = Math.floor((current / total) * 10000) / 100;
+          console.log("syncing " + device.ip, percent);
+          setSyncPercent(percent);
+        }
+      );
+
+      setSyncPercent(0);
+
+      await enableDevice();
+
+      const records = attendances
+        .map((attendance) => {
+          const mm = moment(attendance.timestamp);
+
+          const id = `${attendance.id}_${mm.valueOf()}`;
+
+          if (isRecordExists(id)) return false;
+
+          return {
+            timestamp: mm.valueOf(),
+            timeFormatted: mm.format("HH:mm:ss"),
+            dateFormatted: mm.format("DD/MM/YYYY"),
+            deviceIp: device.ip,
+            uid: attendance.id,
+            id,
+          };
+        })
+        .filter(Boolean) as AttendanceRecord[];
+
+      syncAttendanceRecords(records);
+
+      return records;
+    }
+
+    // Large dataset method
     const attendances = await connection.zklib.getAttendances(
       (current: number, total: number) => {
         const percent = Math.floor((current / total) * 10000) / 100;
@@ -277,7 +308,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     reconnect: connect,
     deleteDevice,
     syncPercent,
-    freeSizes,
   };
 };
 
