@@ -45,7 +45,13 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       port: device.port,
       connectionType: device.connection,
     });
-  }, [device]);
+  }, [
+    device.ip,
+    device.timeout,
+    device.inport,
+    device.port,
+    device.connection,
+  ]);
 
   /**
    * CONNECT
@@ -191,7 +197,14 @@ const useDeviceValue = ({ device }: { device: Device }) => {
       );
 
     return attendances;
-  }, [connection, canSendRequest, disableDevice, enableDevice, device.ip]);
+  }, [
+    connection,
+    canSendRequest,
+    disableDevice,
+    enableDevice,
+    device.ip,
+    syncMethod,
+  ]);
 
   /**
    * REALTIME

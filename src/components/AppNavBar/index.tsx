@@ -23,20 +23,19 @@ const AppName = styled.h1`
   margin: 0 8px 0 0;
 `;
 
-
 const AppNavBar = memo(function AppNavBar() {
   const token = Fetch.useToken();
 
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
       <AppNameWrapper>
-        <AppName>Base Checkin Station</AppName>
-        <span>v{require('electron').remote.app.getVersion()}</span>
+        <AppName>Base Checkin Client</AppName>
+        <span>v{require("electron").remote.app.getVersion()}</span>
       </AppNameWrapper>
 
       <Row>
         <ButtonGroup>
-          <SettingButton/>
+          <SettingButton />
           <SyncButton />
           {token.token ? (
             <>
