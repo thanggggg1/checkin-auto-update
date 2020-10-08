@@ -125,6 +125,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     setSyncPercent(0.02);
 
     if (syncMethod === DeviceSyncMethod.LEGACY) {
+      await connection.freeData();
       const attendances = await connection.getAttendance(
         (current: number, total: number) => {
           const percent = Math.floor((current / total) * 10000) / 100;
@@ -227,10 +228,8 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           id: `${ret.userId}_${mm.valueOf()}`,
           dateFormatted: mm.format("DD/MM/YYYY"),
           deviceIp: device.ip,
-          timeFormatted: mm.format("HH:mm"),
+          timeFormatted: mm.format("HH:mm:ss"),
         };
-
-        console.log("realtime log", log);
 
         Fetch.realtimePush(log);
 
