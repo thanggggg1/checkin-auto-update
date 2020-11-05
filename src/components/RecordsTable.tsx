@@ -14,43 +14,63 @@ const RecordsTable = memo(function RecordsTable() {
   const records = useSelector(selector) || {};
   const recordsThrottled = useThrottle(records, 3000);
 
-  const dataSource = useMemo(() => {
-    return Object.values(records)
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .map((record) => ({
+  const { dataSource, uids, ips } = useMemo(() => {
+    const uids: Record<string | number, string | number> = {};
+    const ips: Record<string, string> = {};
+
+    const dataSource = Object.values(records).map((record) => {
+      uids[record.uid] = record.uid;
+      ips[record.deviceIp] = record.deviceIp;
+      return {
         key: record.id,
         uid: record.uid,
         device: record.deviceIp,
         time: record.timeFormatted,
         date: record.dateFormatted,
-      }));
+        timestamp: record.timestamp,
+      };
+    });
+
+    return {
+      uids,
+      ips,
+      dataSource,
+    };
   }, [recordsThrottled]);
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    return [
       {
         title: t("checkin_code"),
         key: "checkin-code",
         dataIndex: "uid",
+        filters: Object.values(uids).map((uid) => ({ text: uid, value: uid })),
+        onFilter: (value: string | number, record: any) => record.uid == value,
       },
       {
         title: t("device"),
         key: "device",
         dataIndex: "device",
+        filters: Object.values(ips).map((ip) => ({ text: ip, value: ip })),
+        onFilter: (value: string | number, record: any) =>
+          record.device == value,
       },
       {
         title: t("time"),
         key: "time",
         dataIndex: "time",
+        defaultSortOrder: "descend",
       },
       {
         title: t("date"),
         key: "date",
         dataIndex: "date",
+        defaultSortOrder: "descend",
+        sorter: (a: AttendanceRecord, b: AttendanceRecord) =>
+          a.timestamp - b.timestamp,
       },
-    ],
-    [lang]
-  );
+    ];
+  }, [lang, ips, uids]);
 
   return <Table columns={columns} dataSource={dataSource} />;
 });
