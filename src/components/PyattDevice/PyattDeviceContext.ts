@@ -26,7 +26,11 @@ const PyattDeviceContext = (() => {
     const latestRealtimeStatus = useLatest(realtimeStatus);
 
     const instance = useMemo(() => {
-      return new Pyatt(device.ip, device.port);
+      const output = new Pyatt(device.ip, device.port);
+
+      if (device.connection === "udp") output.isUdp = true;
+
+      return output;
     }, [device.ip, device.port, device.connection]);
 
     // start realtime status automatically
