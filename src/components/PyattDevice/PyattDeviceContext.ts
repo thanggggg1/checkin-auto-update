@@ -8,6 +8,7 @@ import useAsyncFn from "react-use/lib/useAsyncFn";
 import { syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
 import { Alert } from "antd";
+import { Events, events } from "../../utils/events";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -22,6 +23,8 @@ const PyattDeviceContext = (() => {
       PyattRealtimeStatus.DISCONNECTED
     );
     const [syncPercent, setSyncPercent] = useState(0);
+    const latestSyncPercent = useLatest(syncPercent);
+    "";
 
     const latestRealtimeStatus = useLatest(realtimeStatus);
 
@@ -115,6 +118,17 @@ const PyattDeviceContext = (() => {
     const deleteDevice = useCallback(() => {
       deleteDevices([device.ip]);
     }, [device.ip]);
+
+    useEffect(() => {
+      const handler = () => {
+        if (!latestSyncPercent.current) syncAttendances();
+      };
+
+      events.on(Events.MASS_SYNC, handler);
+      return () => {
+        events.off(Events.MASS_SYNC, handler);
+      };
+    }, [syncAttendances]);
 
     return {
       device,
