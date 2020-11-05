@@ -1,19 +1,8 @@
-import React, {
-  ChangeEvent,
-  memo,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import React, { ChangeEvent, memo, useCallback, useMemo, useState } from "react";
 import { Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
-import {
-  antdModalLanguageProps,
-  t,
-  translate,
-  useLanguage,
-} from "../../store/settings/languages";
+import { antdModalLanguageProps, t, translate, useLanguage } from "../../store/settings/languages";
 
 const defaultValue: Device = {
   name: "",
@@ -57,6 +46,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       onMethodChange: (method: Device["syncMethod"]) => {
         setDevice((old) => ({ ...old, syncMethod: method }));
       },
+      onPasswordChange: onChange('password'),
       onHeartbeatChange: onChange("heartbeat", true),
       onAutoReconnectChange: onChange("autoReconnect", true),
     };
@@ -135,6 +125,16 @@ const AddDeviceModal = memo(function AddDeviceModal(
         value={device.port}
         onChange={values.onPortChange}
       />
+      {device.syncMethod === DeviceSyncMethod.PY && <>
+        <br />
+        <br />
+        <Input
+          addonBefore={t("device_password")}
+          placeholder={t("device_password_placeholder")}
+          value={device.password}
+          onChange={values.onPasswordChange}
+        />
+      </>}
       <br />
       <br />
       <span className="ant-input-group-wrapper">
@@ -152,18 +152,22 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </span>
       </span>
 
-      <br />
-      <br />
-      <Input
-        addonBefore={t("heartbeat_rate")}
-        placeholder={t("heartbeat_rate_desc")}
-        addonAfter={t("minutes")}
-        value={device.heartbeat || 1}
-        onChange={values.onHeartbeatChange}
-        type={"number"}
-        step={1}
-        min={1}
-      />
+      {device.syncMethod !== DeviceSyncMethod.PY && (
+        <>
+          <br />
+          <br />
+          <Input
+            addonBefore={t("heartbeat_rate")}
+            placeholder={t("heartbeat_rate_desc")}
+            addonAfter={t("minutes")}
+            value={device.heartbeat || 1}
+            onChange={values.onHeartbeatChange}
+            type={"number"}
+            step={1}
+            min={1}
+          />
+        </>
+      )}
       <p>{t("heartbeat_rate_desc")}</p>
       <Input
         addonBefore={t("auto_reconnect")}

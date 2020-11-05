@@ -24,17 +24,16 @@ const PyattDeviceContext = (() => {
     );
     const [syncPercent, setSyncPercent] = useState(0);
     const latestSyncPercent = useLatest(syncPercent);
-    "";
 
     const latestRealtimeStatus = useLatest(realtimeStatus);
 
     const instance = useMemo(() => {
-      const output = new Pyatt(device.ip, device.port);
+      const output = new Pyatt(device.ip, device.port, device.password);
 
       if (device.connection === "udp") output.isUdp = true;
 
       return output;
-    }, [device.ip, device.port, device.connection]);
+    }, [device.ip, device.port, device.password, device.connection]);
 
     // start realtime status automatically
     const {
@@ -79,7 +78,7 @@ const PyattDeviceContext = (() => {
     useEffect(() => {
       if (realtimeStatus !== PyattRealtimeStatus.DISCONNECTED) return;
 
-      const timeout = setTimeout(startRealtime, device.timeout || 3000);
+      const timeout = setTimeout(startRealtime, device.timeout || 30000);
 
       return () => {
         return clearTimeout(timeout);

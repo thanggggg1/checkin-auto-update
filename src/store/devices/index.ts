@@ -17,6 +17,7 @@ export interface Device {
   heartbeat?: number;
   autoReconnect?: number;
   syncMethod?: DeviceSyncMethod;
+  password?: string;
 }
 
 export const {
