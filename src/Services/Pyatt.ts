@@ -1,4 +1,7 @@
+import { AttendanceRecord } from "../store/records";
+
 export interface PyattRecord {
+  index: number;
   uid: string;
   user_id: string;
   time: string;
@@ -42,11 +45,11 @@ class Pyatt {
     ].filter(Boolean);
   };
 
-  runScript = (args: string[]) => {
+  runScript = (args: string[], onData?: (data: Buffer) => any) => {
     return new Promise<string>((resolve, reject) => {
       const { execFile } = require("child_process");
 
-      return execFile(
+      const exec = execFile(
         this._pyattExecutablePath,
         [...this.generateScriptParams(), ...args],
         {
@@ -64,26 +67,61 @@ class Pyatt {
           return stdout ? resolve(stdout.toString()) : reject("StdOut empty");
         }
       );
+
+      if (onData) exec.stdout.on("data", onData);
     });
   };
 
-  parseInfo = (info: string) => {
-    const parseSizesCapacity = (info: string) => {
-      const regex = /ZK \w+:\/\/[\w.:]+ users\[\d+]:(\d+)\/(\d+) fingers:(\d+)\/(\d+), records:(\d+)\/(\d+) faces:(\d+)\/(\d+)/;
-      const matches = info.match(regex);
+  parseSizesCapacity = (info: string) => {
+    const regex = /ZK \w+:\/\/[\w.:]+ users\[\d+]:(\d+)\/(\d+) fingers:(\d+)\/(\d+), records:(\d+)\/(\d+) faces:(\d+)\/(\d+)/;
+    const matches = info.match(regex);
 
-      return {
-        usersSize: matches?.[1],
-        usersCapacity: matches?.[2],
-        fingersSize: matches?.[3],
-        fingersCapacity: matches?.[4],
-        recordsSize: matches?.[5],
-        recordsCapacity: matches?.[6],
-        facesSize: matches?.[7],
-        facesCapacity: matches?.[8],
-      };
+    return {
+      usersSize: matches?.[1],
+      usersCapacity: matches?.[2],
+      fingersSize: matches?.[3],
+      fingersCapacity: matches?.[4],
+      recordsSize: matches?.[5],
+      recordsCapacity: matches?.[6],
+      facesSize: matches?.[7],
+      facesCapacity: matches?.[8],
     };
+  };
 
+  parseSingleRecord = (info: string): PyattRecord | undefined => {
+    const regex = /ATT\s*(\d+): uid:\s*(\d+), user_id:\s*(\d+) t: (.*), s:(\d+) p:(\d+)/;
+    const match = info.match(regex);
+
+    if (!match) return;
+
+    return {
+      index: Number(match[1]),
+      uid: String(match[2]).trim(),
+      user_id: String(match[3]).trim(),
+      time: String(match[4]).trim(),
+      state: String(match[5]).trim(),
+      p: String(match[6]).trim(),
+    };
+  };
+
+  parseRecords = (info: string): { records: PyattRecord[] } => {
+    const regex = /ATT\s*(\d+): uid:\s*(\d+), user_id:\s*(\d+) t: (.*), s:(\d+) p:(\d+)/gm;
+    const matches = info.matchAll(regex);
+    return {
+      records: [...matches].map((match) => {
+        return {
+          index: Number(match[1]),
+          uid: String(match[2]).trim(),
+          user_id: String(match[3]).trim(),
+          time: String(match[4]).trim(),
+          state: String(match[5]).trim(),
+          p: String(match[6]).trim(),
+        };
+      }),
+    };
+  };
+
+  parseInfo = (info: string) => {
     const parseUsers = (info: string) => {
       const regex = /-> UID #.*Name {5}: (.*)Privilege : (.*)\n\s*Group ID : (.*)User ID : (.*)Password {2}: (.*)Card : (.*)/gm;
       const matches = info.matchAll(regex);
@@ -96,22 +134,6 @@ class Pyatt {
             userId: String(match[4]).trim(),
             password: String(match[5]).trim(),
             card: String(match[6]).trim(),
-          };
-        }),
-      };
-    };
-
-    const parseRecords = (info: string) => {
-      const regex = /ATT\s*\d+: uid:\s*(\d+), user_id:\s*(\d+) t: (.*), s:(\d+) p:(\d+)/gm;
-      const matches = info.matchAll(regex);
-      return {
-        records: [...matches].map((match) => {
-          return {
-            uid: String(match[1]).trim(),
-            user_id: String(match[2]).trim(),
-            time: String(match[3]).trim(),
-            state: String(match[4]).trim(),
-            p: String(match[5]).trim(),
           };
         }),
       };
@@ -145,9 +167,9 @@ class Pyatt {
 
     return {
       ...parseBasicInfo(info),
-      ...parseSizesCapacity(info),
+      ...this.parseSizesCapacity(info),
       ...parseUsers(info),
-      ...parseRecords(info),
+      ...this.parseRecords(info),
     };
   };
 
@@ -164,7 +186,8 @@ class Pyatt {
   liveCapture = (
     onError?: (error: Error) => any,
     onCapture?: (data: PyattRecord) => any,
-    onExitOrClose?: (data: any) => any
+    onExitOrClose?: (data: any) => any,
+    onAnyData?: (data: string) => any
   ): (() => void) => {
     this._isLiveCapturing = true;
 
@@ -177,18 +200,12 @@ class Pyatt {
 
     f.stdout?.on("data", (data: Buffer) => {
       const recordString = data.toString();
-      const regex = /ATT\s*\d+: uid:\s*(\d+), user_id:\s*(\d+) t: (.*), s:(\d+) p:(\d+)/;
-      const match = recordString.match(regex);
+      onAnyData?.(recordString);
 
-      if (!match) return;
-
-      onCapture?.({
-        uid: String(match[1]).trim(),
-        user_id: String(match[2]).trim(),
-        time: String(match[3]).trim(),
-        state: String(match[4]).trim(),
-        p: String(match[5]).trim(),
-      });
+      const record = this.parseSingleRecord(recordString);
+      if (record && onCapture) {
+        onCapture(record);
+      }
     });
     f.stderr?.on("data", (data: Buffer) => {
       console.log("stderr", data.toString());
@@ -200,11 +217,62 @@ class Pyatt {
     });
 
     return () => {
-      f.kill();
+      setTimeout(() => f.kill("SIGINT"), 2000);
     };
   };
 
-  getRecords = async () => this.parseInfo(await this.runScript(["--records"]));
+  getRecords = async (
+    params: {
+      onStarted?: () => any;
+      onRecords?: (records: PyattRecord[]) => any;
+      onPercent?: (total: number, current: number) => any;
+    } = {}
+  ) => {
+    let isRunStarted = false;
+    let hasSize = false;
+    let total = 0; // Total records
+
+    return this.parseInfo(
+      await this.runScript(["--records"], (data) => {
+        if (!isRunStarted) {
+          params.onStarted?.();
+          isRunStarted = true;
+        }
+
+        const str = data.toString();
+
+        if (!hasSize) {
+          const { recordsSize } = this.parseSizesCapacity(str);
+          if (recordsSize) {
+            hasSize = true;
+            total = Number(recordsSize);
+            params.onPercent?.(total, 0);
+            return;
+          }
+        }
+
+        const { records } = this.parseRecords(str);
+
+        if (records.length) {
+          params.onRecords?.(records);
+          const latestRecord = records[records.length - 1];
+          if (latestRecord && params.onPercent) params.onPercent(total, latestRecord.index)
+        }
+      })
+    );
+  };
+
+  static pyattRecordToAttendance = (record: PyattRecord, deviceIp: string): AttendanceRecord => {
+    const time = require('moment')(record.time, 'YYYY-MM-DD HH:mm:ss');
+    return {
+      id: `${record.user_id}_${time.valueOf()}`,
+      dateFormatted: time.format('DD/MM/YYYY'),
+      timeFormatted: time.format('HH:mm:ss'),
+      timestamp: time.valueOf(),
+      uid: Number(record.user_id),
+      deviceIp
+    }
+  }
 }
 
 export default Pyatt;

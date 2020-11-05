@@ -20,6 +20,7 @@ const defaultValue: Device = {
   ip: "",
   connection: "tcp",
   port: 4370,
+  syncMethod: DeviceSyncMethod.PY,
 };
 
 const domainRegex = /^(?!-)(?:[a-zA-Z\d\-]{0,62}[a-zA-Z\d]\.){1,126}(?!\d+)[a-zA-Z\d]{1,63}$/;
@@ -87,6 +88,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
         ...antdModalLanguageProps,
       });
     }
+
+    console.log(device);
 
     syncDevices([device]);
     props.onClose();
@@ -180,9 +183,10 @@ const AddDeviceModal = memo(function AddDeviceModal(
             {translate("sync_method")}
           </span>
           <Select
-            value={device.syncMethod || DeviceSyncMethod.LARGE_DATASET}
+            value={device.syncMethod || DeviceSyncMethod.PY}
             onChange={values.onMethodChange}
           >
+            <Select.Option value={DeviceSyncMethod.PY}>Pyatt</Select.Option>
             <Select.Option value={DeviceSyncMethod.LARGE_DATASET}>
               Large dataset
             </Select.Option>

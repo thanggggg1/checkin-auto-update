@@ -2,8 +2,9 @@ import { createDynamicReducer } from "../../utils/createDynamicReducer";
 import { useSelector } from "react-redux";
 
 export enum DeviceSyncMethod {
-  LARGE_DATASET = 'large_dataset',
-  LEGACY = 'legacy'
+  PY = "pyatt",
+  LARGE_DATASET = "large_dataset",
+  LEGACY = "legacy",
 }
 
 export interface Device {
@@ -15,7 +16,7 @@ export interface Device {
   timeout?: number;
   heartbeat?: number;
   autoReconnect?: number;
-  syncMethod?: DeviceSyncMethod
+  syncMethod?: DeviceSyncMethod;
 }
 
 export const {
@@ -34,9 +35,12 @@ export const useDevicesRecord = (): Record<string, Device> => {
 };
 
 export const useDeviceSyncMethod = (device: Device): DeviceSyncMethod => {
-  if (!device.syncMethod || !Object.values(DeviceSyncMethod).includes(device.syncMethod)) {
+  if (
+    !device.syncMethod ||
+    !Object.values(DeviceSyncMethod).includes(device.syncMethod)
+  ) {
     return DeviceSyncMethod.LARGE_DATASET;
   }
 
   return device.syncMethod;
-}
+};

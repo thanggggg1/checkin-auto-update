@@ -48,7 +48,7 @@ const DeviceInfo = memo(function DeviceInfo() {
       <InfoRow>
         {t("status")}:{" "}
         {(() => {
-          if (connectionState === ConnectionState.CONNECTED) return "Connected";
+          if (connectionState === ConnectionState.CONNECTED) return t('connected');
           if (connectionState === ConnectionState.CONNECTING)
             return t("connecting");
           if (connectionState === ConnectionState.DISCONNECTED)

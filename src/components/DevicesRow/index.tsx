@@ -1,10 +1,11 @@
 import React, { memo, useMemo, useState } from "react";
 import { Button, Row } from "antd";
 import AddDeviceModal from "../AddDeviceModal";
-import { useDevicesRecord } from "../../store/devices";
+import { DeviceSyncMethod, useDevicesRecord } from "../../store/devices";
 import DeviceItem from "./DeviceItem";
 import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
+import PyattDevice from "../PyattDevice";
 
 const Wrapper = styled(Row)`
   flex-wrap: nowrap;
@@ -38,6 +39,10 @@ const DevicesRow = memo(function DevicesRow() {
     <>
       <Wrapper>
         {Object.values(devices).map((device) => {
+          if (device.syncMethod === DeviceSyncMethod.PY) {
+            return <PyattDevice key={device.ip} device={device} />;
+          }
+
           return <DeviceItem key={device.ip} device={device} />;
         })}
         <AddButton type={"dashed"} onClick={values.openModal}>

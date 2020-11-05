@@ -13,6 +13,7 @@
   "connecting": "Connecting",
   "connected": "Connected",
   "disconnected": "Disconnected",
+  "preparing": "Preparing",
   "add_device": "Add device",
   "checkin_code": "Checkin code",
   "device": "Device",
