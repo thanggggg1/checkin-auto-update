@@ -50,6 +50,8 @@
   "device_port": "Cổng kết nối",
   "device_name_placeholder": "Ví dụ: Cửa chính",
   "device_ip_placeholder": "Ví dụ: 192.168.0.5, 10.20.0.4",
+  "device_password": "Mật khẩu",
+  "device_password_placeholder": "Mật khẩu thiết bị",
   "clear_records_confirm_title": "Bạn có chắc chắn muốn xóa tất cả bản ghi?",
   "clear_records_confirm_description": "Hành động này chỉ xóa các bản ghi trên ứng dụng này, các dữ liệu trên máy chấm công và dữ liệu trên Base HRM sẽ không bị ảnh hưởng",
   "clear_pushed_evidents_confirm_title": "Bạn có chắc muốn xóa tất cả bằng chứng đẩy",

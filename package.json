@@ -59,6 +59,7 @@
     "electron-store": "^6.0.0",
     "i18next": "^19.7.0",
     "lodash": "^4.17.19",
+    "ping": "^0.3.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.1",

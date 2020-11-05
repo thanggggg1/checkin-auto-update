@@ -49,6 +49,8 @@
   "device_ip": "IP Address",
   "device_port": "Port",
   "device_name_placeholder": "Ex: Main door",
+  "device_password": "Password",
+  "device_password_placeholder": "Device password",
   "device_ip_placeholder": "Ex: 192.168.0.5, 10.20.0.4",
   "clear_records_confirm_title": "Are you sure to clear all records?",
   "clear_records_confirm_description": "This action just clear all records in this application only, the data in your attendance machine or uploaded data won't be affected",

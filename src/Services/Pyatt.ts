@@ -256,23 +256,27 @@ class Pyatt {
         if (records.length) {
           params.onRecords?.(records);
           const latestRecord = records[records.length - 1];
-          if (latestRecord && params.onPercent) params.onPercent(total, latestRecord.index)
+          if (latestRecord && params.onPercent)
+            params.onPercent(total, latestRecord.index);
         }
       })
     );
   };
 
-  static pyattRecordToAttendance = (record: PyattRecord, deviceIp: string): AttendanceRecord => {
-    const time = require('moment')(record.time, 'YYYY-MM-DD HH:mm:ss');
+  static pyattRecordToAttendance = (
+    record: PyattRecord,
+    deviceIp: string
+  ): AttendanceRecord => {
+    const time = require("moment")(record.time, "YYYY-MM-DD HH:mm:ss");
     return {
       id: `${record.user_id}_${time.valueOf()}`,
-      dateFormatted: time.format('DD/MM/YYYY'),
-      timeFormatted: time.format('HH:mm:ss'),
+      dateFormatted: time.format("DD/MM/YYYY"),
+      timeFormatted: time.format("HH:mm:ss"),
       timestamp: time.valueOf(),
       uid: Number(record.user_id),
-      deviceIp
-    }
-  }
+      deviceIp,
+    };
+  };
 }
 
 export default Pyatt;

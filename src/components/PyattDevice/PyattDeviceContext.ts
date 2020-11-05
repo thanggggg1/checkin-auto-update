@@ -86,32 +86,37 @@ const PyattDeviceContext = (() => {
     }, [realtimeStatus, startRealtime, device.timeout]);
 
     const [, syncAttendances] = useAsyncFn(async () => {
-      setSyncPercent(0);
-      const data = await instance.getRecords({
-        onStarted: () => setSyncPercent(0.01),
-        onRecords: (records) => {
-          syncAttendanceRecords(
-            records.map((record) =>
-              Pyatt.pyattRecordToAttendance(record, device.ip)
-            )
-          );
-        },
-        onPercent: (total, current) => {
-          console.log("total", total, current);
-          setSyncPercent(Math.floor((current * 100) / total) / 100);
-        },
-      });
+      try {
+        setSyncPercent(0);
+        const data = await instance.getRecords({
+          onStarted: () => setSyncPercent(0.01),
+          onRecords: (records) => {
+            syncAttendanceRecords(
+              records.map((record) =>
+                Pyatt.pyattRecordToAttendance(record, device.ip)
+              )
+            );
+          },
+          onPercent: (total, current) => {
+            console.log("total", total, current);
+            setSyncPercent(Math.floor((current * 100) / total) / 100);
+          },
+        });
 
-      syncAttendanceRecords(
-        data.records.map((record) =>
-          Pyatt.pyattRecordToAttendance(record, device.ip)
-        )
-      );
+        syncAttendanceRecords(
+          data.records.map((record) =>
+            Pyatt.pyattRecordToAttendance(record, device.ip)
+          )
+        );
 
-      setSyncPercent(100);
+        setSyncPercent(100);
 
-      await require("bluebird").delay(2000);
-      setSyncPercent(0);
+        await require("bluebird").delay(2000);
+        setSyncPercent(0);
+      } catch (e) {
+        console.log('sync error', e);
+        setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
+      }
     }, [instance]);
 
     const deleteDevice = useCallback(() => {
@@ -128,6 +133,24 @@ const PyattDeviceContext = (() => {
         events.off(Events.MASS_SYNC, handler);
       };
     }, [syncAttendances]);
+
+    useEffect(() => {
+      const ping = require("ping");
+
+      const interval = setInterval(() => {
+        ping.promise
+          .probe(device.ip, {
+            timeout: 3,
+          })
+          .then(({ alive }: { alive: boolean }) => {
+            if (!alive) setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
+          });
+      }, 10000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }, [device.ip, device.port]);
 
     return {
       device,
