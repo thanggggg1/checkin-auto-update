@@ -5,7 +5,7 @@ import DeviceActions from "./actions/DeviceActions";
 
 const DeviceItemExtra = memo(function DeviceItemExtra() {
   return (
-    <Dropdown overlay={<DeviceActions />} placement={"topRight"} arrow>
+    <Dropdown overlay={<DeviceActions />} placement={"bottomLeft"} arrow>
       <Button>...</Button>
     </Dropdown>
   );

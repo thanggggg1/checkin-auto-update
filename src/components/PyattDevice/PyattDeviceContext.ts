@@ -1,6 +1,6 @@
 import constate from "constate";
-import { Device } from "../../store/devices";
-import { useEffect, useMemo, useState } from "react";
+import { deleteDevices, Device } from "../../store/devices";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Pyatt from "../../Services/Pyatt";
 import useLatest from "react-use/lib/useLatest";
 import useAsyncEffect from "../../utils/useAsyncEffect";
@@ -91,7 +91,7 @@ const PyattDeviceContext = (() => {
           );
         },
         onPercent: (total, current) => {
-          console.log("total", current);
+          console.log("total", total, current);
           setSyncPercent(Math.floor((current * 100) / total) / 100);
         },
       });
@@ -108,10 +108,16 @@ const PyattDeviceContext = (() => {
       setSyncPercent(0);
     }, [instance]);
 
+    const deleteDevice = useCallback(() => {
+      deleteDevices([device.ip]);
+    }, [device.ip]);
+
     return {
+      device,
       realtimeStatus,
       syncAttendances,
       syncPercent,
+      deleteDevice,
     };
   });
 
