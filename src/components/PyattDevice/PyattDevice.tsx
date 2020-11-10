@@ -14,6 +14,7 @@ const ExtraOverlay = (props: any) => {
     syncPercent,
     device,
     deleteDevice,
+    startRealtime,
   } = PyattDeviceContext.use();
 
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
@@ -27,6 +28,9 @@ const ExtraOverlay = (props: any) => {
 
   return (
     <Menu {...props}>
+      <Menu.Item onClick={startRealtime}>
+        <span>{t("reconnect")}</span>
+      </Menu.Item>
       <Menu.Item
         disabled={
           realtimeStatus !== PyattRealtimeStatus.CONNECTED || !!syncPercent

@@ -1,14 +1,15 @@
 import constate from "constate";
 import { deleteDevices, Device } from "../../store/devices";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pyatt from "../../Services/Pyatt";
 import useLatest from "react-use/lib/useLatest";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
 import { syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
-import { Alert } from "antd";
+import { Modal } from "antd";
 import { Events, events } from "../../utils/events";
+import useAutoAlertError from "../../hooks/useAutoAlertError";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -24,8 +25,9 @@ const PyattDeviceContext = (() => {
     );
     const [syncPercent, setSyncPercent] = useState(0);
     const latestSyncPercent = useLatest(syncPercent);
-
     const latestRealtimeStatus = useLatest(realtimeStatus);
+
+    const isGettingRecordRef = useRef(false);
 
     const instance = useMemo(() => {
       const output = new Pyatt(device.ip, device.port, device.password);
@@ -37,14 +39,19 @@ const PyattDeviceContext = (() => {
 
     // start realtime status automatically
     const {
+      error: startRealtimeError,
       call: startRealtime,
       value: closeLiveCapture,
     } = useAsyncEffect(async () => {
+      if (isGettingRecordRef.current) return;
+
       setRealtimeStatus(PyattRealtimeStatus.CONNECTING);
 
       return instance.liveCapture(
         (error) => {
-          Alert({ message: error.message });
+          if (isGettingRecordRef.current) return;
+
+          Modal.error({ content: error.message });
           setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
         },
         (record) => {
@@ -52,11 +59,12 @@ const PyattDeviceContext = (() => {
           syncAttendanceRecords([log]);
           Fetch.realtimePush(log);
         },
-        (close) => {
-          console.log("close?", close);
+        () => {
           setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
         },
         (anyData) => {
+          console.log("anyData", device.ip, anyData);
+
           if (latestRealtimeStatus.current !== PyattRealtimeStatus.CONNECTED) {
             setRealtimeStatus(PyattRealtimeStatus.PREPARING);
           }
@@ -69,6 +77,8 @@ const PyattDeviceContext = (() => {
         }
       );
     }, [instance]);
+
+    useAutoAlertError(startRealtimeError);
 
     useEffect(() => {
       return closeLiveCapture;
@@ -87,9 +97,10 @@ const PyattDeviceContext = (() => {
 
     const [, syncAttendances] = useAsyncFn(async () => {
       try {
-        setSyncPercent(0);
+        setSyncPercent(0.01);
+        isGettingRecordRef.current = true;
         const data = await instance.getRecords({
-          onStarted: () => setSyncPercent(0.01),
+          onStarted: () => setSyncPercent(0.02),
           onRecords: (records) => {
             syncAttendanceRecords(
               records.map((record) =>
@@ -99,9 +110,13 @@ const PyattDeviceContext = (() => {
           },
           onPercent: (total, current) => {
             console.log("total", total, current);
-            setSyncPercent(Math.floor((current * 100) / total) / 100);
+            setSyncPercent(Math.floor((current * 100) / total) || 0.03);
           },
         });
+
+        console.log("got it all");
+
+        isGettingRecordRef.current = false;
 
         syncAttendanceRecords(
           data.records.map((record) =>
@@ -110,14 +125,21 @@ const PyattDeviceContext = (() => {
         );
 
         setSyncPercent(100);
+        if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
+          startRealtime();
 
         await require("bluebird").delay(2000);
         setSyncPercent(0);
       } catch (e) {
-        console.log('sync error', e);
+        console.log("sync error", e);
+
+        if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
+          startRealtime();
+        Modal.error({ content: e.message });
+        isGettingRecordRef.current = false;
         setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
       }
-    }, [instance]);
+    }, [instance, startRealtime]);
 
     const deleteDevice = useCallback(() => {
       deleteDevices([device.ip]);
@@ -158,6 +180,7 @@ const PyattDeviceContext = (() => {
       syncAttendances,
       syncPercent,
       deleteDevice,
+      startRealtime,
     };
   });
 

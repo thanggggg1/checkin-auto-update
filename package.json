@@ -56,7 +56,9 @@
     "bluebird": "^3.7.2",
     "bufferpack": "^0.0.6",
     "constate": "^2.0.0",
+    "cross-spawn": "^7.0.3",
     "electron-store": "^6.0.0",
+    "fix-path": "^3.0.0",
     "i18next": "^19.7.0",
     "lodash": "^4.17.19",
     "ping": "^0.3.0",
@@ -67,6 +69,7 @@
     "redux-persist": "^6.0.0",
     "redux-persist-electron-storage": "^2.1.0",
     "set-interval-async": "1.0.33",
+    "spawn-sync": "^2.0.0",
     "styled-components": "^5.1.1"
   },
   "build": {
@@ -77,12 +80,34 @@
     "directories": {
       "output": "electron-output"
     },
+    "extraFiles": [
+      {
+        "from": "./assets",
+        "to": "resources/dist/assets"
+      }
+    ],
     "mac": {
       "icon": "./assets/AppIcon.icns"
     },
     "win": {
       "icon": "./assets/AppIcon.ico"
-    }
+    },
+    "files": [
+      "!node_modules/**/*",
+      "!src/**/*",
+      "!electron/**/*",
+      "!.babelrc",
+      "!.npmrc",
+      "!babel.config.js",
+      "!.prettierrc",
+      "!build.sh",
+      "!index.html",
+      "!tsconfig.json",
+      "!webpack.electron.config.js",
+      "!webpack.react.config.js",
+      "!yarn.lock",
+      "!yarn.error"
+    ]
   },
   "files": [
     "./dist/renderer/"

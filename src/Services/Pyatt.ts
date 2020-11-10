@@ -9,12 +9,14 @@ export interface PyattRecord {
   p: string;
 }
 
+const { app } = require("electron").remote;
+const path = require("path");
+
 class Pyatt {
-  _pyattExecutablePath = require("path").join(
-    require("electron").remote.app.getAppPath(),
-    "dist",
-    "assets",
-    "pyatt.exe"
+  _pyattFileName = "pyatt.exe";
+  _pyattExecutablePath = path.join(
+    app.getAppPath(),
+    ...[app.isPackaged ? ".." : "", "dist", "assets"].filter(Boolean)
   );
 
   _address: string;
@@ -50,10 +52,12 @@ class Pyatt {
       const { execFile } = require("child_process");
 
       const exec = execFile(
-        this._pyattExecutablePath,
+        this._pyattFileName,
         [...this.generateScriptParams(), ...args],
         {
-          shell: true,
+          cwd: this._pyattExecutablePath,
+          maxBuffer: 1024 * 1024 * 50, // Max 50MB per buffer
+          windowsVerbatimArguments: true,
         },
         (error?: Error, stdout?: string | Buffer, stderr?: string | Buffer) => {
           if (error) {
@@ -193,10 +197,11 @@ class Pyatt {
 
     const { spawn } = require("child_process");
 
-    const f = spawn(this._pyattExecutablePath, [
-      ...this.generateScriptParams(),
-      "--live-capture",
-    ]);
+    const f = spawn(
+      this._pyattFileName,
+      [...this.generateScriptParams(), "--live-capture"],
+      { cwd: this._pyattExecutablePath, windowsVerbatimArguments: true }
+    );
 
     f.stdout?.on("data", (data: Buffer) => {
       const recordString = data.toString();
