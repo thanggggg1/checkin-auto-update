@@ -23,7 +23,7 @@ const PyattDeviceContext = (() => {
     const [realtimeStatus, setRealtimeStatus] = useState(
       PyattRealtimeStatus.DISCONNECTED
     );
-    const [syncPercent, setSyncPercent] = useState('');
+    const [syncPercent, setSyncPercent] = useState("");
     const latestSyncPercent = useLatest(syncPercent);
     const latestRealtimeStatus = useLatest(realtimeStatus);
 
@@ -56,6 +56,9 @@ const PyattDeviceContext = (() => {
         },
         (record) => {
           const log = Pyatt.pyattRecordToAttendance(record, device.ip);
+
+          if (log.uid == 0) return;
+
           syncAttendanceRecords([log]);
           Fetch.realtimePush(log);
         },
@@ -97,15 +100,17 @@ const PyattDeviceContext = (() => {
 
     const [, syncAttendances] = useAsyncFn(async () => {
       try {
-        setSyncPercent('Starting');
+        setSyncPercent("Starting");
         isGettingRecordRef.current = true;
         const data = await instance.getRecords({
-          onStarted: () => setSyncPercent('Preparing'),
+          onStarted: () => setSyncPercent("Preparing"),
           onRecords: (records) => {
             syncAttendanceRecords(
-              records.map((record) =>
-                Pyatt.pyattRecordToAttendance(record, device.ip)
-              )
+              records
+                .map((record) =>
+                  Pyatt.pyattRecordToAttendance(record, device.ip)
+                )
+                .filter((r) => r.uid != 0)
             );
           },
           onPercent: (total, current) => {
@@ -119,17 +124,17 @@ const PyattDeviceContext = (() => {
         isGettingRecordRef.current = false;
 
         syncAttendanceRecords(
-          data.records.map((record) =>
-            Pyatt.pyattRecordToAttendance(record, device.ip)
-          )
+          data.records
+            .map((record) => Pyatt.pyattRecordToAttendance(record, device.ip))
+            .filter((r) => r.uid != 0)
         );
 
-        setSyncPercent('Done');
+        setSyncPercent("Done");
         if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
           startRealtime();
 
         await require("bluebird").delay(2000);
-        setSyncPercent('');
+        setSyncPercent("");
       } catch (e) {
         console.log("sync error", e);
 
@@ -165,6 +170,7 @@ const PyattDeviceContext = (() => {
             timeout: 3,
           })
           .then(({ alive }: { alive: boolean }) => {
+            if (!alive) setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
             if (!alive) setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
           });
       }, 10000);
