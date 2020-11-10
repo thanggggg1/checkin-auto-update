@@ -88,7 +88,7 @@ const SyncTag = () => {
 
   return (
     <Tag onClick={syncAttendances}>
-      {t("sync")}: {syncPercent}%
+      {t("sync")}: {syncPercent}
     </Tag>
   );
 };

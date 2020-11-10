@@ -23,7 +23,7 @@ const PyattDeviceContext = (() => {
     const [realtimeStatus, setRealtimeStatus] = useState(
       PyattRealtimeStatus.DISCONNECTED
     );
-    const [syncPercent, setSyncPercent] = useState(0);
+    const [syncPercent, setSyncPercent] = useState('');
     const latestSyncPercent = useLatest(syncPercent);
     const latestRealtimeStatus = useLatest(realtimeStatus);
 
@@ -97,10 +97,10 @@ const PyattDeviceContext = (() => {
 
     const [, syncAttendances] = useAsyncFn(async () => {
       try {
-        setSyncPercent(0.01);
+        setSyncPercent('Starting');
         isGettingRecordRef.current = true;
         const data = await instance.getRecords({
-          onStarted: () => setSyncPercent(0.02),
+          onStarted: () => setSyncPercent('Preparing'),
           onRecords: (records) => {
             syncAttendanceRecords(
               records.map((record) =>
@@ -110,7 +110,7 @@ const PyattDeviceContext = (() => {
           },
           onPercent: (total, current) => {
             console.log("total", total, current);
-            setSyncPercent(Math.floor((current * 100) / total) || 0.03);
+            setSyncPercent(`${current}/${total}`);
           },
         });
 
@@ -124,12 +124,12 @@ const PyattDeviceContext = (() => {
           )
         );
 
-        setSyncPercent(100);
+        setSyncPercent('Done');
         if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
           startRealtime();
 
         await require("bluebird").delay(2000);
-        setSyncPercent(0);
+        setSyncPercent('');
       } catch (e) {
         console.log("sync error", e);
 
