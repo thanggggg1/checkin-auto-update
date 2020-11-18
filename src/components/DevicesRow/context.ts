@@ -40,7 +40,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   const connection = useMemo(() => {
     return new ZK({
       ip: device.ip,
-      timeout: device.timeout || 3000,
+      timeout: device.timeout || 60000,
       inport: device.inport || 5200,
       port: device.port,
       connectionType: device.connection,

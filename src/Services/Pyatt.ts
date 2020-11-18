@@ -40,6 +40,8 @@ class Pyatt {
       this._address,
       `-p`,
       this._port,
+      '-T',
+      60000,
       this._password ? "-P" : undefined,
       this._password ? this._password : undefined,
       this.isUdp ? "--force-udp" : undefined,
