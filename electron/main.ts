@@ -5,6 +5,11 @@ import os from "os";
 
 let mainWindow: Electron.BrowserWindow | null;
 
+app.setLoginItemSettings({
+  openAsHidden: true,
+  path: app.getPath('exe')
+})
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: process.env.NODE_ENV === "development" ? 1280 : 800,
@@ -39,6 +44,11 @@ function createWindow() {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath('exe')
+  })
 }
 
 app.on("ready", createWindow);

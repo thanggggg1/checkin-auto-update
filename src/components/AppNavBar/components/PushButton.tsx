@@ -12,6 +12,7 @@ import {
   t,
   antdModalLanguageProps,
 } from "../../../store/settings/languages";
+import useAutoAlertError from "../../../hooks/useAutoAlertError";
 
 const PushButton = memo(function PushButton() {
   useLanguage();
@@ -23,7 +24,7 @@ const PushButton = memo(function PushButton() {
     moment(),
   ]);
 
-  const [{ loading }, onClick] = useAsyncFn(async () => {
+  const [{ loading, error }, onClick] = useAsyncFn(async () => {
     hidePushModal();
     await Fetch.massPushSplitByChunks(
       filterRecords(getAllRecordsArr(), {
@@ -34,6 +35,8 @@ const PushButton = memo(function PushButton() {
       })
     );
   }, [timeRange]);
+
+  useAutoAlertError(error);
 
   const showPushModal = useCallback(() => {
     setTimeRange([moment().subtract(3, "days"), moment()]);
