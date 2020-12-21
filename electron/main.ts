@@ -1,14 +1,21 @@
-import { app, BrowserWindow, nativeImage } from "electron";
+import { app, BrowserWindow, nativeImage, Menu, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import os from "os";
 
 let mainWindow: Electron.BrowserWindow | null;
+let tray = null;
 
 app.setLoginItemSettings({
   openAsHidden: true,
   path: app.getPath('exe')
 })
+
+let isQuiting = false;
+
+app.on('before-quit', function () {
+  isQuiting = true;
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -26,6 +33,33 @@ function createWindow() {
       enableRemoteModule: true,
     },
   });
+
+  mainWindow.on('close', e => {
+    if (!isQuiting) {
+      e.preventDefault();
+      mainWindow?.hide();
+      e.returnValue = false;
+    }
+  });
+
+  tray = new Tray(path.join(app.getAppPath(), "./dist/assets/AppIcon.ico"));
+  var contextMenu = Menu.buildFromTemplate([
+    { label: 'Show App', click:  function(){
+        mainWindow?.show();
+    } },
+    { label: 'Quit', click:  function(){
+        mainWindow?.destroy();
+        app.quit();
+    }}
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => {
+    mainWindow?.show();
+  });
+
+
 
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL(`http://localhost:4000`);
