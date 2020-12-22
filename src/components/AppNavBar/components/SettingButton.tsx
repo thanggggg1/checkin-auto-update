@@ -4,10 +4,10 @@ import { SettingOutlined } from "@ant-design/icons";
 import useBoolean from "../../../hooks/useBoolean";
 import {
   setAutoPushLogsMinutes,
-  setPushLogsFromMinutes,
+  setPreventSyncLogsTimeRanges,
   useAutoPushLogsMinutes,
   useLastAutoPushLogsTime,
-  usePushLogsFromMinutes,
+  usePreventSyncLogsTimeRanges
 } from "../../../store/settings/autoPush";
 import {
   setAutoSyncLogsMinutes,
@@ -33,10 +33,10 @@ const SettingButton = memo(function SettingButton() {
 
   const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
-  const pushLogsFromMinutes = usePushLogsFromMinutes();
+  const preventSyncLogsTimeRanges = usePreventSyncLogsTimeRanges();
 
   const lastAutoSyncLogsTime = useLastAutoSyncLogsTime();
-  const lastAutoSyncLogsMoment = useMemo(() => moment(lastAutoSyncLogsTime), [
+  const lastAutoSyncLogsMoment = useMemo(() => moment(lastAutoSyncLogsTime ? lastAutoPushLogsTime : undefined), [
     lastAutoSyncLogsTime,
   ]);
   const willAutoSyncAtMoment = useMemo(
@@ -45,17 +45,12 @@ const SettingButton = memo(function SettingButton() {
   );
 
   const lastAutoPushLogsTime = useLastAutoPushLogsTime();
-  const lastAutoPushLogsMoment = useMemo(() => moment(lastAutoPushLogsTime), [
+  const lastAutoPushLogsMoment = useMemo(() => moment(lastAutoPushLogsTime ? lastAutoPushLogsTime : undefined), [
     lastAutoPushLogsTime,
   ]);
   const willAutoPushAtMoment = useMemo(
     () => lastAutoPushLogsMoment.clone().add(autoPushLogsMinutes, "minutes"),
     [lastAutoPushLogsMoment, autoPushLogsMinutes]
-  );
-
-  const willPushLogsFromMoment = useMemo(
-    () => willAutoPushAtMoment.clone().subtract(pushLogsFromMinutes, "minutes"),
-    [willAutoPushAtMoment, pushLogsFromMinutes]
   );
 
   const onChange = useCallback((event: SyntheticEvent<HTMLInputElement>) => {
@@ -71,9 +66,8 @@ const SettingButton = memo(function SettingButton() {
       return setAutoPushLogsMinutes(Number(value));
     }
 
-    if (name === "pushLogsFrom") {
-      if (Number(value) % 30 !== 0) return;
-      return setPushLogsFromMinutes(Number(value));
+    if (name === 'preventSyncLogsTimeRanges') {
+      return setPreventSyncLogsTimeRanges(value);
     }
   }, []);
 
@@ -107,16 +101,14 @@ const SettingButton = memo(function SettingButton() {
           value={autoSyncLogsMinutes}
         />
         <br />
-        <span>
+        {lastAutoSyncLogsTime ? <><span>
           {t("last_auto_sync")}:{" "}
           {lastAutoSyncLogsMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span>
-        <br />
-        <span>
+        </span><br /></> : null}
+        {autoSyncLogsMinutes ? <><span>
           {t("the_next_auto_sync_is")}:{" "}
           {willAutoSyncAtMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span>
-        <br />
+        </span><br /></> : null}
         <br />
         <Input
           name={"autoPushMinutes"}
@@ -131,32 +123,36 @@ const SettingButton = memo(function SettingButton() {
           value={autoPushLogsMinutes}
         />
         <br />
-        <span>
+        {lastAutoPushLogsTime ? <><span>
           {t("last_auto_push")}:{" "}
           {lastAutoPushLogsMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span>
-        <br />
+        </span><br /></> : null}
+        {autoPushLogsMinutes ? <>
         <span>
           {t("the_next_auto_push_is")}:{" "}
           {willAutoPushAtMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span>
+        </span><br />
+        </> : null}
         <br />
-        <br />
+
         <Input
-          name={"pushLogsFrom"}
-          addonBefore={t("push_logs_from")}
-          type={"number"}
-          addonAfter={t("minutes_from_now")}
-          placeholder={"Ex: 30"}
+          name={"preventSyncLogsTimeRanges"}
+          addonBefore={t("__", {
+            vi: 'Giờ tránh tự động đồng bộ',
+            en: 'Prevent sync logs time ranges'
+          })}
+          type={"text"}
+          placeholder={"Ex: 8:20-9:40, 17:25-17:35"}
           step={30}
           min={30}
           max={4320} // 72 hours, 3 days
           onChange={onChange}
-          value={pushLogsFromMinutes}
+          value={preventSyncLogsTimeRanges}
         />
         <span>
-          {t("logs_from_xxx_to_now_will_be_pushed", {
-            time: willPushLogsFromMoment.format("HH:mm:ss DD/MM/YYYY"),
+          {t("__", {
+            vi: 'Định dạng: "HH:mm-HH:mm, HH:mm-HH:mm", ví dụ: 8:20-9:40, 17:25-17:35',
+            en: 'Format: "HH:mm-HH:mm, HH:mm-HH:mm", example: 8:20-9:40, 17:25-17:35'
           })}
         </span>
         <br />

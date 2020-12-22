@@ -1,5 +1,5 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
-import { Button, DatePicker, Modal, Popover } from "antd";
+import React, { memo, useCallback, useState } from "react";
+import { Button, DatePicker, Modal } from "antd";
 import { CloudUploadOutlined } from "@ant-design/icons/lib";
 import { filterRecords, getAllRecordsArr } from "../../../store/records";
 import Fetch from "../../../utils/Fetch";
@@ -20,7 +20,7 @@ const PushButton = memo(function PushButton() {
   const [isPushModalVisible, _showPushModal, hidePushModal] = useBoolean();
 
   const [timeRange, setTimeRange] = useState(() => [
-    moment().subtract(3, "days"),
+    moment().subtract(1, "month"),
     moment(),
   ]);
 

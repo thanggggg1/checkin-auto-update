@@ -13,10 +13,10 @@ const {
 } = createSetting<number>("lastAutoPushLogsTime", 0);
 
 const {
-  get: getPushLogsFromMinutes,
-  set: setPushLogsFromMinutes,
-  use: usePushLogsFromMinutes,
-} = createSetting<number>("pushLogsFromMinutes", 30);
+  get: getPreventSyncLogsTimeRanges,
+  set: setPreventSyncLogsTimeRanges,
+  use: usePreventSyncLogsTimeRanges
+} = createSetting<string>("preventSyncLogsTimeRanges", '');
 
 export {
   getAutoPushLogsMinutes,
@@ -25,7 +25,7 @@ export {
   getLastAutoPushLogsTime,
   setLastAutoPushLogsTime,
   useLastAutoPushLogsTime,
-  getPushLogsFromMinutes,
-  setPushLogsFromMinutes,
-  usePushLogsFromMinutes,
+  getPreventSyncLogsTimeRanges,
+  setPreventSyncLogsTimeRanges,
+  usePreventSyncLogsTimeRanges
 };

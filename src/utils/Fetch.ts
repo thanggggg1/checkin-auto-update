@@ -245,10 +245,6 @@ const Fetch = {
     for (const chunk of chunks) {
       await this.massPush(chunk as AttendanceRecord[]);
       progressCallback?.(index + 1, chunks.length);
-      console.log(
-        "percent",
-        Math.floor(((index + 1) / chunks.length) * 10000) / 100
-      );
       setPushingPercent(
         Math.floor(((index + 1) / chunks.length) * 10000) / 100
       );

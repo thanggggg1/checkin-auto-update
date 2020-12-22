@@ -1,4 +1,5 @@
 {
+  "__": "{{-en}}",
   "login": "Login",
   "logout": "Logout",
   "sync": "Sync",
@@ -31,7 +32,7 @@
   "minutes": "minutes",
   "auto_push_every": "Auto push every",
   "push_logs_from": "Push logs from",
-  "minutes_from_now": "minutes from now",
+  "minutes_from_now": "minutes to now",
   "update_checkin_codes": "Update checkin codes",
   "clear_records": "Remove logs",
   "clear_pushed_evidents": "Remove push evidents",

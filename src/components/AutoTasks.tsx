@@ -6,10 +6,9 @@ import {
 } from "../store/settings/autoSync";
 import {
   getLastAutoPushLogsTime,
-  getPushLogsFromMinutes,
+  getPreventSyncLogsTimeRanges,
   setLastAutoPushLogsTime,
   useAutoPushLogsMinutes,
-  usePushLogsFromMinutes,
 } from "../store/settings/autoPush";
 import { Events, events } from "../utils/events";
 import Fetch from "../utils/Fetch";
@@ -41,11 +40,11 @@ const useAutoFetchCheckinCodes = () => {
 export const AutoTasks = memo(function AutoTasks() {
   const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
-  const pushLogsFromMinutes = usePushLogsFromMinutes();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = Date.now();
+      const nowMm = moment();
+      const now = nowMm.valueOf();
 
       /**
        * AUTO SYNC
@@ -56,6 +55,31 @@ export const AutoTasks = memo(function AutoTasks() {
         const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
         if (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)
           return;
+
+        // if on prevent auto sync, cancel
+        const shouldCancel = (() => {
+          try {
+            const timeRanges = getPreventSyncLogsTimeRanges().split(',').map(t => t.trim());
+
+            for (const range of timeRanges) {
+              const [start, end] = range.split('-');
+              if (!start || !end) {
+                console.log('start or end time not correct formatted');
+                return true;
+              }
+              if  (nowMm.isBetween(moment(start, 'HH:mm'), moment(end, 'HH:mm'))) {
+                console.log('auto sync cancelled');
+                return true;
+              }
+            }
+
+          } catch (e) {
+            console.log('Should cancel timerange error', e);
+            return true;
+          }
+        })();
+
+        if (shouldCancel) return;
 
         // start auto sync
         console.log("fire autoSync");
@@ -80,9 +104,6 @@ export const AutoTasks = memo(function AutoTasks() {
 
         await Fetch.massPushSplitByChunks(
           filterRecords(getAllRecordsArr(), {
-            startTime: moment()
-              .subtract(getPushLogsFromMinutes(), "minutes")
-              .valueOf(),
             onlyNotPushed: true,
             onlyInEmployeeCheckinCodes: true,
           })
@@ -96,7 +117,7 @@ export const AutoTasks = memo(function AutoTasks() {
     return () => {
       clearInterval(interval);
     };
-  }, [autoSyncLogsMinutes, autoPushLogsMinutes, pushLogsFromMinutes]);
+  }, [autoSyncLogsMinutes, autoPushLogsMinutes]);
 
   useAutoFetchCheckinCodes();
 
