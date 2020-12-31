@@ -10,6 +10,7 @@ import Fetch from "../../utils/Fetch";
 import { Modal } from "antd";
 import { Events, events } from "../../utils/events";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
+import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -81,7 +82,7 @@ const PyattDeviceContext = (() => {
       );
     }, [instance]);
 
-    useAutoAlertError(startRealtimeError);
+    useAutoAlertError(convertPyzkErrorToMessage(startRealtimeError));
 
     useEffect(() => {
       return closeLiveCapture;
@@ -140,7 +141,7 @@ const PyattDeviceContext = (() => {
 
         if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
           startRealtime();
-        Modal.error({ content: e.message });
+        Modal.error({ content: convertPyzkErrorToMessage(e) });
         isGettingRecordRef.current = false;
         setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
       }
