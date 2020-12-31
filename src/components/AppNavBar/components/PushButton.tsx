@@ -39,7 +39,7 @@ const PushButton = memo(function PushButton() {
   useAutoAlertError(error);
 
   const showPushModal = useCallback(() => {
-    setTimeRange([moment().subtract(3, "days"), moment()]);
+    setTimeRange([moment().subtract(1, "month"), moment()]);
     _showPushModal();
   }, []);
 

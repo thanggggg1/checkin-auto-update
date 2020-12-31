@@ -18,6 +18,11 @@ exports.Commands = Object.freeze({
   AUTH: 1102, // Connection authorizations
   ACK_OK: 2000,
   ACK_ERROR: 2001,
+  ACK_UNAUTH: 0x07d5,
+  ACK_UNKNOWN: 0xffff,
+  ACK_ERROR_CMD: 0xfffd,
+  ACK_ERROR_INIT: 0xfffc,
+  ACK_ERROR_DATA: 0xfffb,
   ACK_DATA: 2002,
   ACK_OK_2: 2005,
   PREPARE_DATA: 1500,

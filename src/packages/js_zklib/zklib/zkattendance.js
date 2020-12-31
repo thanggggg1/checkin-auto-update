@@ -55,8 +55,29 @@ module.exports = class {
           if (reply && reply.length) {
             const cmd = reply.readUInt16LE(0);
 
-            if (cmd == Commands.ACK_ERROR) {
-              internalCallback(new Error('ack error'));
+            if (cmd === Commands.ACK_ERROR) {
+              internalCallback(new Error('ACK_ERROR'));
+              return;
+            }
+
+            if (cmd === Commands.ACK_UNAUTH) {
+              internalCallback(new Error('ACK_UNAUTH'));
+              return;
+            }
+            if (cmd === Commands.ACK_UNKNOWN) {
+              internalCallback(new Error('ACK_UNKNOWN'));
+              return;
+            }
+            if (cmd === Commands.ACK_ERROR_CMD) {
+              internalCallback(new Error('ACK_ERROR_CMD'));
+              return;
+            }
+            if (cmd === Commands.ACK_ERROR_DATA) {
+              internalCallback(new Error('ACK_ERROR_DATA'));
+              return;
+            }
+            if (cmd === Commands.ACK_ERROR_INIT) {
+              internalCallback(new Error('ACK_ERROR_INIT'));
               return;
             }
 
