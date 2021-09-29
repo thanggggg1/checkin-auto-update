@@ -57,6 +57,7 @@
     "bluebird": "^3.7.2",
     "bufferpack": "^0.0.6",
     "constate": "^2.0.0",
+    "cross-env": "^7.0.3",
     "cross-spawn": "^7.0.3",
     "electron-store": "^6.0.0",
     "fix-path": "^3.0.0",
