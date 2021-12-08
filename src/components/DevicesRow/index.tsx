@@ -28,6 +28,7 @@ const DevicesRow = memo(function DevicesRow() {
   const [isAddDeviceModalVisible, setAddDeviceModalVisible] = useState(false);
   const devices = useDevicesRecord();
 
+  console.log('devices ', devices);
   const values = useMemo(() => {
     return {
       openModal: () => setAddDeviceModalVisible(true),

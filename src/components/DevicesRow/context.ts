@@ -85,6 +85,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     if (!canSendRequest) {
       throw new Error("Socket is not connected");
     }
+    console.log('disable device ', connection);
 
     await connection.disableDevice();
   }, [canSendRequest, connection]);
@@ -123,43 +124,48 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     await disableDevice();
 
     setSyncPercent(0.02);
-
+    console.log('syncMethod ', syncMethod, DeviceSyncMethod.LEGACY);
     if (syncMethod === DeviceSyncMethod.LEGACY) {
-      await connection.freeData();
-      const attendances = await connection.getAttendance(
-        (current: number, total: number) => {
-          const percent = Math.floor((current / total) * 10000) / 100;
-          console.log("syncing " + device.ip, percent);
-          setSyncPercent(percent);
-        }
-      );
+      try {
+        await connection.freeData();
+        const attendances = await connection.getAttendance(
+          (current: number, total: number) => {
+            const percent = Math.floor((current / total) * 10000) / 100;
+            console.log("syncing " + device.ip, percent);
+            setSyncPercent(percent);
+          }
+        );
 
-      setSyncPercent(0);
+        setSyncPercent(0);
 
-      await enableDevice();
+        await enableDevice();
 
-      const records = attendances
-        .map((attendance) => {
-          const mm = moment(attendance.timestamp);
+        const records = attendances
+          .map((attendance) => {
+            const mm = moment(attendance.timestamp);
 
-          const id = `${attendance.id}_${mm.valueOf()}`;
+            const id = `${attendance.id}_${mm.valueOf()}`;
 
-          if (isRecordExists(id)) return false;
+            if (isRecordExists(id)) return false;
 
-          return {
-            timestamp: mm.valueOf(),
-            timeFormatted: mm.format("HH:mm:ss"),
-            dateFormatted: mm.format("DD/MM/YYYY"),
-            deviceIp: device.ip,
-            uid: attendance.id,
-            id,
-          };
-        })
-        .filter(Boolean) as AttendanceRecord[];
+            return {
+              timestamp: mm.valueOf(),
+              timeFormatted: mm.format("HH:mm:ss"),
+              dateFormatted: mm.format("DD/MM/YYYY"),
+              deviceIp: device.ip,
+              uid: attendance.id,
+              id,
+            };
+          })
+          .filter(Boolean) as AttendanceRecord[];
 
-      syncAttendanceRecords(records);
+        syncAttendanceRecords(records);
 
-      return records;
+        return records;
+      } catch (e) {
+        await enableDevice();
+        return []
+      }
     }
 
     // Large dataset method
@@ -277,6 +283,7 @@ const useDeviceValue = ({ device }: { device: Device }) => {
 
   useEffect(() => {
     const handler = () => {
+      console.log('context handed ', isGettingAttendances);
       if (isGettingAttendances) return;
       syncAttendances();
     };

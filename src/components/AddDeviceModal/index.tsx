@@ -1,8 +1,10 @@
-import React, { ChangeEvent, memo, useCallback, useMemo, useState } from "react";
+import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
 import { antdModalLanguageProps, t, translate, useLanguage } from "../../store/settings/languages";
+import { useAsyncFn } from "react-use";
+import Fetch from "../../utils/Fetch";
 
 const defaultValue: Device = {
   name: "",
@@ -10,6 +12,8 @@ const defaultValue: Device = {
   connection: "tcp",
   port: 4370,
   syncMethod: DeviceSyncMethod.PY,
+  clientToken: '',
+  clientPassword: ''
 };
 
 const domainRegex = /^(?!-)(?:[a-zA-Z\d\-]{0,62}[a-zA-Z\d]\.){1,126}(?!\d+)[a-zA-Z\d]{1,63}$/;
@@ -23,6 +27,10 @@ const AddDeviceModal = memo(function AddDeviceModal(
 ) {
   useLanguage();
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
+
+  useEffect(() => {
+    setDevice(props.device || defaultValue)
+  }, [props.visible]);
 
   const values = useMemo(() => {
     const onChange = (name: keyof Device, isNumber = false) => (
@@ -47,15 +55,31 @@ const AddDeviceModal = memo(function AddDeviceModal(
         setDevice((old) => ({ ...old, syncMethod: method }));
       },
       onPasswordChange: onChange('password'),
+      onClientTokenChange: onChange('clientToken'),
+      onClientPasswordChange: onChange('clientPassword'),
       onHeartbeatChange: onChange("heartbeat", true),
       onAutoReconnectChange: onChange("autoReconnect", true),
     };
   }, []);
 
-  const onOk = useCallback(() => {
+  const [{}, validateTokenPassword] = useAsyncFn(async () => {
+    try {
+      const a = await Fetch.checkTokenIsValid({
+        password: device.clientPassword,
+        token: device.clientToken,
+        sysDomain: 'base.vn',
+      });
+      return a
+    } catch (e) {
+      Modal.error({ title: e.message });
+      return null
+    }
+  }, [device]);
+
+  const [{loading}, onOk] = useAsyncFn(async () => {
     // @todo Validate device
 
-    if (!device.ip || !device.name || !device.port) {
+    if (!device.ip || !device.name || !device.port || !device.clientToken || !device.clientPassword) {
       return Modal.error({
         title: t("please_enter_all_required_fields"),
         ...antdModalLanguageProps,
@@ -78,12 +102,14 @@ const AddDeviceModal = memo(function AddDeviceModal(
         ...antdModalLanguageProps,
       });
     }
-
-    console.log(device);
-
+    // const r = await validateTokenPassword();
+    // console.log('r ', r)
+    // if (!r) {
+    //   return
+    // }
     syncDevices([device]);
     props.onClose();
-  }, [device, props.onClose]);
+  }, [device, validateTokenPassword, props.onClose]);
 
   const isIpDangerous = useMemo(() => {
     return /^(?!-)(?:[a-zA-Z\d\-]{0,62}[a-zA-Z\d]\.){1,126}(?!\d+)[a-zA-Z\d]{1,63}$/.test(
@@ -100,7 +126,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       {...antdModalLanguageProps}
     >
       <Input
-        addonBefore={t("device_name")}
+        addonBefore={`${t("device_name")} *`}
         placeholder={t("device_name_placeholder")}
         value={device.name}
         onChange={values.onNameChange}
@@ -108,7 +134,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       <br />
       <br />
       <Input
-        addonBefore={t("device_ip")}
+        addonBefore={`${t("device_ip")} *`}
         placeholder={t("device_ip_placeholder")}
         value={device.ip}
         onChange={values.onIpChange}
@@ -128,13 +154,33 @@ const AddDeviceModal = memo(function AddDeviceModal(
       {device.syncMethod === DeviceSyncMethod.PY && <>
         <br />
         <br />
-        <Input
+        <Input.Password
           addonBefore={t("device_password")}
           placeholder={t("device_password_placeholder")}
           value={device.password}
           onChange={values.onPasswordChange}
         />
       </>}
+
+      {/** thong tin token lay tu HRM **/}
+      <br />
+      <br />
+      <Input.Password
+        addonBefore={'Client token *'}
+        placeholder={'Client token'}
+        value={device.clientToken}
+        onChange={values.onClientTokenChange}
+      />
+
+      <br />
+      <br />
+      <Input.Password
+        addonBefore={'Client password *'}
+        placeholder={'Client password'}
+        value={device.clientPassword}
+        onChange={values.onClientPasswordChange}
+      />
+      {/** validate khi tao moi va edit cai device nay **/}
       <br />
       <br />
       <span className="ant-input-group-wrapper">

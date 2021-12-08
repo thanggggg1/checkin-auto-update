@@ -245,7 +245,7 @@ class Pyatt {
           params.onStarted?.();
           isRunStarted = true;
         }
-
+        console.log('data from pyatt ', data)
         const str = data.toString();
 
         if (!hasSize) {

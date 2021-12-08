@@ -8,8 +8,10 @@ const {
   get: getCheckinCodes,
 } = createSetting<number[]>("checkinCodes", []);
 
-const checkinCodesSelector = (state: any) =>
-  state.settings.checkinCodes as number[];
+const checkinCodesSelector = (state: any) => {
+  return state.settings.checkinCodes as number[];
+};
+
 const checkinCodesSetSelector = createSelector(
   checkinCodesSelector,
   (res) => new Set(res)
@@ -17,9 +19,19 @@ const checkinCodesSetSelector = createSelector(
 
 const getCheckinCodesSet = () => checkinCodesSetSelector(getStore().getState());
 
+const getCheckinCodesSetByIp = (ip: string) => {
+  const settings = getStore().getState()?.settings || {};
+  return new Set(settings[ip] || [])
+};
+const getAllCheckinCodes = () => {
+  return getStore().getState()?.settings || {} as {[ip: string]: number[]}
+}; // return object {[ip: string]: string[]}
+
 export {
   useCheckinCodes,
   getCheckinCodes,
   setCheckinCodes,
   getCheckinCodesSet,
+  getCheckinCodesSetByIp,
+  getAllCheckinCodes
 };

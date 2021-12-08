@@ -18,6 +18,8 @@ export interface Device {
   autoReconnect?: number;
   syncMethod?: DeviceSyncMethod;
   password?: string;
+  clientToken: string;
+  clientPassword: string
 }
 
 export const {
@@ -34,6 +36,8 @@ const devicesSelector = (state: any) => state.devices.byKey;
 export const useDevicesRecord = (): Record<string, Device> => {
   return useSelector(devicesSelector);
 };
+
+
 
 export const useDeviceSyncMethod = (device: Device): DeviceSyncMethod => {
   if (

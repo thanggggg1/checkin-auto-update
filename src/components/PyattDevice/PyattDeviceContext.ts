@@ -106,6 +106,7 @@ const PyattDeviceContext = (() => {
         const data = await instance.getRecords({
           onStarted: () => setSyncPercent("Preparing"),
           onRecords: (records) => {
+            console.log('pyatt syncAttendances records ', records)
             syncAttendanceRecords(
               records
                 .map((record) =>
@@ -153,6 +154,7 @@ const PyattDeviceContext = (() => {
 
     useEffect(() => {
       const handler = () => {
+        console.log('vao day ', latestSyncPercent.current);
         if (!latestSyncPercent.current) syncAttendances();
       };
 

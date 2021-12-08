@@ -30,6 +30,7 @@ const DeviceInfo = memo(function DeviceInfo() {
   useLanguage();
   const { device, connectionState/*, freeSizes*/ } = useCurrentDevice();
 
+
   return (
     <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
       <InfoRow>IP: {device.ip}</InfoRow>

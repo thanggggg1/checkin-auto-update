@@ -37,14 +37,15 @@ const AppNavBar = memo(function AppNavBar() {
         <ButtonGroup>
           <SettingButton />
           <SyncButton />
-          {token.token ? (
-            <>
-              <PushButton />
-              <LogoutButton />
-            </>
-          ) : (
-            <LoginButton />
-          )}
+          <PushButton />
+          {/*{token.token ? (*/}
+          {/*  <>*/}
+          {/*    <PushButton />*/}
+          {/*    <LogoutButton />*/}
+          {/*  </>*/}
+          {/*) : (*/}
+          {/*  <LoginButton />*/}
+          {/*)}*/}
         </ButtonGroup>
       </Row>
     </Wrapper>

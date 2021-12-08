@@ -2,39 +2,54 @@ import { memo, useEffect } from "react";
 import {
   getLastAutoSyncLogsTime,
   setLastAutoSyncLogsTime,
-  useAutoSyncLogsMinutes,
+  useAutoSyncLogsMinutes
 } from "../store/settings/autoSync";
 import {
   getLastAutoPushLogsTime,
   getPreventSyncLogsTimeRanges,
   setLastAutoPushLogsTime,
-  useAutoPushLogsMinutes,
+  useAutoPushLogsMinutes
 } from "../store/settings/autoPush";
 import { Events, events } from "../utils/events";
 import Fetch from "../utils/Fetch";
 import { filterRecords, getAllRecordsArr } from "../store/records";
 import moment from "moment";
+import { useDevicesRecord } from "../store/devices";
 
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 
 const useAutoFetchCheckinCodes = () => {
-  const { token } = Fetch.useToken();
+  const devices = useDevicesRecord();
+
+  const runFetchAllDevice = async () => {
+    const _devices = Object.values(devices);
+    for (let i = 0; i < _devices.length; i++) {
+      const device = _devices[i];
+      if (!device.clientPassword || !device.clientToken) {
+        continue
+      }
+      await Fetch.requestCheckinCodes(device.ip, {
+        token: device.clientToken,
+        password: device.clientPassword
+      });
+    }
+  };
 
   useEffect(() => {
-    if (!token) return;
+    if (!devices) return;
 
-    Fetch.requestCheckinCodes();
+    runFetchAllDevice().then();
 
     // Auto request every 12 hours
     const interval = setInterval(
-      Fetch.requestCheckinCodes,
+      runFetchAllDevice,
       12 * 60 * 60 * 1000
     );
 
     return () => {
       clearInterval(interval);
     };
-  }, [token]);
+  }, []);
 };
 
 export const AutoTasks = memo(function AutoTasks() {
@@ -59,22 +74,22 @@ export const AutoTasks = memo(function AutoTasks() {
         // if on prevent auto sync, cancel
         const shouldCancel = (() => {
           try {
-            const timeRanges = getPreventSyncLogsTimeRanges().split(',').map(t => t.trim());
+            const timeRanges = getPreventSyncLogsTimeRanges().split(",").map(t => t.trim());
 
             for (const range of timeRanges) {
-              const [start, end] = range.split('-');
+              const [start, end] = range.split("-");
               if (!start || !end) {
-                console.log('start or end time not correct formatted');
+                console.log("start or end time not correct formatted");
                 return true;
               }
-              if  (nowMm.isBetween(moment(start, 'HH:mm'), moment(end, 'HH:mm'))) {
-                console.log('auto sync cancelled');
+              if (nowMm.isBetween(moment(start, "HH:mm"), moment(end, "HH:mm"))) {
+                console.log("auto sync cancelled");
                 return true;
               }
             }
 
           } catch (e) {
-            console.log('Should cancel timerange error', e);
+            console.log("Should cancel timerange error", e);
             return true;
           }
         })();
@@ -105,7 +120,7 @@ export const AutoTasks = memo(function AutoTasks() {
         await Fetch.massPushSplitByChunks(
           filterRecords(getAllRecordsArr(), {
             onlyNotPushed: true,
-            onlyInEmployeeCheckinCodes: true,
+            onlyInEmployeeCheckinCodes: true
           })
         );
 

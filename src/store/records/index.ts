@@ -1,7 +1,7 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getStore } from "../storeAccess";
 import { getPushedRecordIdSet } from "../pushedRecords";
-import { getCheckinCodesSet } from "../settings/checkinCodes";
+import { getAllCheckinCodes } from "../settings/checkinCodes";
 
 export interface AttendanceRecord {
   id: string;
@@ -59,11 +59,12 @@ export const filterRecords = (
     ? getPushedRecordIdSet()
     : new Set<string>();
 
-  const checkinCodes = options?.onlyInEmployeeCheckinCodes
-    ? getCheckinCodesSet()
-    : new Set<number>();
+  const checkinCodes: {[id: string]: number[]} = options?.onlyInEmployeeCheckinCodes
+    ? getAllCheckinCodes()
+    : {};
 
   return records.filter((record) => {
+    console.log('record ', record);
     // onlyNotPushed
     if (options?.onlyNotPushed && pushedIdSet.has(record.id)) return false;
 
@@ -77,7 +78,8 @@ export const filterRecords = (
     // checkinCodes
     if (
       options?.onlyInEmployeeCheckinCodes &&
-      checkinCodes.has(Number(record.uid))
+      checkinCodes[record.deviceIp] &&
+      checkinCodes[record.deviceIp].includes(Number(record.uid))
     )
       return true;
 
