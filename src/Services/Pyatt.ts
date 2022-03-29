@@ -1,4 +1,5 @@
 import { AttendanceRecord } from "../store/records";
+import moment from "moment";
 
 export interface PyattRecord {
   index: number;
@@ -11,6 +12,8 @@ export interface PyattRecord {
 
 const { app } = require("electron").remote;
 const path = require("path");
+
+const currentYear = new Date().getFullYear();
 
 class Pyatt {
   _pyattFileName = "pyatt.exe";
@@ -275,6 +278,19 @@ class Pyatt {
     deviceIp: string
   ): AttendanceRecord => {
     const time = require("moment")(record.time, "YYYY-MM-DD HH:mm:ss");
+
+
+    if (time.get("year") < currentYear - 1) {
+      return {
+        deviceIp,
+        id: `${record.user_id}_${time.valueOf()}`,
+        dateFormatted: time.format("DD/MM/YYYY"),
+        timeFormatted: time.format("HH:mm:ss"),
+        timestamp: time.valueOf(),
+        uid: 0
+      }
+    }
+
     return {
       id: `${record.user_id}_${time.valueOf()}`,
       dateFormatted: time.format("DD/MM/YYYY"),

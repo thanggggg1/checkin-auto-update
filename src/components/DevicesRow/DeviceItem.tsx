@@ -30,22 +30,9 @@ const DeviceInfo = memo(function DeviceInfo() {
   useLanguage();
   const { device, connectionState/*, freeSizes*/ } = useCurrentDevice();
 
-
   return (
     <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
       <InfoRow>IP: {device.ip}</InfoRow>
-      {/*<InfoRow>*/}
-      {/*  {[*/}
-      {/*    t("logs", { count: freeSizes.logs || 0 }),*/}
-      {/*    t("users", { count: freeSizes.users || 0 }),*/}
-      {/*    Math.floor(*/}
-      {/*      ((freeSizes.logs || 0) / (freeSizes.capacity || 1)) * 10000*/}
-      {/*    ) /*/}
-      {/*      100 +*/}
-      {/*      "% " +*/}
-      {/*      t("used"),*/}
-      {/*  ].join(" - ")}*/}
-      {/*</InfoRow>*/}
       <InfoRow>
         {t("status")}:{" "}
         {(() => {
@@ -57,7 +44,6 @@ const DeviceInfo = memo(function DeviceInfo() {
           return t("unknown");
         })()}
       </InfoRow>
-
       <TagsWrapper>
         <SyncTag />
       </TagsWrapper>
@@ -65,9 +51,9 @@ const DeviceInfo = memo(function DeviceInfo() {
   );
 });
 
-const DeviceItem = memo(function DeviceItem({ device }: { device: Device }) {
+const  DeviceItem = memo(function DeviceItem({ device, syncTurn }: {syncTurn: boolean, device: Device }) {
   return (
-    <DeviceProvider device={device}>
+    <DeviceProvider device={device} syncTurn={syncTurn}>
       <DeviceInfo />
     </DeviceProvider>
   );

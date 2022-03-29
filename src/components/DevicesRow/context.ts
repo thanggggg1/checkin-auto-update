@@ -26,7 +26,7 @@ export enum ConnectionState {
   CONNECTED = 2,
 }
 
-const useDeviceValue = ({ device }: { device: Device }) => {
+const useDeviceValue = ({ device,syncTurn  }: { syncTurn: boolean, device: Device }) => {
   const syncMethod = useDeviceSyncMethod(device);
   const [connectionState, setConnectionState] = useState<ConnectionState>(
     ConnectionState.DISCONNECTED
@@ -113,9 +113,15 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     syncAttendances,
   ] = useAsyncFn(async () => {
     console.log("start syncing", canSendRequest);
+    const currentYear = new Date().getFullYear();
+
     setSyncPercent(0);
 
     if (!canSendRequest) {
+      console.log('canSendRequest events.emit(Events.SYNC_DONE); ', canSendRequest);
+      await require("bluebird").delay(400);
+      // when sync done thi goi vao day de chuyen sang client tiep theo
+      events.emit(Events.SYNC_DONE);
       throw new Error("Socket is not connected");
     }
 
@@ -124,14 +130,13 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     await disableDevice();
 
     setSyncPercent(0.02);
-    console.log('syncMethod ', syncMethod, DeviceSyncMethod.LEGACY);
+
     if (syncMethod === DeviceSyncMethod.LEGACY) {
       try {
         await connection.freeData();
         const attendances = await connection.getAttendance(
           (current: number, total: number) => {
             const percent = Math.floor((current / total) * 10000) / 100;
-            console.log("syncing " + device.ip, percent);
             setSyncPercent(percent);
           }
         );
@@ -143,7 +148,9 @@ const useDeviceValue = ({ device }: { device: Device }) => {
         const records = attendances
           .map((attendance) => {
             const mm = moment(attendance.timestamp);
-
+            if (mm.get("year") < currentYear - 1) {
+              return false
+            }
             const id = `${attendance.id}_${mm.valueOf()}`;
 
             if (isRecordExists(id)) return false;
@@ -160,10 +167,15 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           .filter(Boolean) as AttendanceRecord[];
 
         syncAttendanceRecords(records);
-
+        // when sync done thi goi vao day de chuyen sang client tiep theo
+        await require("bluebird").delay(400);
+        events.emit(Events.SYNC_DONE);
         return records;
       } catch (e) {
         await enableDevice();
+        // when sync done thi goi vao day de chuyen sang client tiep theo
+        await require("bluebird").delay(400);
+        events.emit(Events.SYNC_DONE);
         return []
       }
     }
@@ -172,7 +184,6 @@ const useDeviceValue = ({ device }: { device: Device }) => {
     const attendances = await connection.zklib.getAttendances(
       (current: number, total: number) => {
         const percent = Math.floor((current / total) * 10000) / 100;
-        console.log("syncing " + device.ip, percent);
         setSyncPercent(percent);
       }
     );
@@ -202,7 +213,8 @@ const useDeviceValue = ({ device }: { device: Device }) => {
           return filtered;
         }, [])
       );
-
+    // when sync done thi goi vao day de chuyen sang client tiep theo
+    events.emit(Events.SYNC_DONE);
     return attendances;
   }, [
     connection,
@@ -282,17 +294,10 @@ const useDeviceValue = ({ device }: { device: Device }) => {
   }, [isGettingAttendances, connection, device.heartbeat]);
 
   useEffect(() => {
-    const handler = () => {
-      console.log('context handed ', isGettingAttendances);
-      if (isGettingAttendances) return;
+    if (!isGettingAttendances || syncTurn) {
       syncAttendances();
-    };
-
-    events.on(Events.MASS_SYNC, handler);
-    return () => {
-      events.off(Events.MASS_SYNC, handler);
-    };
-  }, [syncAttendances, isGettingAttendances]);
+    }
+  }, [syncTurn]);
 
   /**
    * AUTO RECONNECT

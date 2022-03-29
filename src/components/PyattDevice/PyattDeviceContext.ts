@@ -8,9 +8,9 @@ import useAsyncFn from "react-use/lib/useAsyncFn";
 import { syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
 import { Modal } from "antd";
-import { Events, events } from "../../utils/events";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
+import { Events, events } from "../../utils/events";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -20,7 +20,7 @@ export enum PyattRealtimeStatus {
 }
 
 const PyattDeviceContext = (() => {
-  const [Provider, use] = constate(({ device }: { device: Device }) => {
+  const [Provider, use] = constate(({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
     const [realtimeStatus, setRealtimeStatus] = useState(
       PyattRealtimeStatus.DISCONNECTED
     );
@@ -106,7 +106,6 @@ const PyattDeviceContext = (() => {
         const data = await instance.getRecords({
           onStarted: () => setSyncPercent("Preparing"),
           onRecords: (records) => {
-            console.log('pyatt syncAttendances records ', records)
             syncAttendanceRecords(
               records
                 .map((record) =>
@@ -137,6 +136,9 @@ const PyattDeviceContext = (() => {
 
         await require("bluebird").delay(2000);
         setSyncPercent("");
+
+        // when sync done thi goi vao day de chuyen sang client tiep theo
+        events.emit(Events.SYNC_DONE);
       } catch (e) {
         console.log("sync error", e);
 
@@ -145,6 +147,9 @@ const PyattDeviceContext = (() => {
         Modal.error({ content: convertPyzkErrorToMessage(e) });
         isGettingRecordRef.current = false;
         setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
+
+        // when sync done thi goi vao day de chuyen sang client tiep theo
+        events.emit(Events.SYNC_DONE);
       }
     }, [instance, startRealtime]);
 
@@ -153,16 +158,11 @@ const PyattDeviceContext = (() => {
     }, [device.ip]);
 
     useEffect(() => {
-      const handler = () => {
-        console.log('vao day ', latestSyncPercent.current);
-        if (!latestSyncPercent.current) syncAttendances();
-      };
-
-      events.on(Events.MASS_SYNC, handler);
-      return () => {
-        events.off(Events.MASS_SYNC, handler);
-      };
-    }, [syncAttendances]);
+      if (syncTurn && !latestSyncPercent.current) {
+        syncAttendances();
+        return
+      }
+    }, [syncTurn]);
 
     useEffect(() => {
       const ping = require("ping");

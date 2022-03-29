@@ -93,9 +93,9 @@ const SyncTag = () => {
   );
 };
 
-const PyattDevice = memo(function PyattDevice({ device }: { device: Device }) {
+const PyattDevice = memo(function PyattDevice({ device, syncTurn }: { device: Device, syncTurn: boolean }) {
   return (
-    <PyattDeviceContext.Provider device={device}>
+    <PyattDeviceContext.Provider device={device} syncTurn={syncTurn}>
       <Wrapper title={device.name} size={"small"} extra={<Extra />}>
         <InfoRow>IP: {device.ip}</InfoRow>
         <Status />

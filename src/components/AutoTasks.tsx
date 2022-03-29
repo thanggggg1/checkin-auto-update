@@ -57,66 +57,23 @@ export const AutoTasks = memo(function AutoTasks() {
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
 
   useEffect(() => {
+    if (!autoPushLogsMinutes) {
+      return
+    }
     const interval = setInterval(() => {
       const nowMm = moment();
       const now = nowMm.valueOf();
 
       /**
-       * AUTO SYNC
-       */
-      (() => {
-        if (autoSyncLogsMinutes === 0) return;
-
-        const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
-        if (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)
-          return;
-
-        // if on prevent auto sync, cancel
-        const shouldCancel = (() => {
-          try {
-            const timeRanges = getPreventSyncLogsTimeRanges().split(",").map(t => t.trim());
-
-            for (const range of timeRanges) {
-              const [start, end] = range.split("-");
-              if (!start || !end) {
-                console.log("start or end time not correct formatted");
-                return true;
-              }
-              if (nowMm.isBetween(moment(start, "HH:mm"), moment(end, "HH:mm"))) {
-                console.log("auto sync cancelled");
-                return true;
-              }
-            }
-
-          } catch (e) {
-            console.log("Should cancel timerange error", e);
-            return true;
-          }
-        })();
-
-        if (shouldCancel) return;
-
-        // start auto sync
-        console.log("fire autoSync");
-        events.emit(Events.MASS_SYNC);
-
-        // save last auto sync
-        setLastAutoSyncLogsTime(now);
-      })();
-
-      /**
        * AUTO PUSH
        */
       (async () => {
-        if (autoPushLogsMinutes === 0) return;
-
         const lastAutoPushLogsTime = getLastAutoPushLogsTime();
         if (now - minutesToMs(autoPushLogsMinutes) < lastAutoPushLogsTime)
           return;
 
         // start auto push
         console.log("fire autoPush");
-
         await Fetch.massPushSplitByChunks(
           filterRecords(getAllRecordsArr(), {
             onlyNotPushed: true,
@@ -127,12 +84,67 @@ export const AutoTasks = memo(function AutoTasks() {
         // save last auto push
         setLastAutoPushLogsTime(Date.now());
       })();
-    }, 5000);
+    }, minutesToMs(autoPushLogsMinutes));
 
     return () => {
-      clearInterval(interval);
+      interval && clearInterval(interval);
     };
-  }, [autoSyncLogsMinutes, autoPushLogsMinutes]);
+  }, [autoPushLogsMinutes]);
+
+  useEffect(() => {
+    if (!autoSyncLogsMinutes) {
+      return
+    }
+    const interval = setInterval(() => {
+      /**
+       * AUTO SYNC
+       */
+      const nowMm = moment();
+      const now = nowMm.valueOf();
+
+      if (autoSyncLogsMinutes === 0) return;
+
+      const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
+      if (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)
+        return;
+
+      // if on prevent auto sync, cancel
+      const shouldCancel = (() => {
+        try {
+          const timeRanges = getPreventSyncLogsTimeRanges().split(",").map(t => t.trim());
+
+          for (const range of timeRanges) {
+            const [start, end] = range.split("-");
+            if (!start || !end) {
+              console.log("start or end time not correct formatted");
+              return true;
+            }
+            if (nowMm.isBetween(moment(start, "HH:mm"), moment(end, "HH:mm"))) {
+              console.log("auto sync cancelled");
+              return true;
+            }
+          }
+
+        } catch (e) {
+          console.log("Should cancel timerange error", e);
+          return true;
+        }
+      })();
+
+      if (shouldCancel) return;
+
+      // start auto sync
+      console.log("fire autoSync");
+      events.emit(Events.MASS_SYNC);
+
+      // save last auto sync
+      setLastAutoSyncLogsTime(now);
+    } , minutesToMs(autoSyncLogsMinutes));
+
+    return () => {
+      interval && clearInterval(interval)
+    }
+  }, [autoSyncLogsMinutes]);
 
   useAutoFetchCheckinCodes();
 
