@@ -136,6 +136,7 @@ const Fetch = {
   },
 
   massPush: async function (records: AttendanceRecord[], token: {token: string, password: string, IP: string}) {
+    console.log('listIps ', records)
 
     interface MassPushLog {
       user_code: string | number;
@@ -156,7 +157,7 @@ const Fetch = {
       string | number,
       Set<string>
     > = new Map();
-
+    console.log('push log')
     const logs: Record<string, MassPushLog> = {};
     records.forEach((record) => {
       if (!logs[record.uid]) {
@@ -190,6 +191,7 @@ const Fetch = {
     });
 
     try {
+      console.log('push here')
       const { data } = await this.post<{
         data: {
           errors: {
@@ -253,7 +255,8 @@ const Fetch = {
       if (!storeDevice.clientToken || !storeDevice.clientPassword) {
         throw new Error("INVALID TOKEN")
       }
-      await this.massPush(objectRecord[deviceIp], {token: storeDevice.clientToken, password: storeDevice.clientPassword, IP: storeDevice.ip})
+      console.log('vao day')
+      await this.massPush(objectRecord[deviceIp], {token: storeDevice.clientToken, password: storeDevice.clientPassword, IP: storeDevice.domain})
     }
   },
 

@@ -6,13 +6,15 @@ import DeviceItemExtra from "./DeviceItemExtra";
 import { ConnectionState, DeviceProvider, useCurrentDevice } from "./context";
 import SyncTag from "./tags/SyncTag";
 import { t, useLanguage } from "../../store/settings/languages";
+import moment from "moment";
 
 const Wrapper = styled(Card)`
-  flex: 0 0 220px;
+  flex: 0 0 250px;
 `;
 
-const InfoRow = styled.p`
+const InfoRow = styled.div`
   margin-bottom: 0;
+  display: flex
 `;
 
 const TagsWrapper = styled.div`
@@ -26,35 +28,54 @@ const TagsWrapper = styled.div`
   }
 `;
 
-const DeviceInfo = memo(function DeviceInfo() {
+const Href = styled.div`
+  color: #0077cc;
+  padding-left: 8px;
+  :hover {
+    cursor: pointer;
+  }
+`;
+
+const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean }) {
   useLanguage();
-  const { device, connectionState/*, freeSizes*/ } = useCurrentDevice();
+  const { device } = useCurrentDevice();
+
+  const openHref = () => {
+    const shell = require("electron").shell;
+    shell.openExternal(device.domain);
+  };
 
   return (
-    <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra />}>
-      <InfoRow>IP: {device.ip}</InfoRow>
+    <Wrapper title={device.name} size={"small"} extra={<DeviceItemExtra/>}>
       <InfoRow>
-        {t("status")}:{" "}
-        {(() => {
-          if (connectionState === ConnectionState.CONNECTED) return t('connected');
-          if (connectionState === ConnectionState.CONNECTING)
-            return t("connecting");
-          if (connectionState === ConnectionState.DISCONNECTED)
-            return t("disconnected");
-          return t("unknown");
-        })()}
+        Domain: <Href onClick={openHref}>{device.domain}</Href>
+      </InfoRow>
+      {
+        syncTurn
+          ? <InfoRow>
+            Đang đồng bộ
+          </InfoRow>
+          : null
+      }
+      <InfoRow>
+        {
+          device?.lastSync ? "Đồng bộ lúc: "  : ""
+        }
+        {
+          device?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
+        }
       </InfoRow>
       <TagsWrapper>
-        <SyncTag />
+        <SyncTag/>
       </TagsWrapper>
     </Wrapper>
   );
 });
 
-const  DeviceItem = memo(function DeviceItem({ device, syncTurn }: {syncTurn: boolean, device: Device }) {
+const DeviceItem = memo(function DeviceItem({ device, syncTurn }: { syncTurn: boolean, device: Device }) {
   return (
     <DeviceProvider device={device} syncTurn={syncTurn}>
-      <DeviceInfo />
+      <DeviceInfo syncTurn={syncTurn}/>
     </DeviceProvider>
   );
 });

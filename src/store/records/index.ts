@@ -6,6 +6,7 @@ import { getAllCheckinCodes } from "../settings/checkinCodes";
 export interface AttendanceRecord {
   id: string;
   uid: number;
+  deviceName: string;
   deviceIp: string;
   timestamp: number;
   timeFormatted: string;
@@ -64,7 +65,6 @@ export const filterRecords = (
     : {};
 
   return records.filter((record) => {
-    console.log('record ', record);
     // onlyNotPushed
     if (options?.onlyNotPushed && pushedIdSet.has(record.id)) return false;
 

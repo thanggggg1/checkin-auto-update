@@ -1,24 +1,22 @@
 import constate from "constate";
-import {
-  deleteDevices,
-  Device,
-  DeviceSyncMethod,
-  useDeviceSyncMethod,
-} from "../../store/devices";
-import ZK from "../../packages/js_zklib/ZK";
+import { deleteDevices, Device, useDeviceSyncMethod, syncDevices } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAsyncFn } from "react-use";
+import _ from "lodash";
+import { requestEventLog, requestLoginDevice } from "../../store/devices/functions";
+import moment from "moment";
+import { FormatDateSearch, MaxEvenEachRequest } from "../../store/devices/types";
+import { Events, events } from "../../utils/events";
 import {
   AttendanceRecord,
+  filterRecords,
+  getAllRecordsArr,
   isRecordExists,
-  syncAttendanceRecords,
+  syncAttendanceRecords
 } from "../../store/records";
-import { Events, events } from "../../utils/events";
-import moment from "moment";
+import { timeSleep } from "../../utils/sleep";
+import { Modal } from "antd";
 import Fetch from "../../utils/Fetch";
-import useAsyncEffect from "../../utils/useAsyncEffect";
-import _ from "lodash";
-import useAutoMessageError from "../../hooks/useAutoMessageError";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -26,312 +24,125 @@ export enum ConnectionState {
   CONNECTED = 2,
 }
 
-const useDeviceValue = ({ device,syncTurn  }: { syncTurn: boolean, device: Device }) => {
-  const syncMethod = useDeviceSyncMethod(device);
-  const [connectionState, setConnectionState] = useState<ConnectionState>(
-    ConnectionState.DISCONNECTED
-  );
+const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Device }) => {
   const [syncPercent, _setSyncPercent] = useState(0);
   const setSyncPercent = useMemo(
     () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
     [_setSyncPercent]
   );
 
-  const connection = useMemo(() => {
-    return new ZK({
-      ip: device.ip,
-      timeout: device.timeout || 60000,
-      inport: device.inport || 5200,
-      port: device.port,
-      connectionType: device.connection,
-    });
-  }, [
-    device.ip,
-    device.timeout,
-    device.inport,
-    device.port,
-    device.connection,
-  ]);
-
-  /**
-   * CONNECT
-   */
-  const {
-    loading: connecting,
-    error: connectError,
-    call: connect,
-  } = useAsyncEffect(async () => {
-    setConnectionState(ConnectionState.CONNECTING);
-    try {
-      await connection.connect();
-      setConnectionState(ConnectionState.CONNECTED);
-    } catch (e) {
-      setConnectionState(ConnectionState.DISCONNECTED);
-      throw e;
-    }
-  }, [connection]);
-
-  useAutoMessageError(connectError);
-
-  const canSendRequest =
-    !connecting &&
-    !connectError &&
-    connectionState === ConnectionState.CONNECTED;
-
-  /**
-   * DISABLE
-   */
-  const [{ error: disableError }, disableDevice] = useAsyncFn(async () => {
-    if (!canSendRequest) {
-      throw new Error("Socket is not connected");
-    }
-    console.log('disable device ', connection);
-
-    await connection.disableDevice();
-  }, [canSendRequest, connection]);
-
-  useAutoMessageError(disableError);
-
-  /**
-   * ENABLE
-   */
-  const [{ error: enableError }, enableDevice] = useAsyncFn(async () => {
-    if (!canSendRequest) {
-      throw new Error("Socket is not connected");
-    }
-
-    await connection.enableDevice();
-  }, [connection, canSendRequest]);
-
-  useAutoMessageError(enableError);
-
   /**
    * SYNC ATTENDANCES
    */
   const [
     { loading: isGettingAttendances },
-    syncAttendances,
+    syncAttendances
   ] = useAsyncFn(async () => {
-    console.log("start syncing", canSendRequest);
-    const currentYear = new Date().getFullYear();
-
-    setSyncPercent(0);
-
-    if (!canSendRequest) {
-      console.log('canSendRequest events.emit(Events.SYNC_DONE); ', canSendRequest);
-      await require("bluebird").delay(400);
-      // when sync done thi goi vao day de chuyen sang client tiep theo
-      events.emit(Events.SYNC_DONE);
-      throw new Error("Socket is not connected");
+    if (!device.sessionId) {
+      return;
     }
+    let newDevice = { ...device };
 
-    setSyncPercent(0.01);
+    let canSync = true;
+    let lastSync = newDevice.lastSync
+      ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
+      : moment().subtract(1, "months").format(FormatDateSearch.start);
 
-    await disableDevice();
+    let hint = "";
+    while (canSync) {
+      setSyncPercent(0);
 
-    setSyncPercent(0.02);
-
-    if (syncMethod === DeviceSyncMethod.LEGACY) {
-      try {
-        await connection.freeData();
-        const attendances = await connection.getAttendance(
-          (current: number, total: number) => {
-            const percent = Math.floor((current / total) * 10000) / 100;
-            setSyncPercent(percent);
-          }
-        );
-
-        setSyncPercent(0);
-
-        await enableDevice();
-
-        const records = attendances
-          .map((attendance) => {
-            const mm = moment(attendance.timestamp);
-            if (mm.get("year") < currentYear - 1) {
-              return false
-            }
-            const id = `${attendance.id}_${mm.valueOf()}`;
-
-            if (isRecordExists(id)) return false;
-
-            return {
-              timestamp: mm.valueOf(),
-              timeFormatted: mm.format("HH:mm:ss"),
-              dateFormatted: mm.format("DD/MM/YYYY"),
-              deviceIp: device.ip,
-              uid: attendance.id,
-              id,
-            };
-          })
-          .filter(Boolean) as AttendanceRecord[];
-
-        syncAttendanceRecords(records);
-        // when sync done thi goi vao day de chuyen sang client tiep theo
-        await require("bluebird").delay(400);
-        events.emit(Events.SYNC_DONE);
-        return records;
-      } catch (e) {
-        await enableDevice();
-        // when sync done thi goi vao day de chuyen sang client tiep theo
-        await require("bluebird").delay(400);
-        events.emit(Events.SYNC_DONE);
-        return []
-      }
-    }
-
-    // Large dataset method
-    const attendances = await connection.zklib.getAttendances(
-      (current: number, total: number) => {
-        const percent = Math.floor((current / total) * 10000) / 100;
-        setSyncPercent(percent);
-      }
-    );
-
-    setSyncPercent(0);
-
-    await enableDevice();
-
-    attendances.data &&
-      syncAttendanceRecords(
-        // filter exists & map at the same time (filter exists for performance)
-        attendances.data.reduce<AttendanceRecord[]>((filtered, raw) => {
-          const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
-
-          if (isRecordExists(id)) return filtered;
-
-          const mm = moment(raw.recordTime);
-          filtered.push({
-            uid: Number(raw.deviceUserId),
-            timestamp: mm.valueOf(),
-            id,
-            dateFormatted: mm.format("DD/MM/YYYY"),
-            deviceIp: device.ip,
-            timeFormatted: mm.format("HH:mm"),
+      let rows = await requestEventLog({
+        sessionId: newDevice.sessionId,
+        from: lastSync,
+        domain: device.domain,
+        hint
+      });
+      if (rows === 401) {
+        const res = await requestLoginDevice({
+          domain: newDevice.domain,
+          username: newDevice.username,
+          password: newDevice.password
+        });
+        if (res.error) {
+          Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
+          return;
+        } else {
+          newDevice = { ...newDevice, sessionId: res.sessionId };
+          rows = await requestEventLog({
+            sessionId: newDevice.sessionId,
+            from: lastSync,
+            domain: newDevice.domain,
+            hint
           });
-
-          return filtered;
-        }, [])
-      );
-    // when sync done thi goi vao day de chuyen sang client tiep theo
-    events.emit(Events.SYNC_DONE);
-    return attendances;
-  }, [
-    connection,
-    canSendRequest,
-    disableDevice,
-    enableDevice,
-    device.ip,
-    syncMethod,
-  ]);
-
-  /**
-   * REALTIME
-   */
-  const {
-    value: clearRealtime,
-    call: startRealtimeAgain,
-  } = useAsyncEffect(async () => {
-    if (!canSendRequest) return;
-
-    return connection.startMon({
-      start: (err) => {
-        console.log("start mon err", err);
-      },
-      onatt: (ret) => {
-        const mm = moment(ret.time);
-        const log: AttendanceRecord = {
-          uid: Number(ret.userId),
-          timestamp: mm.valueOf(),
-          id: `${ret.userId}_${mm.valueOf()}`,
-          dateFormatted: mm.format("DD/MM/YYYY"),
-          deviceIp: device.ip,
-          timeFormatted: mm.format("HH:mm:ss"),
-        };
-
-        Fetch.realtimePush(log);
-
-        syncAttendanceRecords([log]);
-      },
-    });
-  }, [connection, canSendRequest, device.ip]);
-
-  useEffect(() => {
-    return () => {
-      clearRealtime?.();
-    };
-  }, [clearRealtime]);
-
-  /**
-   * FREE SIZES
-   * This is a heartbeat to check is connection still good.
-   */
-  useEffect(() => {
-    const handler = async () => {
-      // @ts-ignore
-      if (!connection.zklib?.socket?.writable) {
-        setConnectionState(ConnectionState.DISCONNECTED);
+        }
+      }
+      if (typeof rows === "number") {
+        Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
         return;
       }
-
-      if (isGettingAttendances) return;
-
-      try {
-        const serial = await connection.serialNumber();
-
-        console.log("serial", serial);
-      } catch (e) {
-        console.log("get serial error", e);
-        setConnectionState(ConnectionState.DISCONNECTED);
+      const result: AttendanceRecord[] = [];
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (isRecordExists(row.id) || !row?.user_id?.user_id) {
+          continue;
+        }
+        const mm = moment(row.datetime);
+        result.push({
+          timestamp: mm.valueOf(),
+          timeFormatted: mm.format("HH:mm:ss"),
+          dateFormatted: mm.format("DD/MM/YYYY"),
+          deviceName: newDevice.name,
+          deviceIp: newDevice.domain,
+          //@ts-ignore
+          uid: row.user_id.user_id,
+          id: `${row.user_id.user_id}_${mm.valueOf()}`
+        });
       }
-    };
+      if (result.length) {
+        syncAttendanceRecords(result);
+        lastSync = moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal);
+        syncDevices([{ ...newDevice, lastSync: result[result.length - 1].timestamp }]);
+        await timeSleep(3);
+        await Fetch.massPushSplitByChunks(
+          filterRecords(getAllRecordsArr(), {
+            onlyNotPushed: true,
+            onlyInEmployeeCheckinCodes: true,
+            startTime: moment(result[0].timestamp).clone().startOf("day").valueOf(),
+            endTime: moment(result[0].timestamp).clone().endOf("day").valueOf(),
+          })
+        );
+        await timeSleep(3);
+      }
+      if (rows?.length < MaxEvenEachRequest) {
+        canSync = false;
+        events.emit(Events.SYNC_DONE);
+      }
+    }
 
-    const interval = setInterval(handler, (device.heartbeat || 1) * 60 * 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isGettingAttendances, connection, device.heartbeat]);
+    return [];
+  }, [
+    device
+  ]);
 
   useEffect(() => {
-    if (!isGettingAttendances || syncTurn) {
-      syncAttendances();
+    if (isGettingAttendances) {
+      return;
+    }
+    if (syncTurn) {
+      syncAttendances().then();
     }
   }, [syncTurn]);
 
-  /**
-   * AUTO RECONNECT
-   */
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (
-        connectionState === ConnectionState.CONNECTED ||
-        connectionState === ConnectionState.CONNECTING
-      )
-        return;
-
-      connect().then(startRealtimeAgain);
-    }, (device.autoReconnect || 30) * 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [connectionState, connect, device.autoReconnect]);
-
   const deleteDevice = useCallback(() => {
-    deleteDevices([device.ip]);
-  }, [device.ip]);
+    deleteDevices([device.domain]);
+  }, [device.domain]);
 
   return {
     device,
-    connection,
     syncAttendances,
-    connectionState,
-    enableDevice,
-    disableDevice,
-    reconnect: connect,
     deleteDevice,
-    syncPercent,
+    syncPercent
   };
 };
 

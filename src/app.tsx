@@ -11,7 +11,9 @@ import { PersistGate } from "redux-persist/integration/react";
 import AutoTasks from "./components/AutoTasks";
 import { initI18next } from "./store/settings/languages";
 
+
 initI18next();
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const _App = memo(function App() {
   return (

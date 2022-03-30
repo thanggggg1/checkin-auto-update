@@ -13,8 +13,6 @@ const DeviceActions = memo(function DeviceActions(props) {
   const {
     syncAttendances,
     connectionState,
-    enableDevice,
-    disableDevice,
     deleteDevice,
     device,
   } = useCurrentDevice();
@@ -34,18 +32,18 @@ const DeviceActions = memo(function DeviceActions(props) {
       >
         <span>{t("sync_attendances")}</span>
       </Menu.Item>
-      <Menu.Item
-        disabled={connectionState !== ConnectionState.CONNECTED}
-        onClick={enableDevice}
-      >
-        <span>{t("enable")}</span>
-      </Menu.Item>
-      <Menu.Item
-        disabled={connectionState !== ConnectionState.CONNECTED}
-        onClick={disableDevice}
-      >
-        <span>{t("disable")}</span>
-      </Menu.Item>
+      {/*<Menu.Item*/}
+      {/*  disabled={connectionState !== ConnectionState.CONNECTED}*/}
+      {/*  onClick={enableDevice}*/}
+      {/*>*/}
+      {/*  <span>{t("enable")}</span>*/}
+      {/*</Menu.Item>*/}
+      {/*<Menu.Item*/}
+      {/*  disabled={connectionState !== ConnectionState.CONNECTED}*/}
+      {/*  onClick={disableDevice}*/}
+      {/*>*/}
+      {/*  <span>{t("disable")}</span>*/}
+      {/*</Menu.Item>*/}
       <Menu.Item onClick={showEditDevice}>
         <span>{t("edit")}</span>
       </Menu.Item>

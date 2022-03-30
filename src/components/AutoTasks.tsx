@@ -28,7 +28,7 @@ const useAutoFetchCheckinCodes = () => {
       if (!device.clientPassword || !device.clientToken) {
         continue
       }
-      await Fetch.requestCheckinCodes(device.ip, {
+      await Fetch.requestCheckinCodes(device.domain, {
         token: device.clientToken,
         password: device.clientPassword
       });

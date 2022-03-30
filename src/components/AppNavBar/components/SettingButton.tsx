@@ -88,75 +88,75 @@ const SettingButton = memo(function SettingButton() {
         width={560}
         {...antdModalLanguageProps}
       >
-        <Input
-          name={"autoSyncMinutes"}
-          addonBefore={t("auto_sync_every")}
-          type={"number"}
-          addonAfter={t("minutes")}
-          placeholder={"Ex: 15, 0 means disabled"}
-          step={15}
-          min={0}
-          max={4320} // 72 hours, 3 days
-          onChange={onChange}
-          value={autoSyncLogsMinutes}
-        />
-        <br />
-        {lastAutoSyncLogsTime ? <><span>
-          {t("last_auto_sync")}:{" "}
-          {lastAutoSyncLogsMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span><br /></> : null}
-        {autoSyncLogsMinutes ? <><span>
-          {t("the_next_auto_sync_is")}:{" "}
-          {willAutoSyncAtMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span><br /></> : null}
-        <br />
-        <Input
-          name={"autoPushMinutes"}
-          addonBefore={t("auto_push_every")}
-          type={"number"}
-          addonAfter={t("minutes")}
-          placeholder={"Ex: 15, 0 means disabled"}
-          step={15}
-          min={0}
-          max={4320} // 72 hours, 3 days
-          onChange={onChange}
-          value={autoPushLogsMinutes}
-        />
-        <br />
-        {lastAutoPushLogsTime ? <><span>
-          {t("last_auto_push")}:{" "}
-          {lastAutoPushLogsMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span><br /></> : null}
-        {autoPushLogsMinutes ? <>
-        <span>
-          {t("the_next_auto_push_is")}:{" "}
-          {willAutoPushAtMoment.format("HH:mm:ss DD/MM/YYYY")}
-        </span><br />
-        </> : null}
-        <br />
+        {/*<Input*/}
+        {/*  name={"autoSyncMinutes"}*/}
+        {/*  addonBefore={t("auto_sync_every")}*/}
+        {/*  type={"number"}*/}
+        {/*  addonAfter={t("minutes")}*/}
+        {/*  placeholder={"Ex: 15, 0 means disabled"}*/}
+        {/*  step={15}*/}
+        {/*  min={0}*/}
+        {/*  max={4320} // 72 hours, 3 days*/}
+        {/*  onChange={onChange}*/}
+        {/*  value={autoSyncLogsMinutes}*/}
+        {/*/>*/}
+        {/*<br />*/}
+        {/*{lastAutoSyncLogsTime ? <><span>*/}
+        {/*  {t("last_auto_sync")}:{" "}*/}
+        {/*  {lastAutoSyncLogsMoment.format("HH:mm:ss DD/MM/YYYY")}*/}
+        {/*</span><br /></> : null}*/}
+        {/*{autoSyncLogsMinutes ? <><span>*/}
+        {/*  {t("the_next_auto_sync_is")}:{" "}*/}
+        {/*  {willAutoSyncAtMoment.format("HH:mm:ss DD/MM/YYYY")}*/}
+        {/*</span><br /></> : null}*/}
+        {/*<br />*/}
+        {/*<Input*/}
+        {/*  name={"autoPushMinutes"}*/}
+        {/*  addonBefore={t("auto_push_every")}*/}
+        {/*  type={"number"}*/}
+        {/*  addonAfter={t("minutes")}*/}
+        {/*  placeholder={"Ex: 15, 0 means disabled"}*/}
+        {/*  step={15}*/}
+        {/*  min={0}*/}
+        {/*  max={4320} // 72 hours, 3 days*/}
+        {/*  onChange={onChange}*/}
+        {/*  value={autoPushLogsMinutes}*/}
+        {/*/>*/}
+        {/*<br />*/}
+        {/*{lastAutoPushLogsTime ? <><span>*/}
+        {/*  {t("last_auto_push")}:{" "}*/}
+        {/*  {lastAutoPushLogsMoment.format("HH:mm:ss DD/MM/YYYY")}*/}
+        {/*</span><br /></> : null}*/}
+        {/*{autoPushLogsMinutes ? <>*/}
+        {/*<span>*/}
+        {/*  {t("the_next_auto_push_is")}:{" "}*/}
+        {/*  {willAutoPushAtMoment.format("HH:mm:ss DD/MM/YYYY")}*/}
+        {/*</span><br />*/}
+        {/*</> : null}*/}
+        {/*<br />*/}
 
-        <Input
-          name={"preventSyncLogsTimeRanges"}
-          addonBefore={t("__", {
-            vi: 'Giờ tránh tự động đồng bộ',
-            en: 'Prevent sync logs time ranges'
-          })}
-          type={"text"}
-          placeholder={"Ex: 8:20-9:40, 17:25-17:35"}
-          step={30}
-          min={30}
-          max={4320} // 72 hours, 3 days
-          onChange={onChange}
-          value={preventSyncLogsTimeRanges}
-        />
-        <span>
-          {t("__", {
-            vi: 'Định dạng: "HH:mm-HH:mm, HH:mm-HH:mm", ví dụ: 8:20-9:40, 17:25-17:35',
-            en: 'Format: "HH:mm-HH:mm, HH:mm-HH:mm", example: 8:20-9:40, 17:25-17:35'
-          })}
-        </span>
-        <br />
-        <br />
+        {/*<Input*/}
+        {/*  name={"preventSyncLogsTimeRanges"}*/}
+        {/*  addonBefore={t("__", {*/}
+        {/*    vi: 'Giờ tránh tự động đồng bộ',*/}
+        {/*    en: 'Prevent sync logs time ranges'*/}
+        {/*  })}*/}
+        {/*  type={"text"}*/}
+        {/*  placeholder={"Ex: 8:20-9:40, 17:25-17:35"}*/}
+        {/*  step={30}*/}
+        {/*  min={30}*/}
+        {/*  max={4320} // 72 hours, 3 days*/}
+        {/*  onChange={onChange}*/}
+        {/*  value={preventSyncLogsTimeRanges}*/}
+        {/*/>*/}
+        {/*<span>*/}
+        {/*  {t("__", {*/}
+        {/*    vi: 'Định dạng: "HH:mm-HH:mm, HH:mm-HH:mm", ví dụ: 8:20-9:40, 17:25-17:35',*/}
+        {/*    en: 'Format: "HH:mm-HH:mm, HH:mm-HH:mm", example: 8:20-9:40, 17:25-17:35'*/}
+        {/*  })}*/}
+        {/*</span>*/}
+        {/*<br />*/}
+        {/*<br />*/}
 
         <Radio.Group value={language} onChange={onLanguageChange}>
           <Radio.Button value="en">English</Radio.Button>

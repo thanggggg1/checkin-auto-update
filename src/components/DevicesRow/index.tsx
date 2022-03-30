@@ -5,7 +5,6 @@ import { DeviceSyncMethod, useDevicesRecord } from "../../store/devices";
 import DeviceItem from "./DeviceItem";
 import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
-import PyattDevice from "../PyattDevice";
 import { Events, events } from "../../utils/events";
 
 const Wrapper = styled(Row)`
@@ -19,27 +18,42 @@ const AddButton = styled(Button)`
   height: unset;
   flex: 0 0 180px;
   align-self: stretch;
+  min-height: 120px;
 `;
 
 const DevicesRow = memo(function DevicesRow() {
   useLanguage();
   const [isAddDeviceModalVisible, setAddDeviceModalVisible] = useState(false);
   const devices = useDevicesRecord();
-
   const [turnSyncIP, setTurnSyncIP] = useState("");
+
+  useEffect(() => {
+    if (turnSyncIP) {
+      return;
+    }
+    const _t = setInterval(() => {
+      console.log("mass sync ", new Date().getTime());
+      events.emit(Events.MASS_SYNC);
+    }, 30000);
+
+    return () => {
+      _t && clearInterval(_t);
+    };
+  }, [turnSyncIP]);
 
 
   useEffect(() => {
     // handle chuc nang sync khi ng dung nhan vao chu syncAll
     const handler = () => {
-      console.log('turnSyncIP MASS_SYNC CREATE', turnSyncIP)
+      console.log("turnSyncIP MASS_SYNC CREATE", turnSyncIP);
       if (turnSyncIP) {
-        return
+        return;
       }
 
       const _devices = Object.values(devices || {});
+      console.log('_devices ', _devices)
       if (_devices.length) {
-        setTurnSyncIP(_devices[0].ip)
+        setTurnSyncIP(_devices[0].domain);
       }
     };
 
@@ -47,20 +61,20 @@ const DevicesRow = memo(function DevicesRow() {
     return () => {
       events.off(Events.MASS_SYNC, handler);
     };
-  }, [turnSyncIP]);
+  }, [turnSyncIP, devices]);
 
   useEffect(() => {
     // handle TH khi ma sync xong 1 cai thi can next sang cai tiep theo
     const handler = () => {
       const _devices = Object.values(devices || {});
-      const currentIndex = _devices.findIndex(item =>item.ip === turnSyncIP);
+      const currentIndex = _devices.findIndex(item => item.domain === turnSyncIP);
       if (currentIndex > -1 && currentIndex < _devices.length) {
 
         if (currentIndex + 1 === _devices.length) {
-          setTurnSyncIP("")
+          setTurnSyncIP("");
         } else {
           if (_devices[currentIndex + 1]) {
-            setTurnSyncIP(_devices[currentIndex + 1].ip)
+            setTurnSyncIP(_devices[currentIndex + 1].domain);
           }
         }
       }
@@ -70,7 +84,6 @@ const DevicesRow = memo(function DevicesRow() {
       events.off(Events.SYNC_DONE, handler);
     };
   }, [turnSyncIP, devices]);
-
 
   const values = useMemo(() => {
     return {
@@ -83,17 +96,9 @@ const DevicesRow = memo(function DevicesRow() {
     <>
       <Wrapper>
         {Object.values(devices).map((device) => {
-          if (device.syncMethod === DeviceSyncMethod.PY) {
-            return <PyattDevice
-              key={device.ip}
-              device={device}
-              syncTurn={device.ip === turnSyncIP}
-            />;
-          }
-
-          return <DeviceItem key={device.ip}
+          return <DeviceItem key={device.domain}
                              device={device}
-                             syncTurn={device.ip === turnSyncIP}
+                             syncTurn={device.domain === turnSyncIP}
           />;
         })}
         <AddButton type={"dashed"} onClick={values.openModal}>

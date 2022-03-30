@@ -29,7 +29,7 @@ const AppNavBar = memo(function AppNavBar() {
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
       <AppNameWrapper>
-        <AppName>Base Checkin Client</AppName>
+        <AppName>Base Checkin Client - Biostar 2</AppName>
         <span>v{require("electron").remote.app.getVersion()}</span>
       </AppNameWrapper>
 

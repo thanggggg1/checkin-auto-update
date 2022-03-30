@@ -24,7 +24,7 @@ const RecordsTable = memo(function RecordsTable() {
       return {
         key: record.id,
         uid: record.uid,
-        device: record.deviceIp,
+        device: record.deviceName,
         time: record.timeFormatted,
         date: record.dateFormatted,
         timestamp: record.timestamp,

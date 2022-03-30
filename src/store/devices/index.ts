@@ -8,18 +8,22 @@ export enum DeviceSyncMethod {
 }
 
 export interface Device {
-  ip: string;
   name: string;
-  port: number;
-  connection: "tcp" | "udp";
-  inport?: number;
   timeout?: number;
   heartbeat?: number;
   autoReconnect?: number;
-  syncMethod?: DeviceSyncMethod;
-  password?: string;
+
+  domain: string; // key
+  username: string;
+  password: string;
+
   clientToken: string;
-  clientPassword: string
+  clientPassword: string;
+
+  sessionId?: string;
+
+  lastSync?: number
+  syncing?: boolean
 }
 
 export const {
@@ -27,7 +31,7 @@ export const {
   setStore: setDevicesStore,
   sync: syncDevices,
   multiDelete: deleteDevices,
-} = createDynamicReducer<Device>("devices", "ip", {
+} = createDynamicReducer<Device>("devices", "domain", {
   byKey: {},
   query: {},
 });

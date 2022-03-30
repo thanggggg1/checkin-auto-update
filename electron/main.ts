@@ -16,6 +16,7 @@ let isQuiting = false;
 app.on('before-quit', function () {
   isQuiting = true;
 });
+app.commandLine.appendSwitch('ignore-certificate-errors');
 
 function createWindow() {
   mainWindow = new BrowserWindow({
