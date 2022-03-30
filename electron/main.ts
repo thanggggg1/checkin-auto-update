@@ -9,7 +9,7 @@ let tray = null;
 app.setLoginItemSettings({
   openAsHidden: true,
   path: app.getPath('exe')
-})
+});
 
 let isQuiting = false;
 

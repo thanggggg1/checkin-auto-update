@@ -76,7 +76,7 @@
   },
   "build": {
     "appId": "vn.base.checkinstation",
-    "productName": "Base Checkin Client",
+    "productName": "Base Checkin Client - Biostar 2",
     "copyright": "Copyright © 2020 Base.vn",
     "extends": null,
     "directories": {

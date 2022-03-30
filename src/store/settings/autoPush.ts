@@ -18,7 +18,20 @@ const {
   use: usePreventSyncLogsTimeRanges
 } = createSetting<string>("preventSyncLogsTimeRanges", '');
 
+const {
+  get: getSyncing,
+  set: setSyncing,
+  use: useSyncing
+} = createSetting<string>("syncingEvent", '0');
+// 0 Dang ko lam gi ca
+// 1 Dang dong bo
+// 2 pause
+
+
 export {
+  getSyncing,
+  setSyncing,
+  useSyncing,
   getAutoPushLogsMinutes,
   setAutoPushLogsMinutes,
   useAutoPushLogsMinutes,

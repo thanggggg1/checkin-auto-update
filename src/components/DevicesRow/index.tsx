@@ -6,6 +6,7 @@ import DeviceItem from "./DeviceItem";
 import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
+import { useSyncing } from "../../store/settings/autoPush";
 
 const Wrapper = styled(Row)`
   flex-wrap: nowrap;
@@ -26,9 +27,10 @@ const DevicesRow = memo(function DevicesRow() {
   const [isAddDeviceModalVisible, setAddDeviceModalVisible] = useState(false);
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
+  const syncing = useSyncing();
 
   useEffect(() => {
-    if (turnSyncIP) {
+    if (turnSyncIP || syncing === "2") {
       return;
     }
     const _t = setInterval(() => {
@@ -39,7 +41,7 @@ const DevicesRow = memo(function DevicesRow() {
     return () => {
       _t && clearInterval(_t);
     };
-  }, [turnSyncIP]);
+  }, [turnSyncIP, syncing]);
 
 
   useEffect(() => {
@@ -51,7 +53,7 @@ const DevicesRow = memo(function DevicesRow() {
       }
 
       const _devices = Object.values(devices || {});
-      console.log('_devices ', _devices)
+      console.log("_devices ", _devices);
       if (_devices.length) {
         setTurnSyncIP(_devices[0].domain);
       }

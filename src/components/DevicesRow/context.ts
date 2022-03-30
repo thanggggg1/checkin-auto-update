@@ -17,6 +17,8 @@ import {
 import { timeSleep } from "../../utils/sleep";
 import { Modal } from "antd";
 import Fetch from "../../utils/Fetch";
+import { getDeviceById } from "../../store/devices/actions";
+import { getSyncing } from "../../store/settings/autoPush";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -41,6 +43,12 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     if (!device.sessionId) {
       return;
     }
+    const syncing = getSyncing();
+
+    if (syncing === "2" || syncing === "0") {
+      return;
+    }
+
     let newDevice = { ...device };
 
     let canSync = true;
@@ -102,6 +110,13 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       if (result.length) {
         syncAttendanceRecords(result);
         lastSync = moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal);
+        const _currentDevice = getDeviceById(newDevice.domain);
+        console.log("_currentDevice ", _currentDevice);
+        if (!_currentDevice) {
+          canSync = false;
+          events.emit(Events.SYNC_DONE);
+          return;
+        }
         syncDevices([{ ...newDevice, lastSync: result[result.length - 1].timestamp }]);
         await timeSleep(3);
         await Fetch.massPushSplitByChunks(
@@ -109,7 +124,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
             onlyNotPushed: true,
             onlyInEmployeeCheckinCodes: true,
             startTime: moment(result[0].timestamp).clone().startOf("day").valueOf(),
-            endTime: moment(result[0].timestamp).clone().endOf("day").valueOf(),
+            endTime: moment(result[0].timestamp).clone().endOf("day").valueOf()
           })
         );
         await timeSleep(3);

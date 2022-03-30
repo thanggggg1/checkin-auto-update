@@ -7,6 +7,7 @@ import { ConnectionState, DeviceProvider, useCurrentDevice } from "./context";
 import SyncTag from "./tags/SyncTag";
 import { t, useLanguage } from "../../store/settings/languages";
 import moment from "moment";
+import { useSyncing } from "../../store/settings/autoPush";
 
 const Wrapper = styled(Card)`
   flex: 0 0 250px;
@@ -38,6 +39,7 @@ const Href = styled.div`
 
 const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean }) {
   useLanguage();
+  const syncing = useSyncing();
   const { device } = useCurrentDevice();
 
   const openHref = () => {
@@ -51,7 +53,7 @@ const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean })
         Domain: <Href onClick={openHref}>{device.domain}</Href>
       </InfoRow>
       {
-        syncTurn
+        syncTurn && syncing
           ? <InfoRow>
             Đang đồng bộ
           </InfoRow>
