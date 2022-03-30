@@ -30,7 +30,8 @@ const DevicesRow = memo(function DevicesRow() {
   const syncing = useSyncing();
 
   useEffect(() => {
-    if (turnSyncIP && syncing === "2" || turnSyncIP && syncing === "0") {
+    console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
+    if (turnSyncIP) {
       return;
     }
     const _t = setInterval(() => {
@@ -40,7 +41,7 @@ const DevicesRow = memo(function DevicesRow() {
     return () => {
       _t && clearInterval(_t);
     };
-  }, [turnSyncIP, syncing]);
+  }, [turnSyncIP]);
 
 
   useEffect(() => {

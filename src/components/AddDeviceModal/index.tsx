@@ -37,8 +37,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
     const onChange = (name: keyof Device, isNumber = false) => (
       event: ChangeEvent<HTMLInputElement>
     ) => {
-      // event.persist();
-      console.log("event ", event);
+      event.persist();
       setDevice((oldValue) => ({
         ...oldValue,
         [name]: isNumber ? Number(event.target.value) : event.target.value

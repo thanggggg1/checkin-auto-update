@@ -43,10 +43,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     if (!device.sessionId) {
       return;
     }
-
-
     let newDevice = { ...device };
-
     let canSync = true;
     let lastSync = newDevice.lastSync
       ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
@@ -56,8 +53,10 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     while (canSync) {
 
       const syncing = getSyncing();
+      console.log("syncing in canSync ", syncing);
       if (syncing === "2" || syncing === "0") {
-        return;
+        await timeSleep(5);
+        continue;
       }
 
       setSyncPercent(0);
