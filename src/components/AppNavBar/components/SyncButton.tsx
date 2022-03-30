@@ -8,7 +8,6 @@ import { setSyncing, useSyncing } from "../../../store/settings/autoPush";
 const SyncButton = memo(function SyncButton() {
   useLanguage();
   const syncing = useSyncing();
-  console.log('syncing ', syncing)
   const onClick = useCallback(() => {
     if (syncing === "1") {
       setSyncing("2"); // chuyen sang pause
@@ -21,7 +20,7 @@ const SyncButton = memo(function SyncButton() {
   return (
     <Popover title={t("sync")} content={t("sync_desc")}>
       <Button onClick={onClick}>
-        <DownloadOutlined/> {syncing === "1" ? "Đang đồng bộ" : syncing === "2" ? "Tạm dừng" : t("sync")}
+        <DownloadOutlined/> {syncing === "1" ? "Đang đồng bộ ..." : syncing === "2" ? "Tạm dừng" : t("sync")}
       </Button>
     </Popover>
   );

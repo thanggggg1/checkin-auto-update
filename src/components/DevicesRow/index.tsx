@@ -30,11 +30,10 @@ const DevicesRow = memo(function DevicesRow() {
   const syncing = useSyncing();
 
   useEffect(() => {
-    if (turnSyncIP || syncing === "2") {
+    if (turnSyncIP && syncing === "2" || turnSyncIP && syncing === "0") {
       return;
     }
     const _t = setInterval(() => {
-      console.log("mass sync ", new Date().getTime());
       events.emit(Events.MASS_SYNC);
     }, 30000);
 
@@ -47,13 +46,11 @@ const DevicesRow = memo(function DevicesRow() {
   useEffect(() => {
     // handle chuc nang sync khi ng dung nhan vao chu syncAll
     const handler = () => {
-      console.log("turnSyncIP MASS_SYNC CREATE", turnSyncIP);
       if (turnSyncIP) {
         return;
       }
 
       const _devices = Object.values(devices || {});
-      console.log("_devices ", _devices);
       if (_devices.length) {
         setTurnSyncIP(_devices[0].domain);
       }

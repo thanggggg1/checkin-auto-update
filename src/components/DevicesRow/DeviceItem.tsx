@@ -53,7 +53,7 @@ const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean })
         Domain: <Href onClick={openHref}>{device.domain}</Href>
       </InfoRow>
       {
-        syncTurn && syncing
+        syncTurn && syncing === "1"
           ? <InfoRow>
             Đang đồng bộ
           </InfoRow>

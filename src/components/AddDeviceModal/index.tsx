@@ -14,7 +14,7 @@ const defaultValue: Device = {
   domain: "", // "https://14.241.105.154/",
   name: "", //
   password: "", //"Base@53rv1c3",
-  username: "", //"admin"
+  username: "" //"admin"
 };
 
 
@@ -37,7 +37,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
     const onChange = (name: keyof Device, isNumber = false) => (
       event: ChangeEvent<HTMLInputElement>
     ) => {
-      event.persist();
+      // event.persist();
+      console.log("event ", event);
       setDevice((oldValue) => ({
         ...oldValue,
         [name]: isNumber ? Number(event.target.value) : event.target.value
@@ -51,12 +52,18 @@ const AddDeviceModal = memo(function AddDeviceModal(
 
       onClientTokenChange: onChange("clientToken"),
       onClientPasswordChange: onChange("clientPassword"),
-      onLastSyncChange: onChange("lastSync"),
+
 
       onHeartbeatChange: onChange("heartbeat", true),
       onAutoReconnectChange: onChange("autoReconnect", true)
     };
   }, []);
+  const onLastSyncChange = (valu: number) => {
+    setDevice({
+      ...device,
+      lastSync: valu
+    });
+  };
 
   const [{}, validateTokenPassword] = useAsyncFn(async () => {
     try {
@@ -94,7 +101,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       });
       return;
     }
-    syncDevices([{ ...device, sessionId: r.sessionId, lastSync: undefined }]);
+    syncDevices([{ ...device, sessionId: r.sessionId }]);
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 
@@ -168,7 +175,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
                 showTime={{ format: "DD/MM/YYYY" }}
                 format="DD/MM/YYYY"
                 onChange={(value: any) => {
-                  values.onLastSyncChange(value.unix() * 1000);
+                  onLastSyncChange(value.unix() * 1000);
                 }}
                 placeholder={""}
                 value={moment(device.lastSync)}
