@@ -27,7 +27,7 @@ function createWindow() {
         ? path.join(app.getAppPath(), "./dist/assets/AppIcon.ico")
         : path.join(app.getAppPath(), "./dist/assets/AppIcon.icns")
     ),
-    title: "Base Checkin Station",
+    title: "Base Checkin Station - Biostar 2",
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,

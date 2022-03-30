@@ -117,6 +117,9 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           events.emit(Events.SYNC_DONE);
           return;
         }
+        if (syncing === "2" || syncing === "0") {
+          continue;
+        }
         syncDevices([{ ...newDevice, lastSync: result[result.length - 1].timestamp }]);
         await timeSleep(3);
         await Fetch.massPushSplitByChunks(
