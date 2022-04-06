@@ -40,18 +40,24 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     { loading: isGettingAttendances },
     syncAttendances
   ] = useAsyncFn(async () => {
-    if (!device.sessionId) {
-      return;
-    }
+
     let newDevice = { ...device };
     let canSync = true;
     let lastSync = newDevice.lastSync
-      ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
+      ? moment(newDevice.lastSync).subtract(7, 'hours').format(FormatDateSearch.normal)
       : moment().subtract(1, "months").format(FormatDateSearch.start);
 
     let hint = "";
     while (canSync) {
+      if (!newDevice.sessionId) {
+        continue;
+      }
+      const _device = getDeviceById(newDevice.domain);
 
+      let _a = moment(_device.lastSync).subtract(7, 'hours').format(FormatDateSearch.normal);
+      if (lastSync !== _a && _device.lastSync) {
+            lastSync =_a
+        }
       const syncing = getSyncing();
       console.log("syncing in canSync ", syncing);
       if (syncing === "2" || syncing === "0") {
@@ -78,11 +84,11 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           return;
         } else {
           newDevice = { ...newDevice, sessionId: res.sessionId };
+          syncDevices([newDevice])
           rows = await requestEventLog({
             sessionId: newDevice.sessionId,
             from: lastSync,
             domain: newDevice.domain,
-            hint
           });
         }
       }
@@ -122,14 +128,18 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         }
         syncDevices([{ ...newDevice, lastSync: result[result.length - 1].timestamp }]);
         await timeSleep(3);
-        await Fetch.massPushSplitByChunks(
-          filterRecords(getAllRecordsArr(), {
-            onlyNotPushed: true,
-            onlyInEmployeeCheckinCodes: true,
-            startTime: moment(result[0].timestamp).clone().startOf("day").valueOf(),
-            endTime: moment(result[0].timestamp).clone().endOf("day").valueOf()
-          })
-        );
+        try {
+          await Fetch.massPushSplitByChunks(
+            filterRecords(getAllRecordsArr(), {
+              onlyNotPushed: true,
+              onlyInEmployeeCheckinCodes: true,
+              startTime: moment(result[0].timestamp).clone().startOf("day").valueOf(),
+              endTime: moment(result[0].timestamp).clone().endOf("day").valueOf()
+            })
+          );
+        } catch (e) {
+
+        }
         await timeSleep(3);
       }
       if (rows?.length < MaxEvenEachRequest) {

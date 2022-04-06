@@ -1,6 +1,6 @@
 import axios from "axios";
 import { RawUserInterface, FormatDateSearch, RawEvent, MaxEvenEachRequest } from "./types";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const https = require("https");
 
@@ -62,7 +62,7 @@ export const requestEventLog = async ({
                                         sessionId
                                       }: EventLogParams) => {
   try {
-    const now = moment().format(FormatDateSearch.end);
+    const now = dayjs().format(FormatDateSearch.end);
     const { data }: { data: { EventCollection: { rows: RawEvent[] } } } = await axios({
         method: "post",
         baseURL: domain,
@@ -71,14 +71,13 @@ export const requestEventLog = async ({
           "bs-session-id": sessionId,
           "Content-Type": "application/json"
         },
-        data: JSON.stringify({
+        data: {
           "Query": {
             "limit": MaxEvenEachRequest,
-            "hint": hint || "",
             "conditions": [{
               "column": "datetime",
               "operator": 3,
-              "values": [from, now]
+              "values": [from, dayjs(from).add(1, "days").format(FormatDateSearch.normal)]
             }],
             "orders": [
               {
@@ -87,7 +86,7 @@ export const requestEventLog = async ({
               }
             ]
           }
-        }),
+        },
         httpsAgent: new https.Agent({
           rejectUnauthorized: false
         })

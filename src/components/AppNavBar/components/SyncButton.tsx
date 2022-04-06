@@ -20,7 +20,7 @@ const SyncButton = memo(function SyncButton() {
   return (
     <Popover title={t("sync")} content={t("sync_desc")}>
       <Button onClick={onClick}>
-        <DownloadOutlined/> {syncing === "1" ? "Đang đồng bộ ..." : syncing === "2" ? "Tạm dừng" : t("sync")}
+        <DownloadOutlined/> {syncing === "1" ? "Đang đồng bộ ..." : syncing === "2" ? "Đã tạm dừng" : t("sync")}
       </Button>
     </Popover>
   );
