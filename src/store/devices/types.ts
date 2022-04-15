@@ -95,6 +95,10 @@ export interface RawEvent {
     name: string;
     photo_exists: string;
   };
+  device_id: {
+    id: string;
+    name: string;
+  };
   tna_key: string;
   is_dst: string;
   user_update_by_device: string;

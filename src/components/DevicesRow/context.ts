@@ -97,10 +97,17 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         return;
       }
       const result: AttendanceRecord[] = [];
+      const doors = (newDevice?.doors || "").split(',').map(item => item.trim());
+
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         if (isRecordExists(row.id) || !row?.user_id?.user_id) {
           continue;
+        }
+        if (doors.length && row?.device_id?.name) {
+          if (!doors.includes(row?.device_id?.name )) {
+            continue
+          }
         }
         const mm = moment(row.datetime);
         result.push({

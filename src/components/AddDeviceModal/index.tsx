@@ -51,6 +51,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
 
       onClientTokenChange: onChange("clientToken"),
       onClientPasswordChange: onChange("clientPassword"),
+      onDoorChange: onChange("doors"),
 
 
       onHeartbeatChange: onChange("heartbeat", true),
@@ -162,6 +163,14 @@ const AddDeviceModal = memo(function AddDeviceModal(
         placeholder={"Client password"}
         value={device.clientPassword}
         onChange={values.onClientPasswordChange}
+      />
+      <br/>
+      <br/>
+      <Input.Password
+        addonBefore={"Cửa nhận log"}
+        placeholder={"BR-ACS-1F-02, BR-ACS-1F-0912, ... "}
+        value={device.doors || ""}
+        onChange={values.onDoorChange}
       />
       {
         device.lastSync
