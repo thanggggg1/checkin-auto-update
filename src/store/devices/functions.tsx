@@ -77,7 +77,7 @@ export const requestEventLog = async ({
             "conditions": [{
               "column": "datetime",
               "operator": 3,
-              "values": [from, dayjs(from).add(1, "days").format(FormatDateSearch.normal)]
+              "values": [from, dayjs(from).add(7, "days").format(FormatDateSearch.normal)]
             }],
             "orders": [
               {

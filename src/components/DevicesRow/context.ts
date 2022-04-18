@@ -44,7 +44,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     let newDevice = { ...device };
     let canSync = true;
     let lastSync = newDevice.lastSync
-      ? moment(newDevice.lastSync).subtract(7, 'hours').format(FormatDateSearch.normal)
+      ? moment(newDevice.lastSync).subtract(7, "hours").format(FormatDateSearch.normal)
       : moment().subtract(1, "months").format(FormatDateSearch.start);
 
     let hint = "";
@@ -54,10 +54,10 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       }
       const _device = getDeviceById(newDevice.domain);
 
-      let _a = moment(_device.lastSync).subtract(7, 'hours').format(FormatDateSearch.normal);
+      let _a = moment(_device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
       if (lastSync !== _a && _device.lastSync) {
-            lastSync =_a
-        }
+        lastSync = _a;
+      }
       const syncing = getSyncing();
       console.log("syncing in canSync ", syncing);
       if (syncing === "2" || syncing === "0") {
@@ -84,11 +84,11 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           return;
         } else {
           newDevice = { ...newDevice, sessionId: res.sessionId };
-          syncDevices([newDevice])
+          syncDevices([newDevice]);
           rows = await requestEventLog({
             sessionId: newDevice.sessionId,
             from: lastSync,
-            domain: newDevice.domain,
+            domain: newDevice.domain
           });
         }
       }
@@ -97,19 +97,25 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         return;
       }
       const result: AttendanceRecord[] = [];
-      const doors = (newDevice?.doors || "").split(',').map(item => item.trim());
+      const doors = (_device?.doors || "").split(",").map(item => item.trim()).filter(Boolean);
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
+        if (!row) {
+          continue;
+        }
+        const mm = moment(row.datetime);
+
         if (isRecordExists(row.id) || !row?.user_id?.user_id) {
           continue;
         }
-        if (doors.length && row?.device_id?.name) {
-          if (!doors.includes(row?.device_id?.name )) {
-            continue
+
+        if (doors?.length && row?.device_id?.name) {
+          if ((doors || []).indexOf(row?.device_id?.name) === -1) {
+            continue;
           }
         }
-        const mm = moment(row.datetime);
+
         result.push({
           timestamp: mm.valueOf(),
           timeFormatted: mm.format("HH:mm:ss"),
@@ -121,9 +127,15 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           id: `${row.user_id.user_id}_${mm.valueOf()}`
         });
       }
+      console.log("result ", result.length);
+
+      if (rows && rows.length) {
+        lastSync = moment(rows[rows.length - 1].datetime).format(FormatDateSearch.normal);
+        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].datetime).valueOf() }]);
+      }
+
       if (result.length) {
         syncAttendanceRecords(result);
-        lastSync = moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal);
         const _currentDevice = getDeviceById(newDevice.domain);
         if (!_currentDevice) {
           canSync = false;
@@ -133,7 +145,6 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         if (syncing === "2" || syncing === "0") {
           continue;
         }
-        syncDevices([{ ...newDevice, lastSync: result[result.length - 1].timestamp }]);
         await timeSleep(3);
         try {
           await Fetch.massPushSplitByChunks(
@@ -148,6 +159,10 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
         }
         await timeSleep(3);
+      } else {
+        console.log("come here when result = 0");
+        await timeSleep(3);
+        console.log("vao dayyyyyy");
       }
       if (rows?.length < MaxEvenEachRequest) {
         canSync = false;
