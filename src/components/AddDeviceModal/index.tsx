@@ -166,7 +166,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       />
       <br/>
       <br/>
-      <Input.Password
+      <Input
         addonBefore={"Cửa nhận log"}
         placeholder={"BR-ACS-1F-02, BR-ACS-1F-0912, ... "}
         value={device.doors || ""}
