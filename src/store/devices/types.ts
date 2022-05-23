@@ -1,6 +1,6 @@
 export enum FormatDateSearch {
   start = "YYYY-MM-DDT00:00:59.000[Z]",
-  normal = "YYYY-MM-DDTHH:MM:ss.000[Z]",
+  normal = "YYYY-MM-DDTHH:mm:ss.000[Z]",
   end = "YYYY-MM-DDT23:59:59.000[Z]"
 }
 export const MaxEvenEachRequest = 501;

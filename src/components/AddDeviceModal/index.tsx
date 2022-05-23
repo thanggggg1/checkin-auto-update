@@ -167,8 +167,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
       <br/>
       <br/>
       <Input
-        addonBefore={"Cửa nhận log"}
-        placeholder={"BR-ACS-1F-02, BR-ACS-1F-0912, ... "}
+        addonBefore={"Cửa nhận log (Danh sách ID cửa)"}
+        placeholder={"5419191, 5356245, ... "}
         value={device.doors || ""}
         onChange={values.onDoorChange}
       />

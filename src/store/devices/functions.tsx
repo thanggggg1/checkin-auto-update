@@ -62,7 +62,7 @@ export const requestEventLog = async ({
                                         sessionId
                                       }: EventLogParams) => {
   try {
-    const now = dayjs().format(FormatDateSearch.end);
+    console.log('from ', from);
     const { data }: { data: { EventCollection: { rows: RawEvent[] } } } = await axios({
         method: "post",
         baseURL: domain,

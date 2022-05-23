@@ -1,6 +1,6 @@
 {
   "name": "base-checkin-station-desktop-biostar-2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "main": "./dist/main.js",
   "description": "Base Checkin Client. Manage & Realtime attendance update for checkin.base.vn",

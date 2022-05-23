@@ -54,12 +54,10 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       }
       const _device = getDeviceById(newDevice.domain);
 
-      let _a = moment(_device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
-      if (lastSync !== _a && _device.lastSync) {
-        lastSync = _a;
-      }
+      lastSync = moment(_device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
+
       const syncing = getSyncing();
-      console.log("syncing in canSync ", syncing);
+
       if (syncing === "2" || syncing === "0") {
         await timeSleep(5);
         continue;
@@ -110,8 +108,8 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           continue;
         }
 
-        if (doors?.length && row?.device_id?.name) {
-          if ((doors || []).indexOf(row?.device_id?.name) === -1) {
+        if (doors?.length && row?.device_id?.id) {
+          if ((doors || []).indexOf(row?.device_id?.id) === -1) {
             continue;
           }
         }
@@ -127,10 +125,8 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           id: `${row.user_id.user_id}_${mm.valueOf()}`
         });
       }
-      console.log("result ", result.length);
 
       if (rows && rows.length) {
-        lastSync = moment(rows[rows.length - 1].datetime).format(FormatDateSearch.normal);
         syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].datetime).valueOf() }]);
       }
 
