@@ -3,6 +3,7 @@ export enum FormatDateSearch {
   normal = "YYYY-MM-DDTHH:mm:ss.000[Z]",
   end = "YYYY-MM-DDT23:59:59.000[Z]"
 }
+
 export const MaxEvenEachRequest = 501;
 
 export interface RawUserInterface {
@@ -83,24 +84,47 @@ export interface RawUserInterface {
   need_to_update_pw: string;
 }
 
+//
+// export interface RawEvent {
+//   id: string;
+//   server_datetime: string;
+//   datetime: string;
+//   index: string;
+//   user_id_name: string;
+//   user_id: {
+//     user_id: string;
+//     name: string;
+//     photo_exists: string;
+//   };
+//   device_id: {
+//     id: string;
+//     name: string;
+//   };
+//   tna_key: string;
+//   is_dst: string;
+//   user_update_by_device: string;
+//   hint: string;
+// }
 
 export interface RawEvent {
   id: string;
-  server_datetime: string;
-  datetime: string;
-  index: string;
-  user_id_name: string;
-  user_id: {
-    user_id: string;
-    name: string;
-    photo_exists: string;
-  };
-  device_id: {
-    id: string;
-    name: string;
-  };
-  tna_key: string;
-  is_dst: string;
-  user_update_by_device: string;
-  hint: string;
+  eventTime: string;
+  pin: string;
+  name: string;
+  lastName: string;
+  deptName: string;
+  areaName: string;
+  cardNo: string;
+  devSn: string;
+  verifyModeName: string;
+  eventName: string;
+  eventPointName: string;
+  readerName: string;
+  accZone: string;
+  devName: string;
+  logId: string;
+  eventNo: string;
+  eventLevel: string;
+  doorName: string;
+
 }

@@ -1,12 +1,13 @@
 import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { DatePicker, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
-import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
-import { antdModalLanguageProps, t, translate, useLanguage } from "../../store/settings/languages";
+import { Device, syncDevices } from "../../store/devices";
+import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
 import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
-import { requestLoginDevice } from "../../store/devices/functions";
 import moment from "moment";
+import { Option } from "antd/es/mentions";
+import { styled } from "../../global";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -14,7 +15,9 @@ const defaultValue: Device = {
   domain: "", // "https://14.241.105.154/",
   name: "", //
   password: "", //"Base@53rv1c3",
-  username: "" //"admin"
+  username: "", //"admin",
+  apiToken: "",
+  status:''
 };
 
 
@@ -28,6 +31,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
 ) {
   useLanguage();
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
+  const [valueSelect, setValueSelect] = useState("");
 
   useEffect(() => {
     setDevice(props.device || defaultValue);
@@ -46,6 +50,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
     return {
       onNameChange: onChange("name"),
       onDomainChange: onChange("domain"),
+      onApiTokenChange: onChange("apiToken"),
       onUserNameChange: onChange("username"),
       onPasswordChange: onChange("password"),
 
@@ -58,10 +63,11 @@ const AddDeviceModal = memo(function AddDeviceModal(
       onAutoReconnectChange: onChange("autoReconnect", true)
     };
   }, []);
-  const onLastSyncChange = (valu: number) => {
+
+  const onLastSyncChange = (value: number) => {
     setDevice({
       ...device,
-      lastSync: valu
+      lastSync: value
     });
   };
 
@@ -83,27 +89,33 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [{ loading }, onOk] = useAsyncFn(async () => {
     // @todo Validate device
 
-    if (!device.domain || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword) {
+    if (!device.domain || !device.name || (!device.username && !device.password && !device.apiToken) || !device.clientToken || !device.clientPassword) {
       return Modal.error({
         title: t("please_enter_all_required_fields"),
         ...antdModalLanguageProps
       });
     }
 
-    const r = await requestLoginDevice({
-      domain: device.domain,
-      password: device.password,
-      username: device.username
-    });
-    if (!r || !r.sessionId) {
-      Modal.error({
-        title: r.message
-      });
-      return;
-    }
-    syncDevices([{ ...device, sessionId: r.sessionId }]);
+    // const r = await requestLoginDevice({
+    //   domain: device.domain,
+    //   password: device.password,
+    //   username: device.username
+    // });
+    // if (!r || !r.sessionId) {
+    //   Modal.error({
+    //     title: r.message
+    //   });
+    //   return;
+    // }
+    // syncDevices([{ ...device, sessionId: r.sessionId }]);
+    syncDevices([{ ...device }]);
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
+
+  const handleChangeSelect = useCallback((value) => {
+    setValueSelect(value);
+  }, [valueSelect]);
+
 
   return (
     <Modal
@@ -122,33 +134,61 @@ const AddDeviceModal = memo(function AddDeviceModal(
       <br/>
       <br/>
       <Input
-        addonBefore={"Domain biostar 2 *"}
-        placeholder={"https://14.241.105.154"}
+        addonBefore={"Domain/Admin*"}
+        placeholder={"https://14.241.105.154:8098"}
         value={device.domain}
         onChange={values.onDomainChange}
       />
+      <br/>
+      <br/>
+
+      <SelectOption>
+        <TitleSelectOption>
+          License Activation*
+        </TitleSelectOption>
+        <SelectDropDown
+          showSearch
+          placeholder="Have you activated ZkBioSecurity?"
+          onChange={handleChangeSelect}
+        >
+          <Option value="1">Activated</Option>
+          <Option value="0">Non Active</Option>
+        </SelectDropDown>
+      </SelectOption>
 
       <br/>
-      <br/>
-      <Input
-        addonBefore={"Username *"}
-        placeholder={"admin"}
-        value={device.username}
-        onChange={values.onUserNameChange}
-      />
-
-      <br/>
-      <br/>
-      <Input.Password
-        addonBefore={t("device_password") + " *"}
-        placeholder={t("device_password_placeholder")}
-        value={device.password}
-        onChange={values.onPasswordChange}
-      />
+      {valueSelect == "1" ?
+        <>
+          <Input
+            addonBefore={"API Token*"}
+            placeholder={"17420CDAA50F7B55CE7AC3B75BD8FB7D66B34B6A61033CCAA4D388AECDFA9C1D"}
+            value={device.apiToken}
+            onChange={values.onApiTokenChange}
+          />
+          <br/>
+          <br/>
+        </> :
+        <>
+          <Input
+            addonBefore={"Username"}
+            placeholder={"Admin"}
+            value={device.username}
+            onChange={values.onUserNameChange}
+          />
+          <br/>
+          <br/>
+          <Input
+            addonBefore={"Password"}
+            placeholder={"Admin"}
+            value={device.password}
+            onChange={values.onPasswordChange}
+          />
+          <br/>
+          <br/>
+        </>
+      }
 
       {/** thong tin token lay tu HRM **/}
-      <br/>
-      <br/>
       <Input.Password
         addonBefore={"Client token *"}
         placeholder={"Client token"}
@@ -199,3 +239,25 @@ const AddDeviceModal = memo(function AddDeviceModal(
 });
 
 export default AddDeviceModal;
+
+const SelectOption = styled.div`
+display: flex;
+flex-direction: row;
+align-items: center;
+
+`;
+const TitleSelectOption = styled.div`
+display: flex;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+        background-color: #fafafa;
+        padding: 0 11px;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        border-right-width: 0;
+`;
+
+const SelectDropDown = styled(Select)`
+flex: 1
+`;

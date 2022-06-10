@@ -36,6 +36,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
   /**
    * SYNC ATTENDANCES
    */
+
   const [
     { loading: isGettingAttendances },
     syncAttendances
@@ -44,17 +45,16 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     let newDevice = { ...device };
     let canSync = true;
     let lastSync = newDevice.lastSync
-      ? moment(newDevice.lastSync).subtract(7, "hours").format(FormatDateSearch.normal)
-      : moment().subtract(1, "months").format(FormatDateSearch.start);
+      ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
+      : moment().format(FormatDateSearch.start);
 
-    let hint = "";
     while (canSync) {
-      if (!newDevice.sessionId) {
-        continue;
-      }
+      // if (!newDevice.sessionId) {
+      //   continue;
+      // }
       const _device = getDeviceById(newDevice.domain);
 
-      lastSync = moment(_device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
+      lastSync = moment(_device.lastSync).format(FormatDateSearch.normal);
 
       const syncing = getSyncing();
 
@@ -66,30 +66,30 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       setSyncPercent(0);
 
       let rows = await requestEventLog({
-        sessionId: newDevice.sessionId,
-        from: lastSync,
         domain: device.domain,
-        hint
+        startDate: lastSync,
+        endDate:moment().format(FormatDateSearch.normal),
+        access_token:device.apiToken
       });
-      if (rows === 401) {
-        const res = await requestLoginDevice({
-          domain: newDevice.domain,
-          username: newDevice.username,
-          password: newDevice.password
-        });
-        if (res.error) {
-          Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
-          return;
-        } else {
-          newDevice = { ...newDevice, sessionId: res.sessionId };
-          syncDevices([newDevice]);
-          rows = await requestEventLog({
-            sessionId: newDevice.sessionId,
-            from: lastSync,
-            domain: newDevice.domain
-          });
-        }
-      }
+      // if (rows === 401) {
+      //   const res = await requestLoginDevice({
+      //     domain: newDevice.domain,
+      //     username: newDevice.username,
+      //     password: newDevice.password
+      //   });
+      //   if (res.error) {
+      //     Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
+      //     return;
+      //   } else {
+      //     newDevice = { ...newDevice, sessionId: res.sessionId };
+      //     syncDevices([newDevice]);
+      //     rows = await requestEventLog({
+      //       sessionId: newDevice.sessionId,
+      //       from: lastSync,
+      //       domain: newDevice.domain
+      //     });
+      //   }
+      // }
       if (typeof rows === "number") {
         Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
         return;
@@ -102,17 +102,17 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         if (!row) {
           continue;
         }
-        const mm = moment(row.datetime);
+        const mm = moment(row.eventTime);
 
-        if (isRecordExists(row.id) || !row?.user_id?.user_id) {
-          continue;
-        }
-
-        if (doors?.length && row?.device_id?.id) {
-          if ((doors || []).indexOf(row?.device_id?.id) === -1) {
-            continue;
-          }
-        }
+        // if (isRecordExists(row.id) || !row?.user_id?.user_id) {
+        //   continue;
+        // }
+        //
+        // if (doors?.length && row?.device_id?.id) {
+        //   if ((doors || []).indexOf(row?.device_id?.id) === -1) {
+        //     continue;
+        //   }
+        // }
 
         result.push({
           timestamp: mm.valueOf(),
@@ -121,13 +121,13 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           deviceName: newDevice.name,
           deviceIp: newDevice.domain,
           //@ts-ignore
-          uid: row.user_id.user_id,
-          id: `${row.user_id.user_id}_${mm.valueOf()}`
+          uid: row.pin,
+          id: `${row.id}_${mm.valueOf()}`
         });
       }
 
       if (rows && rows.length) {
-        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].datetime).valueOf() }]);
+        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].eventTime).valueOf() }]);
       }
 
       if (result.length) {

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { RawUserInterface, FormatDateSearch, RawEvent, MaxEvenEachRequest } from "./types";
+import { FormatDateSearch, MaxEvenEachRequest, RawEvent, RawUserInterface } from "./types";
 import dayjs from "dayjs";
 
 const https = require("https");
@@ -50,55 +50,38 @@ export const requestLoginDevice = async ({ domain, username, password }: LoginPa
 
 interface EventLogParams {
   domain: string,
-  sessionId: string,
-  hint?: string
-  from: string // 2022-03-26T17:00:00.000Z
+  startDate?: string // 2022-03-26T17:00:00.000Z
+  endDate?: string
+  access_token: string
 }
 
 export const requestEventLog = async ({
                                         domain,
-                                        from,
-                                        hint,
-                                        sessionId
+                                        startDate, // 2022-06-10 07:27:49
+                                        endDate, // 2022-06-10 10:27:49
+                                        access_token
                                       }: EventLogParams) => {
   try {
-    console.log('from ', from);
+    console.log("from ", startDate);
     const { data }: { data: { EventCollection: { rows: RawEvent[] } } } = await axios({
-        method: "post",
+        method: "get",
         baseURL: domain,
-        url: "/api/events/search",
-        headers: {
-          "bs-session-id": sessionId,
-          "Content-Type": "application/json"
-        },
-        data: {
-          "Query": {
-            "limit": MaxEvenEachRequest,
-            "conditions": [{
-              "column": "datetime",
-              "operator": 3,
-              "values": [from, dayjs(from).add(7, "days").format(FormatDateSearch.normal)]
-            }],
-            "orders": [
-              {
-                "column": "datetime",
-                "descending": false
-              }
-            ]
-          }
-        },
-        httpsAgent: new https.Agent({
-          rejectUnauthorized: false
-        })
+        url: `/api/transaction/list?pageNo=1&pageSize=${MaxEvenEachRequest}&access_token=${access_token}`,
+        params: {
+          pageNo: 1,
+          pageSize: MaxEvenEachRequest,
+          access_token: access_token,
+
+        }
       }
     );
     console.log("data ", data);
     return data?.EventCollection?.rows || [];
   } catch (e) {
-    console.log('e ', e.response)
+    console.log("e ", e.response);
     if (e?.response?.status === 401) {
-      return 401
+      return 401;
     }
-    return []
+    return [];
   }
 };
