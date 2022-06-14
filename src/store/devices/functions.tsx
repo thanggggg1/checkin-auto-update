@@ -1,51 +1,51 @@
-import axios from "axios";
-import { FormatDateSearch, MaxEvenEachRequest, RawEvent, RawUserInterface } from "./types";
-import dayjs from "dayjs";
+import Requests from "../../Services/Requests";
+import { hex_md5 } from "../../utils/hex_md5";
+import { getPwdChangeParams } from "../../utils/portalCheck";
 
 const https = require("https");
 
-export interface LoginParams {
-  domain: string;
-  username: string;
-  password: string
-}
-
-export const requestLoginDevice = async ({ domain, username, password }: LoginParams) => {
-  // @ts-ignore
-  const { data, headers }: { data: { User: RawUserInterface }, headers: any } = await axios({
-      method: "post",
-      baseURL: domain,
-      url: "/api/login",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      data: JSON.stringify({
-        "User": {
-          "login_id": username,// "admin",
-          "password": password // "Base@53rv1c3"
-        }
-      }),
-      httpsAgent: new https.Agent({
-        rejectUnauthorized: false
-      })
-    }
-  ).catch(e => {
-    return {
-      error: true,
-      message: e?.response?.data?.Response?.message || ""
-    };
-  });
-  if (headers && headers["bs-session-id"]) {
-    return {
-      error: false,
-      sessionId: headers["bs-session-id"]
-    };
-  }
-  return {
-    error: false,
-    message: "Đăng nhập tài khoản Biostar 2 không thành công"
-  };
-};
+// export interface LoginParams {
+//   domain: string;
+//   username: string;
+//   password: string
+// }
+//
+// export const requestLoginDevice = async ({ domain, username, password }: LoginParams) => {
+//   // @ts-ignore
+//   const { data, headers }: { data: { User: RawUserInterface }, headers: any } = await axios({
+//       method: "post",
+//       baseURL: domain,
+//       url: "/api/login",
+//       headers: {
+//         "Content-Type": "application/json"
+//       },
+//       data: JSON.stringify({
+//         "User": {
+//           "login_id": username,// "admin",
+//           "password": password // "Base@53rv1c3"
+//         }
+//       }),
+//       httpsAgent: new https.Agent({
+//         rejectUnauthorized: false
+//       })
+//     }
+//   ).catch(e => {
+//     return {
+//       error: true,
+//       message: e?.response?.data?.Response?.message || ""
+//     };
+//   });
+//   if (headers && headers["bs-session-id"]) {
+//     return {
+//       error: false,
+//       sessionId: headers["bs-session-id"]
+//     };
+//   }
+//   return {
+//     error: false,
+//     message: "Đăng nhập tài khoản Biostar 2 không thành công"
+//   };
+// };
 
 
 interface EventLogParams {
@@ -62,20 +62,19 @@ export const requestEventLog = async ({
                                         access_token
                                       }: EventLogParams) => {
   try {
-    console.log("from ", startDate);
-    const { data }: { data: { EventCollection: { rows: RawEvent[] } } } = await axios({
-        method: "get",
-        baseURL: domain,
-        url: `/api/transaction/list?pageNo=1&pageSize=${MaxEvenEachRequest}&access_token=${access_token}`,
-        params: {
-          pageNo: 1,
-          pageSize: MaxEvenEachRequest,
-          access_token: access_token,
-
+    const data = await new Requests().fetch({
+      paramStr: JSON.stringify({
+        "url": "http://10.20.1.201:8098/api/transaction/list",
+        "method": "get",
+        "params": {
+          "pageSize": "20",
+          "pageNo": "1",
+          "access_token": "6AABB62DB8878A4D7373F57A237F6C94ABAA7B5261729D956E9593DF1F48D504"
         }
-      }
-    );
-    console.log("data ", data);
+      })
+    });
+
+    console.log("fetch ", data);
     return data?.EventCollection?.rows || [];
   } catch (e) {
     console.log("e ", e.response);
@@ -85,3 +84,91 @@ export const requestEventLog = async ({
     return [];
   }
 };
+
+// export const requestPortalPwdCheck = async ()=>{
+//   try {
+//     const data=await new Requests().fetch({
+//       paramStr:JSON.stringify({
+//
+//       })
+//     })
+//   }
+//
+// }
+
+interface LoginParams {
+  domain: string,
+  username: string,
+  password: string
+}
+
+export const requestLoginDevice = async ({
+                                           domain,
+                                           username,
+                                           password
+                                         }: LoginParams) => {
+  try {
+    // check password before login
+     await new Requests().fetch({
+      paramStr:JSON.stringify({
+        "url":`${domain}/portalPwdEffectiveCheck.do`,
+        "method":"post",
+        "params":{
+          "content":`${getPwdChangeParams(`${username}`,`${hex_md5(password)}`,'')}`
+        }
+      })
+    })
+    //request login
+    const data = await new Requests().fetch({
+      paramStr: JSON.stringify({
+        "url": `${domain}/login.do`,
+        "method": "post",
+        "params": {
+          "username": `${username}`,
+          "password": `${hex_md5(password)}`
+        }
+      })
+    });
+    return data;
+  } catch (e) {
+    console.log("e ", e.response);
+    if (e?.response?.status === 401) {
+      return 401;
+    }
+    return [];
+  }
+};
+
+interface TransactionsParams {
+  domain: string,
+  startTime?: string,
+  endTime?: string
+}
+//
+// export const requestTransactions = async ({
+//                                             domain,
+//                                             startTime,
+//                                             endTime
+//                                           }: TransactionsParams) => {
+//   try {
+//     const data = await new Requests().fetch({
+//       paramStr: JSON.stringify({
+//         "url": `${domain}/login.do`,
+//         "method": "post",
+//         "params": {
+//           "list": `${username}`,
+//           "password": `${hex_md5(password)}`
+//         }
+//       })
+//     });
+//
+//     console.log("fetch ", data);
+//     return data?.EventCollection?.rows || [];
+//   } catch (e) {
+//     console.log("e ", e.response);
+//     if (e?.response?.status === 401) {
+//       return 401;
+//     }
+//     return [];
+//   }
+// };

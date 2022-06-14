@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useEffect } from "react";
 import { styled } from "../../global";
 import { Button, Row } from "antd";
 import LoginButton from "./components/LoginButton";
@@ -8,11 +8,13 @@ import PushButton from "./components/PushButton";
 import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
-import { requestEventLog } from "../../store/devices/functions";
+import { requestEventLog, requestLoginDevice } from "../../store/devices/functions";
 import moment from "moment";
 import { FormatDateSearch } from "../../store/devices/types";
 import { Device } from "../../store/devices";
 import { getDeviceById } from "../../store/devices/actions";
+import { getPwdChangeParams } from "../../utils/portalCheck";
+import { hex_md5 } from "../../utils/hex_md5";
 
 const Wrapper = styled(Row)`
   padding: 0 16px;
@@ -30,16 +32,16 @@ const AppName = styled.h1`
 
 const AppNavBar = memo(function AppNavBar() {
   const token = Fetch.useToken();
-  const device=getDeviceById('https://10.20.1.201:8098')
+  const device=getDeviceById('http://10.20.1.201:8098')
   const getTransactions=useCallback(async ()=>{
-    let rows = await requestEventLog({
-      domain: device.domain,
-
-      access_token:device.apiToken
-    });
-    console.log('device',device);
-    console.log('data',rows);
+    let data=await requestLoginDevice({
+      domain:device.domain,
+      username:device.username,
+      password:device.password
+    })
+    console.log('dataget',data.header._store['set-cookie']);
   },[])
+
 
   return (
     <Wrapper align={"middle"} justify={"space-between"}>

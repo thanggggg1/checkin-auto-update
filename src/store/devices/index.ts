@@ -17,6 +17,7 @@ export interface Device {
   apiToken:string
   username: string;
   password: string;
+  cookie:string;
 
   clientToken: string;
   clientPassword: string;

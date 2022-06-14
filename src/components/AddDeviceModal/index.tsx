@@ -8,6 +8,7 @@ import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { Option } from "antd/es/mentions";
 import { styled } from "../../global";
+import { requestLoginDevice } from "../../store/devices/functions";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -17,7 +18,8 @@ const defaultValue: Device = {
   password: "", //"Base@53rv1c3",
   username: "", //"admin",
   apiToken: "",
-  status:''
+  status:'',
+  cookie:''
 };
 
 
@@ -95,6 +97,12 @@ const AddDeviceModal = memo(function AddDeviceModal(
         ...antdModalLanguageProps
       });
     }
+
+    // const r = await requestLoginDevice({
+    //   domain:device.domain,
+    //   username:device.username,
+    //   password:device.password
+    // })
 
     // const r = await requestLoginDevice({
     //   domain: device.domain,

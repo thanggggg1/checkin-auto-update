@@ -243,7 +243,7 @@ class Pyatt {
     let total = 0; // Total records
 
     return this.parseInfo(
-      await this.runScript(["--records"], (data) => {
+      await this.runScript(["--records " + ], (data) => {
         if (!isRunStarted) {
           params.onStarted?.();
           isRunStarted = true;
