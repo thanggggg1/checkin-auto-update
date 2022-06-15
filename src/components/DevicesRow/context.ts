@@ -29,7 +29,6 @@ export enum ConnectionState {
 
 const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Device }) => {
   const [syncPercent, _setSyncPercent] = useState(0);
-  const currentDevice=useSettingDevice();
   const setSyncPercent = useMemo(
     () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
     [_setSyncPercent]
@@ -48,10 +47,9 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     let canSync = true;
     let lastSync = newDevice.lastSync
       ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
-      : moment('2022-01-01 00:00:00').format(FormatDateSearch.start);
+      : moment().subtract(6, 'months').format(FormatDateSearch.start);
     console.log('currentDevice',newDevice);
     console.log('lastTime',lastSync);
-    console.log('format',moment(lastSync).format(FormatDateSearch.normal));
 
     while (canSync) {
       // if (!newDevice.sessionId) {
@@ -59,7 +57,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       // }
       const _device = getSettingDevice();
 
-      // lastSync = moment(_device.lastSync).format(FormatDateSearch.normal);
+      // lastSync = moment(device.lastSync).format(FormatDateSearch.normal);
 
       const syncing = getSyncing();
 
@@ -107,7 +105,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         if (!row || row[0] <=0) {
           continue;
         }
-        const mm = moment(row[1],'YYYY-MM-DD hh:mm:ss');
+        const mm = moment(row[1],'YYYY-MM-DD HH:mm:ss');
 
         // if (isRecordExists(row.id) || !row?.user_id?.user_id) {
         //   continue;
@@ -121,7 +119,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
         result.push({
           timestamp: mm.valueOf(),
-          timeFormatted: mm.format("hh:mm:ss"),
+          timeFormatted: mm.format("HH:mm:ss"),
           dateFormatted: mm.format("DD/MM/YYYY"),
           deviceName: _device.name,
           deviceIp: _device.domain,
@@ -133,6 +131,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
       if (rows && rows.length) {
         syncDevices([{ ..._device, lastSync: moment(rows[0].data[1]).valueOf()}]);
+        setSettingDevice({..._device,lastSync:moment(rows[0].data[1]).valueOf()})
       }
 
       if (result.length) {

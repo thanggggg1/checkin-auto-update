@@ -119,7 +119,7 @@ export const AutoTasks = memo(function AutoTasks() {
               console.log("start or end time not correct formatted");
               return true;
             }
-            if (nowMm.isBetween(moment(start, "HH:mm"), moment(end, "HH:mm"))) {
+            if (nowMm.isBetween(moment(start, "HH:mm:ss"), moment(end, "HH:mm:ss"))) {
               console.log("auto sync cancelled");
               return true;
             }

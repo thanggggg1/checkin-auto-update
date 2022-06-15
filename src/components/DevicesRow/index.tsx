@@ -23,7 +23,7 @@ const DevicesRow = memo(function DevicesRow() {
     }
     const _t = setInterval(() => {
       events.emit(Events.MASS_SYNC);
-    }, 30000);
+    }, 15000);
 
     return () => {
       _t && clearInterval(_t);
