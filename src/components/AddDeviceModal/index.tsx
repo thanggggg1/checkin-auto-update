@@ -6,9 +6,9 @@ import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/lan
 import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
 import moment from "moment";
-import { Option } from "antd/es/mentions";
 import { styled } from "../../global";
 import { requestLoginDevice } from "../../store/devices/functions";
+import { setCurrentDevice, setSettingDevice } from "../../store/settings/currentDevice";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -17,9 +17,8 @@ const defaultValue: Device = {
   name: "", //
   password: "", //"Base@53rv1c3",
   username: "", //"admin",
-  apiToken: "",
   status:'',
-  cookie:''
+  token:''
 };
 
 
@@ -52,7 +51,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
     return {
       onNameChange: onChange("name"),
       onDomainChange: onChange("domain"),
-      onApiTokenChange: onChange("apiToken"),
       onUserNameChange: onChange("username"),
       onPasswordChange: onChange("password"),
 
@@ -82,7 +80,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
       });
       return a;
     } catch (e) {
-      console.log("okokokokok");
       Modal.error({ title: e.message });
       return null;
     }
@@ -91,32 +88,26 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [{ loading }, onOk] = useAsyncFn(async () => {
     // @todo Validate device
 
-    if (!device.domain || !device.name || (!device.username && !device.password && !device.apiToken) || !device.clientToken || !device.clientPassword) {
+    if (!device.domain || !device.name || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword) {
       return Modal.error({
         title: t("please_enter_all_required_fields"),
         ...antdModalLanguageProps
       });
     }
-
-    // const r = await requestLoginDevice({
-    //   domain:device.domain,
-    //   username:device.username,
-    //   password:device.password
-    // })
-
-    // const r = await requestLoginDevice({
-    //   domain: device.domain,
-    //   password: device.password,
-    //   username: device.username
-    // });
-    // if (!r || !r.sessionId) {
-    //   Modal.error({
-    //     title: r.message
-    //   });
-    //   return;
-    // }
-    // syncDevices([{ ...device, sessionId: r.sessionId }]);
-    syncDevices([{ ...device }]);
+    console.log('device',device);
+    const r:any = await requestLoginDevice({
+      domain:device.domain,
+      password:device.password,
+      username:device.username
+    });
+    if(r.status!=200){
+      Modal.error({
+        title:r.response.msg
+      })
+    }
+    // @ts-ignore
+    setSettingDevice({ ...device,token:r.header._store['set-cookie'][1].split(';')[0].split('=')[1],status:r.status });
+    syncDevices([{ ...device,status:r.status }]);
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 
@@ -149,34 +140,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
       />
       <br/>
       <br/>
-
-      <SelectOption>
-        <TitleSelectOption>
-          License Activation*
-        </TitleSelectOption>
-        <SelectDropDown
-          showSearch
-          placeholder="Have you activated ZkBioSecurity?"
-          onChange={handleChangeSelect}
-        >
-          <Option value="1">Activated</Option>
-          <Option value="0">Non Active</Option>
-        </SelectDropDown>
-      </SelectOption>
-
-      <br/>
-      {valueSelect == "1" ?
-        <>
-          <Input
-            addonBefore={"API Token*"}
-            placeholder={"17420CDAA50F7B55CE7AC3B75BD8FB7D66B34B6A61033CCAA4D388AECDFA9C1D"}
-            value={device.apiToken}
-            onChange={values.onApiTokenChange}
-          />
-          <br/>
-          <br/>
-        </> :
-        <>
           <Input
             addonBefore={"Username"}
             placeholder={"Admin"}
@@ -185,7 +148,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           />
           <br/>
           <br/>
-          <Input
+          <Input.Password
             addonBefore={"Password"}
             placeholder={"Admin"}
             value={device.password}
@@ -193,9 +156,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
           />
           <br/>
           <br/>
-        </>
-      }
-
       {/** thong tin token lay tu HRM **/}
       <Input.Password
         addonBefore={"Client token *"}
@@ -203,7 +163,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
         value={device.clientToken}
         onChange={values.onClientTokenChange}
       />
-
       <br/>
       <br/>
       <Input.Password

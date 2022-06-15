@@ -1,46 +1,30 @@
-import React, { memo, useCallback, useEffect } from "react";
+import React, { memo, useCallback } from "react";
 import { styled } from "../../global";
 import { Button, Row } from "antd";
-import LoginButton from "./components/LoginButton";
 import Fetch from "../../utils/Fetch";
-import LogoutButton from "./components/LogoutButton";
 import PushButton from "./components/PushButton";
 import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
-import { requestEventLog, requestLoginDevice } from "../../store/devices/functions";
-import moment from "moment";
-import { FormatDateSearch } from "../../store/devices/types";
-import { Device } from "../../store/devices";
-import { getDeviceById } from "../../store/devices/actions";
-import { getPwdChangeParams } from "../../utils/portalCheck";
-import { hex_md5 } from "../../utils/hex_md5";
+import { requestEventLog } from "../../store/devices/functions";
+import {  useSettingDevice } from "../../store/settings/currentDevice";
 
-const Wrapper = styled(Row)`
-  padding: 0 16px;
-  height: 56px;
-`;
-
-const AppNameWrapper = styled(Row)`
-  align-items: baseline;
-`;
-
-const AppName = styled.h1`
-  font-size: 20px;
-  margin: 0 8px 0 0;
-`;
 
 const AppNavBar = memo(function AppNavBar() {
   const token = Fetch.useToken();
-  const device=getDeviceById('http://10.20.1.201:8098')
-  const getTransactions=useCallback(async ()=>{
-    let data=await requestLoginDevice({
-      domain:device.domain,
-      username:device.username,
-      password:device.password
-    })
-    console.log('dataget',data.header._store['set-cookie']);
-  },[])
+  // @ts-ignore
+  const device = useSettingDevice();
+  // const getTransactions = useCallback(async () => {
+  //   const _device=getCurrentDevice();
+  //   const data = await requestEventLog({
+  //     domain: _device.domain,
+  //     token: _device.token
+  //   });
+  //   const rows=JSON.parse(data).rows;
+  //   // rows.map((transaction:any,index:number)=>{
+  //   //
+  //   // });
+  // }, [device]);
 
 
   return (
@@ -52,10 +36,10 @@ const AppNavBar = memo(function AppNavBar() {
 
       <Row>
         <ButtonGroup>
-          <Button onClick={getTransactions}>Test get transactions</Button>
-          <SettingButton />
-          <SyncButton />
-          <PushButton />
+          {/*<Button onClick={getTransactions}>Test get transactions</Button>*/}
+          <SettingButton/>
+          <SyncButton/>
+          <PushButton/>
           {/*{token.token ? (*/}
           {/*  <>*/}
           {/*    <PushButton />*/}
@@ -71,3 +55,16 @@ const AppNavBar = memo(function AppNavBar() {
 });
 
 export default AppNavBar;
+const Wrapper = styled(Row)`
+  padding: 0 16px;
+  height: 56px;
+`;
+
+const AppNameWrapper = styled(Row)`
+  align-items: baseline;
+`;
+
+const AppName = styled.h1`
+  font-size: 20px;
+  margin: 0 8px 0 0;
+`;

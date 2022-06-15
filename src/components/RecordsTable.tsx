@@ -72,6 +72,7 @@ const RecordsTable = memo(function RecordsTable() {
     ];
   }, [lang, ips, uids]);
 
+  // @ts-ignore
   return <Table columns={columns} dataSource={dataSource} />;
 });
 

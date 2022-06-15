@@ -8,16 +8,16 @@ export enum DeviceSyncMethod {
 }
 
 export interface Device {
+  syncMethod?: void;
   name: string;
   timeout?: number;
   heartbeat?: number;
   autoReconnect?: number;
 
   domain: string; // key
-  apiToken:string
   username: string;
   password: string;
-  cookie:string;
+  token:string;
 
   clientToken: string;
   clientPassword: string;

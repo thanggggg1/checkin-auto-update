@@ -8,19 +8,6 @@ import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
 
-const Wrapper = styled(Row)`
-  flex-wrap: nowrap;
-  align-items: center;
-  width: 100%;
-  overflow-x: scroll;
-`;
-
-const AddButton = styled(Button)`
-  height: unset;
-  flex: 0 0 180px;
-  align-self: stretch;
-  min-height: 120px;
-`;
 
 const DevicesRow = memo(function DevicesRow() {
   useLanguage();
@@ -115,3 +102,16 @@ const DevicesRow = memo(function DevicesRow() {
 });
 
 export default DevicesRow;
+const Wrapper = styled(Row)`
+  flex-wrap: nowrap;
+  align-items: center;
+  width: 100%;
+  overflow-x: scroll;
+`;
+
+const AddButton = styled(Button)`
+  height: unset;
+  flex: 0 0 180px;
+  align-self: stretch;
+  min-height: 120px;
+`;

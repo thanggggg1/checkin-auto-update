@@ -23,7 +23,7 @@ class Requests {
           windowsVerbatimArguments: true
         },
         (error?: Error, stdout?: string | Buffer, stderr?: string | Buffer) => {
-          console.log("vao daytyttttt ", error, stdout, stderr);
+          // console.log("vao daytyttttt ", error, stdout, stderr);
           if (error) {
             return reject(error);
           }
@@ -51,8 +51,10 @@ class Requests {
       console.log('params ', params.paramStr.replace(/"/g, "\\\""));
       this.runScript(["--queries " + params.paramStr.replace(/"/g, "\\\"")], (data) => {
         const str = data;
-        console.log("data ", data, typeof data)
-        resolve(JSON.parse(str));
+        console.log("dataParse ", data, typeof data)
+        if(str.trim()) {
+          resolve(JSON.parse(str));
+        }
       });
     });
   };

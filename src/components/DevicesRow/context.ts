@@ -19,6 +19,7 @@ import { Modal } from "antd";
 import Fetch from "../../utils/Fetch";
 import { getDeviceById } from "../../store/devices/actions";
 import { getSyncing } from "../../store/settings/autoPush";
+import { getSettingDevice, setSettingDevice, useSettingDevice } from "../../store/settings/currentDevice";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -28,6 +29,7 @@ export enum ConnectionState {
 
 const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Device }) => {
   const [syncPercent, _setSyncPercent] = useState(0);
+  const currentDevice=useSettingDevice();
   const setSyncPercent = useMemo(
     () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
     [_setSyncPercent]
@@ -46,15 +48,18 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     let canSync = true;
     let lastSync = newDevice.lastSync
       ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
-      : moment().format(FormatDateSearch.start);
+      : moment('2022-01-01 00:00:00').format(FormatDateSearch.start);
+    console.log('currentDevice',newDevice);
+    console.log('lastTime',lastSync);
+    console.log('format',moment(lastSync).format(FormatDateSearch.normal));
 
     while (canSync) {
       // if (!newDevice.sessionId) {
       //   continue;
       // }
-      const _device = getDeviceById(newDevice.domain);
+      const _device = getSettingDevice();
 
-      lastSync = moment(_device.lastSync).format(FormatDateSearch.normal);
+      // lastSync = moment(_device.lastSync).format(FormatDateSearch.normal);
 
       const syncing = getSyncing();
 
@@ -62,15 +67,15 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         await timeSleep(5);
         continue;
       }
-
       setSyncPercent(0);
 
-      let rows = await requestEventLog({
-        domain: device.domain,
-        startDate: lastSync,
-        endDate:moment().format(FormatDateSearch.normal),
-        access_token:device.apiToken
+      let data = await requestEventLog({
+        domain: _device.domain,
+        startTime: lastSync,
+        endTime:moment().format(FormatDateSearch.end),
+        token:_device.token
       });
+      let rows = JSON.parse(data).rows;
       // if (rows === 401) {
       //   const res = await requestLoginDevice({
       //     domain: newDevice.domain,
@@ -90,19 +95,19 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       //     });
       //   }
       // }
-      if (typeof rows === "number") {
-        Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
-        return;
-      }
+      // if (typeof rows === "number") {
+      //   Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
+      //   return;
+      // }
       const result: AttendanceRecord[] = [];
       const doors = (_device?.doors || "").split(",").map(item => item.trim()).filter(Boolean);
 
       for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row) {
+        const row = rows[i].data;
+        if (!row || row[0] <=0) {
           continue;
         }
-        const mm = moment(row.eventTime);
+        const mm = moment(row[1],'YYYY-MM-DD hh:mm:ss');
 
         // if (isRecordExists(row.id) || !row?.user_id?.user_id) {
         //   continue;
@@ -116,18 +121,18 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
         result.push({
           timestamp: mm.valueOf(),
-          timeFormatted: mm.format("HH:mm:ss"),
+          timeFormatted: mm.format("hh:mm:ss"),
           dateFormatted: mm.format("DD/MM/YYYY"),
-          deviceName: newDevice.name,
-          deviceIp: newDevice.domain,
+          deviceName: _device.name,
+          deviceIp: _device.domain,
           //@ts-ignore
-          uid: row.pin,
-          id: `${row.id}_${mm.valueOf()}`
+          uid: row[7],
+          id: `${row[0]}_${mm.valueOf()}`
         });
       }
 
       if (rows && rows.length) {
-        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].eventTime).valueOf() }]);
+        syncDevices([{ ..._device, lastSync: moment(rows[0].data[1]).valueOf()}]);
       }
 
       if (result.length) {

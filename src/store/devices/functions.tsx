@@ -50,32 +50,35 @@ const https = require("https");
 
 interface EventLogParams {
   domain: string,
-  startDate?: string // 2022-03-26T17:00:00.000Z
-  endDate?: string
-  access_token: string
+  startTime?: string //2022-06-10 07:27:49
+  endTime?: string //2022-06-10 07:27:49
+  token: string
 }
 
 export const requestEventLog = async ({
                                         domain,
-                                        startDate, // 2022-06-10 07:27:49
-                                        endDate, // 2022-06-10 10:27:49
-                                        access_token
+                                        startTime, // 2022-06-10 07:27:49
+                                        endTime, // 2022-06-10 10:27:49
+                                        token
                                       }: EventLogParams) => {
   try {
-    const data = await new Requests().fetch({
+    const data:any = await new Requests().fetch({
       paramStr: JSON.stringify({
-        "url": "http://10.20.1.201:8098/api/transaction/list",
-        "method": "get",
+        "url": `${domain}/accTransaction.do`,
+        "method": "post",
+        "headers": {
+          "Cookie": `SESSION=${token}`
+        },
         "params": {
-          "pageSize": "20",
-          "pageNo": "1",
-          "access_token": "6AABB62DB8878A4D7373F57A237F6C94ABAA7B5261729D956E9593DF1F48D504"
-        }
+          "list": "",
+          "startTime": `${encodeURIComponent(startTime)}`,
+          "endTime":`${encodeURIComponent(endTime)}`
+        },
       })
     });
 
     console.log("fetch ", data);
-    return data?.EventCollection?.rows || [];
+    return data?.response || [];
   } catch (e) {
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
@@ -85,16 +88,7 @@ export const requestEventLog = async ({
   }
 };
 
-// export const requestPortalPwdCheck = async ()=>{
-//   try {
-//     const data=await new Requests().fetch({
-//       paramStr:JSON.stringify({
-//
-//       })
-//     })
-//   }
-//
-// }
+
 
 interface LoginParams {
   domain: string,
@@ -109,24 +103,30 @@ export const requestLoginDevice = async ({
                                          }: LoginParams) => {
   try {
     // check password before login
-     await new Requests().fetch({
-      paramStr:JSON.stringify({
-        "url":`${domain}/portalPwdEffectiveCheck.do`,
-        "method":"post",
-        "params":{
-          "content":`${getPwdChangeParams(`${username}`,`${hex_md5(password)}`,'')}`
+  const res =  await new Requests().fetch({
+      paramStr: JSON.stringify({
+        "url": `${domain}/portalPwdEffectiveCheck.do`,
+        "method": "post",
+        "params": {
+          "content": `${getPwdChangeParams(`${username}`, `${hex_md5(password)}`, "")}`
         }
       })
-    })
-    //request login
+    });
+  // @ts-ignore
+    const cookie =  res.header._store['set-cookie'][1].split(';')[0].split('=')[1]
+    // request login
     const data = await new Requests().fetch({
       paramStr: JSON.stringify({
         "url": `${domain}/login.do`,
         "method": "post",
+        "headers":{
+          "Cookie":`SESSION=${cookie}`
+        },
         "params": {
+          "loginType":"NORMAL",
           "username": `${username}`,
           "password": `${hex_md5(password)}`
-        }
+        },
       })
     });
     return data;
@@ -138,37 +138,3 @@ export const requestLoginDevice = async ({
     return [];
   }
 };
-
-interface TransactionsParams {
-  domain: string,
-  startTime?: string,
-  endTime?: string
-}
-//
-// export const requestTransactions = async ({
-//                                             domain,
-//                                             startTime,
-//                                             endTime
-//                                           }: TransactionsParams) => {
-//   try {
-//     const data = await new Requests().fetch({
-//       paramStr: JSON.stringify({
-//         "url": `${domain}/login.do`,
-//         "method": "post",
-//         "params": {
-//           "list": `${username}`,
-//           "password": `${hex_md5(password)}`
-//         }
-//       })
-//     });
-//
-//     console.log("fetch ", data);
-//     return data?.EventCollection?.rows || [];
-//   } catch (e) {
-//     console.log("e ", e.response);
-//     if (e?.response?.status === 401) {
-//       return 401;
-//     }
-//     return [];
-//   }
-// };
