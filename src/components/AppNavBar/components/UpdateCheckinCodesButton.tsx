@@ -14,6 +14,7 @@ const UpdateCheckinCodesButton = memo(function UpdateCheckinCodesButton() {
     const _devices = Object.values(devices);
     for (let i = 0; i < _devices.length; i++) {
       const device = _devices[i];
+      // @ts-ignore
       const res = await Fetch.requestCheckinCodes(device.ip, {
         token: device.clientToken,
         password: device.clientPassword

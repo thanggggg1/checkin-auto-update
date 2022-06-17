@@ -1,5 +1,5 @@
 import constate from "constate";
-import { deleteDevices, Device, useDeviceSyncMethod, syncDevices } from "../../store/devices";
+import { deleteDevices, Device, syncDevices } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAsyncFn } from "react-use";
 import _ from "lodash";
@@ -7,19 +7,12 @@ import { requestEventLog, requestLoginDevice } from "../../store/devices/functio
 import moment from "moment";
 import { FormatDateSearch, MaxEvenEachRequest } from "../../store/devices/types";
 import { Events, events } from "../../utils/events";
-import {
-  AttendanceRecord,
-  filterRecords,
-  getAllRecordsArr,
-  isRecordExists,
-  syncAttendanceRecords
-} from "../../store/records";
+import { AttendanceRecord, filterRecords, getAllRecordsArr, syncAttendanceRecords } from "../../store/records";
 import { timeSleep } from "../../utils/sleep";
-import { Modal } from "antd";
 import Fetch from "../../utils/Fetch";
 import { getDeviceById } from "../../store/devices/actions";
 import { getSyncing } from "../../store/settings/autoPush";
-import { getSettingDevice, setSettingDevice, useSettingDevice } from "../../store/settings/currentDevice";
+import { clearSettingDevice, getSettingDevice, setSettingDevice } from "../../store/settings/currentDevice";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -44,19 +37,33 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
   ] = useAsyncFn(async () => {
 
     let newDevice = { ...device };
-    let canSync = true;
+    let canSync=true;
+    if(newDevice) {
+       canSync = true;
+    }
+    else {
+       canSync=false;
+    }
     let lastSync = newDevice.lastSync
       ? moment(newDevice.lastSync).format(FormatDateSearch.normal)
-      : moment().subtract(6, 'months').format(FormatDateSearch.start);
-    console.log('currentDevice',newDevice);
-    console.log('lastTime',lastSync);
+      : moment().subtract(6, "months").format(FormatDateSearch.start);
 
     while (canSync) {
       // if (!newDevice.sessionId) {
       //   continue;
       // }
       const _device = getSettingDevice();
+      console.log('test',newDevice);
 
+      if (_device.status === "Offline") {
+        await requestLoginDevice({
+          domain: _device.domain,
+          username: _device.username,
+          password: _device.password
+        });
+        events.emit(Events.SYNC_DONE);
+        continue;
+      }
       // lastSync = moment(device.lastSync).format(FormatDateSearch.normal);
 
       const syncing = getSyncing();
@@ -70,10 +77,23 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       let data = await requestEventLog({
         domain: _device.domain,
         startTime: lastSync,
-        endTime:moment().format(FormatDateSearch.end),
-        token:_device.token
+        endTime: moment().format(FormatDateSearch.end),
+        token: _device.token
       });
-      let rows = JSON.parse(data).rows;
+      //kiem tra neu token het han
+      if (!data || data === 401) {
+        await requestLoginDevice({
+          domain: _device.domain,
+          username: _device.username,
+          password: _device.password
+        });
+        events.emit(Events.SYNC_DONE);
+        continue;
+      }
+      let rows = JSON.parse(data || "{rows: []}").rows;
+      console.log('length',rows.length);
+
+
       // if (rows === 401) {
       //   const res = await requestLoginDevice({
       //     domain: newDevice.domain,
@@ -102,10 +122,10 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i].data;
-        if (!row || row[0] <=0) {
+        if (!row || row[0] <= 0) {
           continue;
         }
-        const mm = moment(row[1],'YYYY-MM-DD HH:mm:ss');
+        const mm = moment(row[1], "YYYY-MM-DD HH:mm:ss");
 
         // if (isRecordExists(row.id) || !row?.user_id?.user_id) {
         //   continue;
@@ -116,24 +136,25 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
         //     continue;
         //   }
         // }
-
-        result.push({
-          timestamp: mm.valueOf(),
-          timeFormatted: mm.format("HH:mm:ss"),
-          dateFormatted: mm.format("DD/MM/YYYY"),
-          deviceName: _device.name,
-          deviceIp: _device.domain,
-          //@ts-ignore
-          uid: row[7],
-          id: `${row[0]}_${mm.valueOf()}`
-        });
+        if (row[7] > 0) {
+          result.push({
+            timestamp: mm.valueOf(),
+            timeFormatted: mm.format("HH:mm:ss"),
+            dateFormatted: mm.format("DD/MM/YYYY"),
+            deviceName: _device.name,
+            deviceIp: _device.domain,
+            //@ts-ignore
+            uid: row[7],
+            id: `${row[0]}_${mm.valueOf()}`
+          });
+        }
       }
 
       if (rows && rows.length) {
-        syncDevices([{ ..._device, lastSync: moment(rows[0].data[1]).valueOf()}]);
-        setSettingDevice({..._device,lastSync:moment(rows[0].data[1]).valueOf()})
+        syncDevices([{ ..._device, lastSync: moment(rows[rows.length-1].data[1]).valueOf()}]);
+        console.log('okokok');
       }
-
+      setSettingDevice({..._device,syncTime:moment().valueOf()})
       if (result.length) {
         syncAttendanceRecords(result);
         const _currentDevice = getDeviceById(newDevice.domain);
@@ -186,6 +207,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
   const deleteDevice = useCallback(() => {
     deleteDevices([device.domain]);
+    clearSettingDevice();
   }, [device.domain]);
 
   return {

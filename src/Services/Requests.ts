@@ -51,7 +51,6 @@ class Requests {
       console.log('params ', params.paramStr.replace(/"/g, "\\\""));
       this.runScript(["--queries " + params.paramStr.replace(/"/g, "\\\"")], (data) => {
         const str = data;
-        console.log("dataParse ", data, typeof data)
         if(str.trim()) {
           resolve(JSON.parse(str));
         }

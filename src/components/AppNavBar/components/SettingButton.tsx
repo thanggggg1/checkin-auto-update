@@ -26,6 +26,7 @@ import {
   useLanguage,
 } from "../../../store/settings/languages";
 import { RadioChangeEvent } from "antd/lib/radio/interface";
+import ClearOldDevices from "./ClearOldDevices";
 
 const SettingButton = memo(function SettingButton() {
   const [isVisible, show, hide] = useBoolean();
@@ -82,10 +83,17 @@ const SettingButton = memo(function SettingButton() {
       </Button>
       <Modal
         visible={isVisible}
-        onCancel={hide}
-        onOk={hide}
         title={t("settings")}
         width={560}
+        onCancel={hide}
+        footer={[
+          <Button key="back" onClick={hide}>
+            {t('cancel')}
+          </Button>,
+          <Button key="submit" type="primary"  onClick={hide}>
+            {t('OK')}
+          </Button>
+        ]}
         {...antdModalLanguageProps}
       >
         {/*<Input*/}
@@ -167,10 +175,13 @@ const SettingButton = memo(function SettingButton() {
         <br />
 
         <ButtonGroup>
-          <UpdateCheckinCodesButton />
+          <ClearOldDevices/>
           <ClearRecordsButton />
           <ClearPushedEvidentsButton />
         </ButtonGroup>
+        <br/>
+        <br/>
+        <UpdateCheckinCodesButton />
       </Modal>
     </>
   );

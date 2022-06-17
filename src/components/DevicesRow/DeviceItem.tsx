@@ -8,9 +8,10 @@ import SyncTag from "./tags/SyncTag";
 import { t, useLanguage } from "../../store/settings/languages";
 import moment from "moment";
 import { useSyncing } from "../../store/settings/autoPush";
+import { getSettingDevice } from "../../store/settings/currentDevice";
 
 const Wrapper = styled(Card)`
-  flex: 0 0 250px;
+  flex: 0 0 350px;
 `;
 
 const InfoRow = styled.div`
@@ -40,7 +41,8 @@ const Href = styled.div`
 const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean }) {
   useLanguage();
   const syncing = useSyncing();
-  const { device } = useCurrentDevice();
+  const _device=getSettingDevice();
+  const {device}=useCurrentDevice();
 
   const openHref = () => {
     const shell = require("electron").shell;
@@ -55,18 +57,27 @@ const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean })
       {
         syncTurn && syncing === "1"
           ? <InfoRow>
-            Đang đồng bộ
+            {t('auto_syncing')}
           </InfoRow>
           : null
       }
       <InfoRow>
         {
-          device?.lastSync ? "Đồng bộ lúc: "  : ""
+          device?.lastSync ? `${t('newest_eventLog')}:` : ""
         }
         {
           device?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
         }
       </InfoRow>
+      <InfoRow>
+        {
+          _device?.syncTime ? `${t('last_auto_sync')}:`  : ""
+        }
+        {
+          _device?.syncTime ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(_device.syncTime).format("DD-MM-YYYY HH:mm")}</div> : null
+        }
+      </InfoRow>
+      <InfoRow>{t('status')}: <div style={{fontWeight:'bold',paddingLeft:8,color: device?.status == 'Online' ? '#64ef64' : 'red'}}>{device?.status}</div></InfoRow>
       <TagsWrapper>
         <SyncTag/>
       </TagsWrapper>

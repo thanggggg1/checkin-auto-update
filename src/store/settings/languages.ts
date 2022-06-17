@@ -14,7 +14,7 @@ const initI18next = () => {
   return i18next.init({
     lng: getLanguage(),
     debug: process.env.NODE_ENV !== "production",
-    fallbackLng: "en",
+    fallbackLng: "vi",
     resources: {
       en: {
         translation: require("../../languages/en.json"),

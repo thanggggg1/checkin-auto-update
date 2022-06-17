@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { Button, Row } from "antd";
 import AddDeviceModal from "../AddDeviceModal";
-import { DeviceSyncMethod, useDevicesRecord } from "../../store/devices";
+import { useDevicesRecord } from "../../store/devices";
 import DeviceItem from "./DeviceItem";
 import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
@@ -23,7 +23,7 @@ const DevicesRow = memo(function DevicesRow() {
     }
     const _t = setInterval(() => {
       events.emit(Events.MASS_SYNC);
-    }, 15000);
+    }, 18000);
 
     return () => {
       _t && clearInterval(_t);
@@ -87,10 +87,14 @@ const DevicesRow = memo(function DevicesRow() {
                              device={device}
                              syncTurn={device.domain === turnSyncIP}
           />;
-        })}
-        <AddButton type={"dashed"} onClick={values.openModal}>
-          + {t("add_device")}
-        </AddButton>
+        })
+        }
+        {
+          Object.values(devices).length==0 ? <AddButton type={"dashed"} onClick={values.openModal}>
+            + {t("add_device")}
+          </AddButton> : null
+        }
+
       </Wrapper>
       <AddDeviceModal
         visible={isAddDeviceModalVisible}

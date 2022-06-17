@@ -23,11 +23,13 @@ export const createSetting = <T>(key: string, defaultValue: T) => {
   const get = (keyName?: string): T => getStore().getState().settings[keyName || key] || defaultValue;
   // @ts-ignore
   const use = (keyName?: string): T => useSelector(state => state.settings[keyName || key] || defaultValue);
+  const clear =()=>setSetting(key,undefined)
 
   return {
     get,
     set,
-    use
+    use,
+    clear
   };
 };
 

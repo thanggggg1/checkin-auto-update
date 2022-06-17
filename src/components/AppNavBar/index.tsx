@@ -7,36 +7,22 @@ import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
 import { requestEventLog } from "../../store/devices/functions";
-import {  useSettingDevice } from "../../store/settings/currentDevice";
+import { getSettingDevice, useSettingDevice } from "../../store/settings/currentDevice";
+import { getPwdChangeParams } from '../../utils/portalCheck';
 
 
 const AppNavBar = memo(function AppNavBar() {
   const token = Fetch.useToken();
   // @ts-ignore
-  const device = useSettingDevice();
-  // const getTransactions = useCallback(async () => {
-  //   const _device=getCurrentDevice();
-  //   const data = await requestEventLog({
-  //     domain: _device.domain,
-  //     token: _device.token
-  //   });
-  //   const rows=JSON.parse(data).rows;
-  //   // rows.map((transaction:any,index:number)=>{
-  //   //
-  //   // });
-  // }, [device]);
-
 
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
       <AppNameWrapper>
-        <AppName>Base Checkin Client - ZkTeco</AppName>
+        <AppName>Base Checkin Client </AppName>
         <span>v{require("electron").remote.app.getVersion()}</span>
       </AppNameWrapper>
-
       <Row>
         <ButtonGroup>
-          {/*<Button onClick={getTransactions}>Test get transactions</Button>*/}
           <SettingButton/>
           <SyncButton/>
           <PushButton/>

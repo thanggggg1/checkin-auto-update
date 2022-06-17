@@ -13,21 +13,22 @@ export interface Device {
   timeout?: number;
   heartbeat?: number;
   autoReconnect?: number;
+  ip?:number;
 
   domain: string; // key
   username: string;
   password: string;
-  token:string;
+  token: string;
 
   clientToken: string;
   clientPassword: string;
 
   sessionId?: string;
-
+  syncTime?: number
   lastSync?: number
   syncing?: boolean
   doors?: string // BR-ACS-1F-02, BR-ACS-1F-09...
-  status:string
+  status: "Online" | "Offline"
 }
 
 export const {
@@ -35,16 +36,16 @@ export const {
   setStore: setDevicesStore,
   sync: syncDevices,
   multiDelete: deleteDevices,
+  reset:resetDevices
 } = createDynamicReducer<Device>("devices", "domain", {
   byKey: {},
-  query: {},
+  query: {}
 });
 
 const devicesSelector = (state: any) => state.devices.byKey;
 export const useDevicesRecord = (): Record<string, Device> => {
   return useSelector(devicesSelector);
 };
-
 
 
 export const useDeviceSyncMethod = (device: Device): DeviceSyncMethod => {

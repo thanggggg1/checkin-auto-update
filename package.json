@@ -1,6 +1,6 @@
 {
-  "name": "base-checkin-station-desktop-zkteco",
-  "version": "1.0.1",
+  "name": "base-checkin-station-desktop",
+  "version": "3.0.1",
   "license": "MIT",
   "main": "./dist/main.js",
   "description": "Base Checkin Client. Manage & Realtime attendance update for checkin.base.vn",
@@ -77,9 +77,9 @@
     "styled-components": "^5.1.1"
   },
   "build": {
-    "appId": "vn.base.checkinstationBiostar2",
-    "productName": "Base Checkin Client - Biostar 2",
-    "copyright": "Copyright © 2020 Base.vn",
+    "appId": "vn.base.checkinstation",
+    "productName": "Base Checkin Client",
+    "copyright": "Copyright © 2022 Base.vn",
     "extends": null,
     "directories": {
       "output": "electron-output"

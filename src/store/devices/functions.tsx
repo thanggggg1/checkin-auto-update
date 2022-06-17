@@ -1,6 +1,8 @@
 import Requests from "../../Services/Requests";
 import { hex_md5 } from "../../utils/hex_md5";
 import { getPwdChangeParams } from "../../utils/portalCheck";
+import { getSettingDevice, setSettingDevice } from "../settings/currentDevice";
+import { Device, syncDevices } from "./index";
 
 const https = require("https");
 
@@ -50,8 +52,8 @@ const https = require("https");
 
 interface EventLogParams {
   domain: string,
-  startTime?: string //2022-06-10 07:27:49
-  endTime?: string //2022-06-10 07:27:49
+  startTime: string //2022-06-10 07:27:49
+  endTime: string //2022-06-10 07:27:49
   token: string
 }
 
@@ -71,20 +73,24 @@ export const requestEventLog = async ({
         },
         "params": {
           "list": "",
-          "startTime": `${encodeURIComponent(startTime)}`,
-          "endTime":`${encodeURIComponent(endTime)}`
+          "pageSize":500,
+          "startTime":`${encodeURI(startTime)}`,
+          "endTime":`${encodeURI(endTime)}`,
+          "sortOrder":'asc',
+          "sortName":'eventTime',
+          "posStart":0
         },
       })
     });
 
     console.log("fetch ", data);
-    return data?.response || [];
+    return data?.response ;
   } catch (e) {
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
       return 401;
     }
-    return [];
+    return ''
   }
 };
 
@@ -101,6 +107,7 @@ export const requestLoginDevice = async ({
                                            username,
                                            password
                                          }: LoginParams) => {
+  const _device=getSettingDevice();
   try {
     // check password before login
   const res =  await new Requests().fetch({
@@ -109,13 +116,15 @@ export const requestLoginDevice = async ({
         "method": "post",
         "params": {
           "content": `${getPwdChangeParams(`${username}`, `${hex_md5(password)}`, "")}`
-        }
+        },
+
       })
     });
+    console.log('res',res);
   // @ts-ignore
     const cookie =  res.header._store['set-cookie'][1].split(';')[0].split('=')[1]
     // request login
-    const data = await new Requests().fetch({
+    const data:any = await new Requests().fetch({
       paramStr: JSON.stringify({
         "url": `${domain}/login.do`,
         "method": "post",
@@ -129,8 +138,15 @@ export const requestLoginDevice = async ({
         },
       })
     });
+    console.log('data',data);
+    if (data?.response) {
+      _device && setSettingDevice({ ..._device,token:data?.header._store['set-cookie'][1].split(';')[0].split('=')[1], status: 'Online' });
+    } else {
+      _device && setSettingDevice({ ..._device, status: 'Offline' });
+    }
     return data;
   } catch (e) {
+    _device && setSettingDevice({ ..._device, status: 'Offline' });
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
       return 401;

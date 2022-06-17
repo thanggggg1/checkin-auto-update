@@ -5,6 +5,7 @@ const {
   get: getSettingDevice,
   set: setSettingDevice,
   use: useSettingDevice,
+  clear:clearSettingDevice
 } = createSetting<Device>("settingDevice", {
   clientPassword: "", //"123456",
   clientToken: "", //"NzktMTctODQxZmJmYjNjMGM3YjJmMw",
@@ -12,8 +13,8 @@ const {
   name: "", //
   password: "", //"Base@53rv1c3",
   username: "", //"admin",
-  status:'',
+  status:'Online',
   token:''
 });
 
-export {getSettingDevice,setSettingDevice,useSettingDevice}
+export {getSettingDevice,setSettingDevice,useSettingDevice,clearSettingDevice}

@@ -8,7 +8,7 @@ import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { styled } from "../../global";
 import { requestLoginDevice } from "../../store/devices/functions";
-import { setCurrentDevice, setSettingDevice } from "../../store/settings/currentDevice";
+import { setSettingDevice } from "../../store/settings/currentDevice";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -17,7 +17,7 @@ const defaultValue: Device = {
   name: "", //
   password: "", //"Base@53rv1c3",
   username: "", //"admin",
-  status:'',
+  status:'Online',
   token:''
 };
 
@@ -80,7 +80,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
       });
       return a;
     } catch (e) {
-      Modal.error({ title: e.message });
       return null;
     }
   }, [device]);
@@ -100,14 +99,25 @@ const AddDeviceModal = memo(function AddDeviceModal(
       password:device.password,
       username:device.username
     });
-    if(r.status!=200){
+    console.log('r',r);
+    if(r.status!=200 || r.length==0){
       Modal.error({
-        title:r.response.msg
+        title: t('unable_login'),
+        content: t('error_domain')
       })
+      return ;
+    }
+   const isValidPassword= await validateTokenPassword();
+    if(!isValidPassword){
+      Modal.error({
+        title:t('unable_login'),
+        content:t('error_clientToken')
+      })
+      return;
     }
     // @ts-ignore
-    setSettingDevice({ ...device,token:r.header._store['set-cookie'][1].split(';')[0].split('=')[1],status:r.status });
-    syncDevices([{ ...device,status:r.status }]);
+    setSettingDevice({ ...device,status: 'Online' });
+    syncDevices([{ ...device, status: 'Online' }]);
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 
@@ -119,6 +129,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
   return (
     <Modal
       title={props.device ? t("edit_device") : t("add_device")}
+      confirmLoading={loading}
       onOk={onOk}
       onCancel={props.onClose}
       {...props}
@@ -171,21 +182,13 @@ const AddDeviceModal = memo(function AddDeviceModal(
         value={device.clientPassword}
         onChange={values.onClientPasswordChange}
       />
-      <br/>
-      <br/>
-      <Input
-        addonBefore={"Cửa nhận log (Danh sách ID cửa)"}
-        placeholder={"5419191, 5356245, ... "}
-        value={device.doors || ""}
-        onChange={values.onDoorChange}
-      />
       {
         device.lastSync
           ? <>
             <br/>
             <br/>
             <Input.Group compact={true}>
-              <Input disabled={true} style={{ width: 100 }} value={"Thời gian đồng bộ từ: "}/>
+              <Input disabled={true} style={{ width: 160 }} value={t<string>('sync_data_from')}/>
               <DatePicker
                 showTime={{ format: "DD/MM/YYYY" }}
                 format="DD/MM/YYYY"
