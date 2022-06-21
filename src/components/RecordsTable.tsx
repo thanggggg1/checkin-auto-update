@@ -20,7 +20,7 @@ const RecordsTable = memo(function RecordsTable() {
 
     const dataSource = Object.values(records).map((record) => {
       uids[record.uid] = record.uid;
-      ips[record.deviceIp] = record.deviceIp;
+      ips[record.deviceName] = record.deviceName;
       return {
         key: record.id,
         uid: record.uid,

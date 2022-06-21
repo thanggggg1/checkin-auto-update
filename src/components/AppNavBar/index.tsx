@@ -7,13 +7,12 @@ import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
 import { requestEventLog } from "../../store/devices/functions";
-import { getSettingDevice, useSettingDevice } from "../../store/settings/currentDevice";
+import { getSettingDevice, setSettingDevice, useSettingDevice } from "../../store/settings/settingDevice";
 import { getPwdChangeParams } from '../../utils/portalCheck';
 
 
 const AppNavBar = memo(function AppNavBar() {
-  const token = Fetch.useToken();
-  // @ts-ignore
+
 
   return (
     <Wrapper align={"middle"} justify={"space-between"}>

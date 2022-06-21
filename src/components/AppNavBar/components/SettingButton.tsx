@@ -175,13 +175,10 @@ const SettingButton = memo(function SettingButton() {
         <br />
 
         <ButtonGroup>
-          <ClearOldDevices/>
+          <UpdateCheckinCodesButton />
           <ClearRecordsButton />
           <ClearPushedEvidentsButton />
         </ButtonGroup>
-        <br/>
-        <br/>
-        <UpdateCheckinCodesButton />
       </Modal>
     </>
   );

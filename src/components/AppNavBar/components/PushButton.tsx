@@ -51,6 +51,7 @@ const PushButton = memo(function PushButton() {
     setTimeRange(value);
   }, []);
 
+  // @ts-ignore
   return (
     <>
       <Button disabled={loading} onClick={showPushModal}>
@@ -65,9 +66,16 @@ const PushButton = memo(function PushButton() {
 
       <Modal
         title={t("push")}
-        onOk={onClick}
-        onCancel={hidePushModal}
         visible={isPushModalVisible}
+        onCancel={hidePushModal}
+        footer={[
+          <Button key="back" onClick={hidePushModal}>
+            {t('cancel')}
+          </Button>,
+          <Button key="submit" type="primary"  onClick={onClick}>
+            {t('OK')}
+          </Button>
+        ]}
         {...antdModalLanguageProps}
       >
         <p>

@@ -8,13 +8,13 @@ export enum LanguageEnum {
 
 const { get: getLanguage, set: _setLanguage, use: useLanguage } = createSetting<
   LanguageEnum
->("language", LanguageEnum.EN);
+>("language", LanguageEnum.VI);
 
 const initI18next = () => {
   return i18next.init({
     lng: getLanguage(),
     debug: process.env.NODE_ENV !== "production",
-    fallbackLng: "vi",
+    fallbackLng: "en",
     resources: {
       en: {
         translation: require("../../languages/en.json"),

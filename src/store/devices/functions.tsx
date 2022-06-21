@@ -1,7 +1,7 @@
 import Requests from "../../Services/Requests";
 import { hex_md5 } from "../../utils/hex_md5";
 import { getPwdChangeParams } from "../../utils/portalCheck";
-import { getSettingDevice, setSettingDevice } from "../settings/currentDevice";
+import { getSettingDevice, setSettingDevice } from "../settings/settingDevice";
 import { Device, syncDevices } from "./index";
 
 const https = require("https");
@@ -117,10 +117,8 @@ export const requestLoginDevice = async ({
         "params": {
           "content": `${getPwdChangeParams(`${username}`, `${hex_md5(password)}`, "")}`
         },
-
       })
     });
-    console.log('res',res);
   // @ts-ignore
     const cookie =  res.header._store['set-cookie'][1].split(';')[0].split('=')[1]
     // request login
@@ -138,7 +136,6 @@ export const requestLoginDevice = async ({
         },
       })
     });
-    console.log('data',data);
     if (data?.response) {
       _device && setSettingDevice({ ..._device,token:data?.header._store['set-cookie'][1].split(';')[0].split('=')[1], status: 'Online' });
     } else {

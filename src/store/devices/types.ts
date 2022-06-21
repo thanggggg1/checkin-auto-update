@@ -1,5 +1,5 @@
 export enum FormatDateSearch {
-  start = "YYYY-MM-DD HH:mm:ss",
+  start = "YYYY-MM-DD 00:00:00",
   normal = "YYYY-MM-DD HH:mm:ss",
   end = "YYYY-MM-DD 23:59:59"
 }

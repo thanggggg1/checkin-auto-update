@@ -25,6 +25,7 @@ export interface Device {
 
   sessionId?: string;
   syncTime?: number
+  startSync?:number
   lastSync?: number
   syncing?: boolean
   doors?: string // BR-ACS-1F-02, BR-ACS-1F-09...

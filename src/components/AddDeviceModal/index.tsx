@@ -1,5 +1,5 @@
 import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { DatePicker, Input, Modal, Select } from "antd";
+import { Button, DatePicker, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, syncDevices } from "../../store/devices";
 import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
@@ -8,7 +8,7 @@ import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { styled } from "../../global";
 import { requestLoginDevice } from "../../store/devices/functions";
-import { setSettingDevice } from "../../store/settings/currentDevice";
+import { setSettingDevice } from "../../store/settings/settingDevice";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -18,7 +18,7 @@ const defaultValue: Device = {
   password: "", //"Base@53rv1c3",
   username: "", //"admin",
   status:'Online',
-  token:''
+  token:'',
 };
 
 
@@ -67,8 +67,14 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const onLastSyncChange = (value: number) => {
     setDevice({
       ...device,
-      lastSync: value
+      lastSync: value,
+      startSync:value
     });
+    setSettingDevice({
+      ...device,
+      lastSync:value,
+      startSync:value
+    })
   };
 
   const [{}, validateTokenPassword] = useAsyncFn(async () => {
@@ -92,14 +98,12 @@ const AddDeviceModal = memo(function AddDeviceModal(
         title: t("please_enter_all_required_fields"),
         ...antdModalLanguageProps
       });
-    }
-    console.log('device',device);
-    const r:any = await requestLoginDevice({
+  }
+   const r:any = await requestLoginDevice({
       domain:device.domain,
       password:device.password,
       username:device.username
     });
-    console.log('r',r);
     if(r.status!=200 || r.length==0){
       Modal.error({
         title: t('unable_login'),
@@ -125,15 +129,15 @@ const AddDeviceModal = memo(function AddDeviceModal(
     setValueSelect(value);
   }, [valueSelect]);
 
-
   return (
     <Modal
       title={props.device ? t("edit_device") : t("add_device")}
       confirmLoading={loading}
-      onOk={onOk}
       onCancel={props.onClose}
+      onOk={onOk}
+      okText={t('OK')}
+      cancelText={t('cancel')}
       {...props}
-      {...antdModalLanguageProps}
     >
       <Input
         addonBefore={`${t("device_name")} *`}
@@ -148,11 +152,12 @@ const AddDeviceModal = memo(function AddDeviceModal(
         placeholder={"https://14.241.105.154:8098"}
         value={device.domain}
         onChange={values.onDomainChange}
+        disabled={!!props.device}
       />
       <br/>
       <br/>
           <Input
-            addonBefore={"Username"}
+            addonBefore={"Username*"}
             placeholder={"Admin"}
             value={device.username}
             onChange={values.onUserNameChange}
@@ -160,7 +165,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           <br/>
           <br/>
           <Input.Password
-            addonBefore={"Password"}
+            addonBefore={"Password*"}
             placeholder={"Admin"}
             value={device.password}
             onChange={values.onPasswordChange}
@@ -183,20 +188,20 @@ const AddDeviceModal = memo(function AddDeviceModal(
         onChange={values.onClientPasswordChange}
       />
       {
-        device.lastSync
+        device.startSync
           ? <>
             <br/>
             <br/>
             <Input.Group compact={true}>
               <Input disabled={true} style={{ width: 160 }} value={t<string>('sync_data_from')}/>
               <DatePicker
-                showTime={{ format: "DD/MM/YYYY" }}
-                format="DD/MM/YYYY"
-                onChange={(value: any) => {
+                showTime={{ format: "DD/MM/YYYY HH:mm" }}
+                format="DD/MM/YYYY HH:mm"
+                onOk={(value:any)=>{
                   onLastSyncChange(value.unix() * 1000);
                 }}
                 placeholder={""}
-                value={moment(device.lastSync)}
+                value={moment(device.startSync)}
               />
             </Input.Group>
 
