@@ -40,7 +40,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: "Base Checkin Station"
+      title: "Base Checkin Client v3"
     }),
   ],
 };

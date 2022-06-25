@@ -9,6 +9,7 @@ import SettingButton from "./components/SettingButton";
 import { requestEventLog } from "../../store/devices/functions";
 import { getSettingDevice, setSettingDevice, useSettingDevice } from "../../store/settings/settingDevice";
 import { getPwdChangeParams } from '../../utils/portalCheck';
+import { useCurrentDevice } from "../DevicesRow/context";
 
 
 const AppNavBar = memo(function AppNavBar() {

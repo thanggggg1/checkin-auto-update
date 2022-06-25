@@ -13,7 +13,6 @@ const DeviceActions = memo(function DeviceActions(props) {
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
   const {
-    syncAttendances,
     deleteDevice,
     device
   } = useCurrentDevice();
@@ -22,13 +21,14 @@ const DeviceActions = memo(function DeviceActions(props) {
 
   const [{ loading }, deleteDeviceConfirm] = useAsyncFn( async () => {
      deleteDevice();
-     await timeSleep(2)
+     await timeSleep(1)
     return;
   }, [deleteDevice]);
 
   const onClickDeleteDevice = useCallback(() => {
     Modal.confirm({
       title: t("delete_device_confirmation"),
+      content:t('clear_devices_confirm_description'),
       onOk: deleteDeviceConfirm,
       okText:`${t('OK')}`,
       cancelText:`${t('cancel')}`
@@ -37,7 +37,6 @@ const DeviceActions = memo(function DeviceActions(props) {
 
   return (
     <Menu {...props}>
-
       {/*<Menu.Item*/}
       {/*  disabled={connectionState !== ConnectionState.CONNECTED}*/}
       {/*  onClick={enableDevice}*/}

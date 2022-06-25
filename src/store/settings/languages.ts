@@ -33,7 +33,7 @@ const setLanguage = (language: LanguageEnum) => {
 const translate = i18next.t.bind(i18next);
 const t = translate;
 
-export { initI18next, getLanguage, setLanguage, useLanguage, translate, t };
+export { initI18next, getLanguage, setLanguage, useLanguage, translate, t ,_setLanguage,i18next};
 
 
 export const antdModalLanguageProps = {

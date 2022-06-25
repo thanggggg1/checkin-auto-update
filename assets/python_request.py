@@ -1,11 +1,15 @@
 #!/usr/bin/env python2
 # # -*- coding: utf-8 -*-
+from email import header
 import json
 from logging import exception
 import argparse
+from bcrypt import re
 import requests
-import ast
+from urllib.parse import unquote
+import urllib3
 
+urllib3.disable_warnings()
 parser = argparse.ArgumentParser(description='ZK Basic Reading Tests')
 parser.add_argument('-q', '--queries',
                     type=str,
@@ -15,21 +19,26 @@ parser.add_argument('-p', '--params',
                     type=str,
                     help='{\"pageSize\":\"1\"}', default='\{\}')
 
-
 args = parser.parse_args()
 
 if args.queries:
     try:
-        _paramsJson = json.loads(str(args.queries))
+        _paramsJson = json.loads(unquote(args.queries))
         url = _paramsJson['url']
         method = _paramsJson['method'] if _paramsJson.get('method') else 'get'
         params = _paramsJson['params'] if _paramsJson.get('params') else {}
+        headers = _paramsJson['headers'] if _paramsJson.get('headers') else {}
+
+        session = requests.Session()
         if method == 'get':
-            res = requests.get(url, params=params)
-            print(json.dumps({"header": str(res.headers), "response": res.text if 'html>' not in res.text else ""}))
+            res = session.get(url, params=params, headers=headers, verify=False)
+            print(json.dumps({"header": res.headers.__dict__,
+                            "status": str(res.status_code),
+                            "params": str(params),
+                            "response": res.text if 'html>' not in res.text else ""}))
         if method == 'post':
-            res = requests.post(url, data=params)
-            print(json.dumps({"header": str(res.headers), "response": res.text if 'html>' not in res.text else ""}))
+            res = session.post(url, data=params, headers=headers, verify=False)
+            print(json.dumps({"header": res.headers.__dict__,  "status": str(res.status_code), "params": str(params), "response": res.text if 'html>' not in res.text else ""}))
     except Exception as e:
         print(json.dumps({"header": "", "response": "", "error": str(e.args)}))
 

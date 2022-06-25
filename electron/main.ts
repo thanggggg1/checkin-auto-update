@@ -12,6 +12,7 @@ app.setLoginItemSettings({
 });
 
 let isQuiting = false;
+const gotTheLock = app.requestSingleInstanceLock();
 
 app.on('before-quit', function () {
   isQuiting = true;
@@ -27,7 +28,7 @@ function createWindow() {
         ? path.join(app.getAppPath(), "./dist/assets/AppIcon.ico")
         : path.join(app.getAppPath(), "./dist/assets/AppIcon.icns")
     ),
-    title: "Base Checkin Station - ZkBioSecurity",
+    title: "Base Checkin Client v3",
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,
@@ -60,8 +61,6 @@ function createWindow() {
     mainWindow?.show();
   });
 
-
-
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL(`http://localhost:4000`);
     mainWindow.openDevTools();
@@ -86,6 +85,24 @@ function createWindow() {
   })
 }
 
-app.on("ready", createWindow);
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance
+    // Do the stuff, for example, focus the window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {mainWindow.restore()
+      }
+      mainWindow.show()
+      mainWindow.focus()
+    }
+  })
+
+  app.on("ready", createWindow);
+
+}
 app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 app.allowRendererProcessReuse = true;
+
+

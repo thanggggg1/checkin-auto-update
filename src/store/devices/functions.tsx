@@ -73,7 +73,7 @@ export const requestEventLog = async ({
         },
         "params": {
           "list": "",
-          "pageSize":500,
+          "pageSize":800,
           "startTime":`${encodeURI(startTime)}`,
           "endTime":`${encodeURI(endTime)}`,
           "sortOrder":'asc',
@@ -136,6 +136,7 @@ export const requestLoginDevice = async ({
         },
       })
     });
+
     if (data?.response) {
       _device && setSettingDevice({ ..._device,token:data?.header._store['set-cookie'][1].split(';')[0].split('=')[1], status: 'Online' });
     } else {

@@ -49,12 +49,25 @@ class Requests {
   ) => {
     return await new Promise((resolve, reject) => {
       console.log('params ', params.paramStr.replace(/"/g, "\\\""));
+      let result = "";
       this.runScript(["--queries " + params.paramStr.replace(/"/g, "\\\"")], (data) => {
         const str = data;
         if(str.trim()) {
-          resolve(JSON.parse(str));
+          if(!result){
+            result = str;
+            resolve(JSON.parse(str));
+          }
         }
       });
+      setTimeout(() => {
+        if (result){
+          return
+        }
+        resolve({
+          headers: "",
+          response:""
+        })
+      }, 10000)
     });
   };
 }

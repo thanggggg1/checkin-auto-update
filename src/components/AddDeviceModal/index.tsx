@@ -1,5 +1,5 @@
 import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Button, DatePicker, Input, Modal, Select } from "antd";
+import { DatePicker, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, syncDevices } from "../../store/devices";
 import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
@@ -7,18 +7,20 @@ import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { styled } from "../../global";
-import { requestLoginDevice } from "../../store/devices/functions";
 import { setSettingDevice } from "../../store/settings/settingDevice";
+import Requests from "../../Services/Requests";
+import { getPwdChangeParams } from "../../utils/portalCheck";
+import { hex_md5 } from "../../utils/hex_md5";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
-  clientToken: "", //"NzktMTctODQxZmJmYjNjMGM3YjJmMw",
-  domain: "", // "https://14.241.105.154/",
+  clientToken: "", //"NzktMTEtZDg1MWZmNGE2ZTM1M2UxMA",
+  domain: "", // "https://10.20.1.201:8098",
   name: "", //
-  password: "", //"Base@53rv1c3",
+  password: "", //"Vcc123**",
   username: "", //"admin",
-  status:'Online',
-  token:'',
+  status: "Online",
+  token: ""
 };
 
 
@@ -64,18 +66,13 @@ const AddDeviceModal = memo(function AddDeviceModal(
     };
   }, []);
 
-  const onLastSyncChange = (value: number) => {
+  const onLastSyncChange = useCallback((value: number) => {
     setDevice({
       ...device,
       lastSync: value,
       startSync:value
     });
-    setSettingDevice({
-      ...device,
-      lastSync:value,
-      startSync:value
-    })
-  };
+  }, []);
 
   const [{}, validateTokenPassword] = useAsyncFn(async () => {
     try {
@@ -98,30 +95,67 @@ const AddDeviceModal = memo(function AddDeviceModal(
         title: t("please_enter_all_required_fields"),
         ...antdModalLanguageProps
       });
-  }
-   const r:any = await requestLoginDevice({
-      domain:device.domain,
-      password:device.password,
-      username:device.username
-    });
-    if(r.status!=200 || r.length==0){
-      Modal.error({
-        title: t('unable_login'),
-        content: t('error_domain')
-      })
-      return ;
     }
-   const isValidPassword= await validateTokenPassword();
-    if(!isValidPassword){
+    const isValidPassword = await validateTokenPassword();
+    if (!isValidPassword) {
       Modal.error({
-        title:t('unable_login'),
-        content:t('error_clientToken')
-      })
+        title: t("unable_login"),
+        content: t("error_clientToken")
+      });
       return;
     }
-    // @ts-ignore
-    setSettingDevice({ ...device,status: 'Online' });
-    syncDevices([{ ...device, status: 'Online' }]);
+
+    //login Device de set Token vao
+    try {
+      // check password before login
+      const res = await new Requests().fetch({
+        paramStr: JSON.stringify({
+          "url": `${device.domain}/portalPwdEffectiveCheck.do`,
+          "method": "post",
+          "params": {
+            "content": `${getPwdChangeParams(`${device.username}`, `${hex_md5(device.password)}`, "")}`
+          }
+        })
+      });
+      // @ts-ignore
+      const cookie = res.header._store["set-cookie"][1].split(";")[0].split("=")[1];
+      // request login
+      const data: any = await new Requests().fetch({
+        paramStr: JSON.stringify({
+          "url": `${device.domain}/login.do`,
+          "method": "post",
+          "headers": {
+            "Cookie": `SESSION=${cookie}`
+          },
+          "params": {
+            "loginType": "NORMAL",
+            "username": `${device.username}`,
+            "password": `${hex_md5(device.password)}`
+          }
+        })
+      });
+
+      if (data?.response) {
+        setSettingDevice({
+          ...device,
+          token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
+          status: "Online"
+        })
+        && syncDevices([{ ...device, status: "Online" }]);
+      } else {
+        Modal.error({
+          title: `${t("unable_login")}`,
+          content: `${"error_domain"}`
+        });
+        return;
+      }
+    } catch (e) {
+        Modal.error({
+          title: `${t("unable_login")}`,
+          content: `${t('error_domain')}`
+        });
+      return;
+    }
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 
@@ -135,8 +169,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
       confirmLoading={loading}
       onCancel={props.onClose}
       onOk={onOk}
-      okText={t('OK')}
-      cancelText={t('cancel')}
+      okText={t("OK")}
+      cancelText={t("cancel")}
       {...props}
     >
       <Input
@@ -156,22 +190,22 @@ const AddDeviceModal = memo(function AddDeviceModal(
       />
       <br/>
       <br/>
-          <Input
-            addonBefore={"Username*"}
-            placeholder={"Admin"}
-            value={device.username}
-            onChange={values.onUserNameChange}
-          />
-          <br/>
-          <br/>
-          <Input.Password
-            addonBefore={"Password*"}
-            placeholder={"Admin"}
-            value={device.password}
-            onChange={values.onPasswordChange}
-          />
-          <br/>
-          <br/>
+      <Input
+        addonBefore={"Username*"}
+        placeholder={"Admin"}
+        value={device.username}
+        onChange={values.onUserNameChange}
+      />
+      <br/>
+      <br/>
+      <Input.Password
+        addonBefore={"Password*"}
+        placeholder={"Admin"}
+        value={device.password}
+        onChange={values.onPasswordChange}
+      />
+      <br/>
+      <br/>
       {/** thong tin token lay tu HRM **/}
       <Input.Password
         addonBefore={"Client token *"}
@@ -193,11 +227,11 @@ const AddDeviceModal = memo(function AddDeviceModal(
             <br/>
             <br/>
             <Input.Group compact={true}>
-              <Input disabled={true} style={{ width: 160 }} value={t<string>('sync_data_from')}/>
+              <Input disabled={true} style={{ width: 160 }} value={t<string>("sync_data_from")}/>
               <DatePicker
                 showTime={{ format: "DD/MM/YYYY HH:mm" }}
-                format="DD/MM/YYYY HH:mm"
-                onOk={(value:any)=>{
+                format="DD/MM/YYYY HH:mm:ss"
+                onOk={(value: any) => {
                   onLastSyncChange(value.unix() * 1000);
                 }}
                 placeholder={""}

@@ -7,6 +7,7 @@ import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
+import { getSettingDevice } from "../../store/settings/settingDevice";
 
 
 const DevicesRow = memo(function DevicesRow() {
@@ -15,10 +16,11 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
+  const _device=getSettingDevice();
 
   useEffect(() => {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
-    if (turnSyncIP) {
+    if (turnSyncIP && turnSyncIP === _device.domain) {
       return;
     }
     const _t = setInterval(() => {
@@ -34,11 +36,13 @@ const DevicesRow = memo(function DevicesRow() {
   useEffect(() => {
     // handle chuc nang sync khi ng dung nhan vao chu syncAll
     const handler = () => {
-      if (turnSyncIP) {
+
+      if (turnSyncIP  && turnSyncIP === _device.domain) {
         return;
       }
 
       const _devices = Object.values(devices || {});
+      console.log('device co ko',_devices);
       if (_devices.length) {
         setTurnSyncIP(_devices[0].domain);
       }
@@ -78,6 +82,8 @@ const DevicesRow = memo(function DevicesRow() {
       closeModal: () => setAddDeviceModalVisible(false)
     };
   }, []);
+  console.log('turn sync ip',turnSyncIP);
+
 
   return (
     <>

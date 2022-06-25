@@ -37,7 +37,7 @@ const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean })
       <InfoRow>
         {t('newest_eventLog')}:
         {
-          device?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
+          _device?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(_device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
         }
       </InfoRow>
       <InfoRow>

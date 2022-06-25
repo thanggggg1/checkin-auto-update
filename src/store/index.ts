@@ -19,7 +19,7 @@ const persistedReducer = persistReducer(
     key: "root",
     storage: createElectronStorage(),
     blacklist: ["syncingEvent"],
-    throttle: 5000
+    throttle: 500
   },
   rootReducer
 );
