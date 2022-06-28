@@ -11,7 +11,7 @@ import { AttendanceRecord, filterRecords, getAllRecordsArr, syncAttendanceRecord
 import { timeSleep } from "../../utils/sleep";
 import Fetch from "../../utils/Fetch";
 import { getSyncing } from "../../store/settings/autoPush";
-import { clearSettingDevice, getSettingDevice, setSettingDevice } from "../../store/settings/settingDevice";
+import { clearSettingSystem, getSettingSystem, setSettingSystem } from "../../store/settings/settingSystem";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -47,7 +47,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       // }
 
 
-      let _device = getSettingDevice();
+      let _device = getSettingSystem();
       if (!_device.domain) {
         canSync = false
       }
@@ -81,7 +81,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
 
       console.log("LAST SYNCC", lastSync);
 
-      _device = getSettingDevice();
+      _device = getSettingSystem();
 
       let data = await requestEventLog({
         domain: _device.domain,
@@ -149,14 +149,14 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
           });
         }
       }
-      setSettingDevice({ ..._device, syncTime: moment().valueOf() });
+      setSettingSystem({ ..._device, syncTime: moment().valueOf() });
       await timeSleep(3);
       if (result.length) {
         console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));
         syncAttendanceRecords(result);
-        const __device = getSettingDevice();
+        const __device = getSettingSystem();
 
-        if (__device.domain) setSettingDevice({
+        if (__device.domain) setSettingSystem({
           ...__device,
           lastSync: result[result.length - 1].timestamp
         }) && syncDevices([{ ...__device, lastSync: result[result.length - 1].timestamp }]);
@@ -209,7 +209,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
   const deleteDevice = useCallback(() => {
     deleteDevices([device.domain]);
     resetDevices();
-    clearSettingDevice();
+    clearSettingSystem();
   }, []);
 
 

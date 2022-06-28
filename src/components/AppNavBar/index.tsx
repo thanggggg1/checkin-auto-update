@@ -7,7 +7,7 @@ import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
 import { requestEventLog } from "../../store/devices/functions";
-import { getSettingDevice, setSettingDevice, useSettingDevice } from "../../store/settings/settingDevice";
+import { getSettingSystem, setSettingSystem, useSettingSystem } from "../../store/settings/settingDevice";
 import { getPwdChangeParams } from '../../utils/portalCheck';
 import { useCurrentDevice } from "../DevicesRow/context";
 

@@ -8,7 +8,7 @@ import {
   useLanguage,
 } from "../../../store/settings/languages";
 import {resetDevices} from '../../../store/devices'
-import { clearSettingDevice } from "../../../store/settings/settingDevice";
+import { clearSettingSystem } from "../../../store/settings/settingDevice";
 const ClearOldDevices = memo(function ClearRecordsButton() {
   useLanguage();
   const onPress = useCallback(() => {
@@ -17,7 +17,7 @@ const ClearOldDevices = memo(function ClearRecordsButton() {
       content: t("clear_devices_confirm_description"),
       onOk: () => {
         resetDevices();
-        clearSettingDevice();
+        clearSettingSystem();
       },
       okCancel: true,
       ...antdModalLanguageProps,

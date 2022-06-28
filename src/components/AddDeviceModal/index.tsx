@@ -7,7 +7,7 @@ import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { styled } from "../../global";
-import { setSettingDevice } from "../../store/settings/settingDevice";
+import { setSettingSystem } from "../../store/settings/settingSystem";
 import Requests from "../../Services/Requests";
 import { getPwdChangeParams } from "../../utils/portalCheck";
 import { hex_md5 } from "../../utils/hex_md5";
@@ -136,7 +136,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       });
 
       if (data?.response) {
-        setSettingDevice({
+        setSettingSystem({
           ...device,
           token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
           status: "Online"

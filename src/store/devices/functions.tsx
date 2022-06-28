@@ -1,7 +1,7 @@
 import Requests from "../../Services/Requests";
 import { hex_md5 } from "../../utils/hex_md5";
 import { getPwdChangeParams } from "../../utils/portalCheck";
-import { getSettingDevice, setSettingDevice } from "../settings/settingDevice";
+import { getSettingSystem, setSettingSystem } from "../settings/settingSystem";
 import { Device, syncDevices } from "./index";
 
 const https = require("https");
@@ -107,7 +107,7 @@ export const requestLoginDevice = async ({
                                            username,
                                            password
                                          }: LoginParams) => {
-  const _device=getSettingDevice();
+  const _device=getSettingSystem();
   try {
     // check password before login
   const res =  await new Requests().fetch({
@@ -138,13 +138,13 @@ export const requestLoginDevice = async ({
     });
 
     if (data?.response) {
-      _device && setSettingDevice({ ..._device,token:data?.header._store['set-cookie'][1].split(';')[0].split('=')[1], status: 'Online' });
+      _device && setSettingSystem({ ..._device,token:data?.header._store['set-cookie'][1].split(';')[0].split('=')[1], status: 'Online' });
     } else {
-      _device && setSettingDevice({ ..._device, status: 'Offline' });
+      _device && setSettingSystem({ ..._device, status: 'Offline' });
     }
     return data;
   } catch (e) {
-    _device && setSettingDevice({ ..._device, status: 'Offline' });
+    _device && setSettingSystem({ ..._device, status: 'Offline' });
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
       return 401;

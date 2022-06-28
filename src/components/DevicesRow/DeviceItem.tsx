@@ -8,13 +8,13 @@ import SyncTag from "./tags/SyncTag";
 import { t, useLanguage } from "../../store/settings/languages";
 import moment from "moment";
 import { useSyncing } from "../../store/settings/autoPush";
-import { getSettingDevice } from "../../store/settings/settingDevice";
+import { getSettingSystem } from "../../store/settings/settingSystem";
 
 
 const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean }) {
   useLanguage();
   const syncing = useSyncing();
-  const _device=getSettingDevice();
+  const _device=getSettingSystem();
   const {device}=useCurrentDevice();
 
   const openHref = () => {

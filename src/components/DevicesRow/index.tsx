@@ -7,7 +7,7 @@ import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
-import { getSettingDevice } from "../../store/settings/settingDevice";
+import { getSettingSystem } from "../../store/settings/settingSystem";
 
 
 const DevicesRow = memo(function DevicesRow() {
@@ -16,7 +16,7 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
-  const _device=getSettingDevice();
+  const _device=getSettingSystem();
 
   useEffect(() => {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);

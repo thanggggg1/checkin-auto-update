@@ -2,11 +2,11 @@ import { createSetting } from "./index";
 import { Device } from "../devices";
 
 const {
-  get: getSettingDevice,
-  set: setSettingDevice,
-  use: useSettingDevice,
-  clear:clearSettingDevice
-} = createSetting<Device>("settingDevice", {
+  get: getSettingSystem,
+  set: setSettingSystem,
+  use: useSettingSystem,
+  clear:clearSettingSystem
+} = createSetting<Device>("settingSystem", {
   clientPassword: "", //"123456",
   clientToken: "", //"NzktMTctODQxZmJmYjNjMGM3YjJmMw",
   domain: "", // "https://14.241.105.154/",
@@ -17,4 +17,4 @@ const {
   token:''
 });
 
-export {getSettingDevice,setSettingDevice,useSettingDevice,clearSettingDevice}
+export {getSettingSystem,setSettingSystem,useSettingSystem,clearSettingSystem}
