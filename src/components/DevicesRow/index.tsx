@@ -42,7 +42,6 @@ const DevicesRow = memo(function DevicesRow() {
       }
 
       const _devices = Object.values(devices || {});
-      console.log('device co ko',_devices);
       if (_devices.length) {
         setTurnSyncIP(_devices[0].domain);
       }

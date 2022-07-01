@@ -1,7 +1,7 @@
 import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { DatePicker, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
-import { Device, syncDevices } from "../../store/devices";
+import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
 import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
 import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
@@ -11,6 +11,7 @@ import { setSettingSystem } from "../../store/settings/settingSystem";
 import Requests from "../../Services/Requests";
 import { getPwdChangeParams } from "../../utils/portalCheck";
 import { hex_md5 } from "../../utils/hex_md5";
+import { setSettingMode } from "../../store/settings/settingMode";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -20,7 +21,9 @@ const defaultValue: Device = {
   password: "", //"Vcc123**",
   username: "", //"admin",
   status: "Online",
-  token: ""
+  token: "",
+  syncMethod: DeviceSyncMethod.PY,
+  connection: "tcp"
 };
 
 
@@ -35,6 +38,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
   useLanguage();
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
   const [valueSelect, setValueSelect] = useState("");
+  const [mode, setMode] = useState("multi_mcc");
 
   useEffect(() => {
     setDevice(props.device || defaultValue);
@@ -53,8 +57,20 @@ const AddDeviceModal = memo(function AddDeviceModal(
     return {
       onNameChange: onChange("name"),
       onDomainChange: onChange("domain"),
+      onIPinChange: onChange("ip"),
+      onPORTinChange: onChange("port"),
       onUserNameChange: onChange("username"),
       onPasswordChange: onChange("password"),
+
+      onConnectionChange: (type: Device["connection"]) =>
+        setDevice((old) => ({
+          ...old,
+          connection: type
+        })),
+
+      onMethodChange: (method: Device["syncMethod"]) => {
+        setDevice((old) => ({ ...old, syncMethod: method }));
+      },
 
       onClientTokenChange: onChange("clientToken"),
       onClientPasswordChange: onChange("clientPassword"),
@@ -70,9 +86,14 @@ const AddDeviceModal = memo(function AddDeviceModal(
     setDevice({
       ...device,
       lastSync: value,
-      startSync:value
+      startSync: value
     });
   }, []);
+
+  const onChangeMode = useCallback((value: any) => {
+    setMode(value);
+    setSettingMode(value);
+  }, [mode]);
 
   const [{}, validateTokenPassword] = useAsyncFn(async () => {
     try {
@@ -81,7 +102,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         token: device.clientToken,
         sysDomain: "base.vn"
       });
-      console.log('a', a);
+      console.log("a", a);
       return a;
     } catch (e) {
       return null;
@@ -151,10 +172,10 @@ const AddDeviceModal = memo(function AddDeviceModal(
         return;
       }
     } catch (e) {
-        Modal.error({
-          title: `${t("unable_login")}`,
-          content: `${t('error_domain')}`
-        });
+      Modal.error({
+        title: `${t("unable_login")}`,
+        content: `${t("error_domain")}`
+      });
       return;
     }
     props.onClose();
@@ -182,23 +203,67 @@ const AddDeviceModal = memo(function AddDeviceModal(
       />
       <br/>
       <br/>
-      <Input
-        addonBefore={"Domain/Admin*"}
-        placeholder={"https://14.241.105.154:8098"}
-        value={device.domain}
-        onChange={values.onDomainChange}
-        disabled={!!props.device}
-      />
+      <span className="ant-input-group-wrapper">
+        <span className="ant-input-wrapper ant-input-group">
+          <span className="ant-input-group-addon">
+            Chọn phiên bản*
+          </span>
+          <SelectDropDown
+            value={mode}
+            onChange={onChangeMode}
+          >
+            <Select.Option value={"multi_mcc"}>Old Manufacturer</Select.Option>
+            <Select.Option value={"zk_teco"}>Zk Bio Security</Select.Option>
+            <Select.Option value={"bio_star"}>Bio Star</Select.Option>
+          </SelectDropDown>
+        </span>
+      </span>
       <br/>
       <br/>
-      <Input
-        addonBefore={"Username*"}
-        placeholder={"Admin"}
-        value={device.username}
-        onChange={values.onUserNameChange}
-      />
+      {
+        mode === "zk_teco" || mode === "bio_star" ?
+          <Input
+            addonBefore={"Domain/Admin*"}
+            placeholder={"https://14.241.105.154:8098"}
+            value={device.domain}
+            onChange={values.onDomainChange}
+            disabled={!!props.device}
+          /> :
+          <>
+            <Input
+              addonBefore={"IP Address*"}
+              placeholder={"Ex:192.168.0.5, 10.20.0.4"}
+              value={device.ip}
+              onChange={values.onIPinChange}
+              disabled={!!props.device}
+            />
+            <br/>
+            <br/>
+            <Input
+              addonBefore={"Port*"}
+              placeholder={"Ex: 4370"}
+              value={device.port}
+              onChange={values.onPORTinChange}
+              disabled={!!props.device}
+            />
+          </>
+      }
       <br/>
       <br/>
+      {
+        (mode === "zk_teco" || mode == "bio_star") &&
+        <>
+          <Input
+            addonBefore={"Username*"}
+            placeholder={"Admin"}
+            value={device.username}
+            onChange={values.onUserNameChange}
+          />
+          <br/>
+          <br/>
+        </>
+
+      }
       <Input.Password
         addonBefore={"Password*"}
         placeholder={"Admin"}
@@ -223,27 +288,111 @@ const AddDeviceModal = memo(function AddDeviceModal(
         onChange={values.onClientPasswordChange}
       />
       {
-        device.startSync
-          ? <>
+        mode == 'bio_star' &&
+          <>
             <br/>
             <br/>
-            <Input.Group compact={true}>
-              <Input disabled={true} style={{ width: 160 }} value={t<string>("sync_data_from")}/>
-              <DatePicker
-                showTime={{ format: "DD/MM/YYYY HH:mm" }}
-                format="DD/MM/YYYY HH:mm:ss"
-                onOk={(value: any) => {
-                  onLastSyncChange(value.unix() * 1000);
-                }}
-                placeholder={""}
-                value={moment(device.startSync)}
-              />
-            </Input.Group>
-
+            <Input
+            addonBefore={'Cửa nhận log (Danh sách ID cửa)'}
+            placeholder={'5419191, 5356245, ..... '}
+            value={device.doors || ''}
+            onChange={values.onDoorChange}
+            />
           </>
-          : null
+      }
+      {mode == 'multi_mcc' &&
+      <>
+        <br/>
+        <br/>
+        <span className="ant-input-group-wrapper">
+        <span className="ant-input-wrapper ant-input-group">
+          <span className="ant-input-group-addon">
+                  Connection Type
+          </span>
+          <SelectDropDown
+            value={device.connection}
+            onChange={values.onConnectionChange}
+          >
+            <Select.Option value={"tcp"}>TCP</Select.Option>
+            <Select.Option value={"udp"}>UDP</Select.Option>
+          </SelectDropDown>
+        </span>
+      </span>
+      </>
       }
 
+      {device.syncMethod !== DeviceSyncMethod.PY && mode === "multi_mcc" && (
+        <>
+          <br/>
+          <br/>
+          <Input
+            addonBefore={"Heartbeat rate"}
+            placeholder={"The rate to  check the connection between this app and the attendance machine. If your machine is low=end or not performance, you should set"}
+            addonAfter={"minutes"}
+            value={device.heartbeat || 1}
+            onChange={values.onHeartbeatChange}
+            type={"number"}
+            step={1}
+            min={1}
+          />
+        </>
+      )}
+      {
+        mode === "multi_mcc" &&
+        <>
+          <p>{"The rate to  check the connection between this app and the attendance machine. If your machine is low=end or not performance, you should set"}</p>
+          <Input
+            addonBefore={"Auto reconnect rate"}
+            placeholder={"The rate that this app will reconnect to the attendance machine if not connectedThe rate that this app will reconnect to the attendance machine if not connected"}
+            addonAfter={"seconds"}
+            value={device.autoReconnect || 30}
+            onChange={values.onAutoReconnectChange}
+            type={"number"}
+            step={30}
+            min={30}
+            inputMode={"decimal"}
+          />
+          <p>{"The rate to  check the connection between this app and the attendance machine. If your machine is low=end or not performance, you should set"}</p>
+          <span className="ant-input-group-wrapper">
+        <span className="ant-input-wrapper ant-input-group">
+          <span className="ant-input-group-addon">
+            Sync method
+          </span>
+          <SelectDropDown
+            value={device.syncMethod || DeviceSyncMethod.PY}
+            onChange={values.onMethodChange}
+          >
+            <Select.Option value={DeviceSyncMethod.PY}>Pyatt</Select.Option>
+            <Select.Option value={DeviceSyncMethod.LARGE_DATASET}>
+              Large dataset
+            </Select.Option>
+            <Select.Option value={DeviceSyncMethod.LEGACY}>
+              Legacy
+            </Select.Option>
+          </SelectDropDown>
+        </span>
+      </span>
+        </>
+      }
+      {
+        device.startSync && (mode === " zk_teco" || mode === "bio_star") &&
+        <>
+          <br/>
+          <br/>
+          <Input.Group compact={true}>
+            <Input disabled={true} style={{ width: 160 }} value={t<string>("sync_data_from")}/>
+            <DatePicker
+              showTime={{ format: "DD/MM/YYYY HH:mm" }}
+              format="DD/MM/YYYY HH:mm:ss"
+              onOk={(value: any) => {
+                onLastSyncChange(value.unix() * 1000);
+              }}
+              placeholder={""}
+              value={moment(device.startSync)}
+            />
+          </Input.Group>
+        </>
+      }
     </Modal>
   );
 });
@@ -269,5 +418,6 @@ display: flex;
 `;
 
 const SelectDropDown = styled(Select)`
-flex: 1
+flex: 1;
+width: 100%;
 `;

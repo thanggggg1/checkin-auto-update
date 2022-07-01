@@ -152,7 +152,6 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       setSettingSystem({ ..._device, syncTime: moment().valueOf() });
       await timeSleep(3);
       if (result.length) {
-        console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));
         syncAttendanceRecords(result);
         const __device = getSettingSystem();
 

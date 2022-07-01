@@ -6,17 +6,16 @@ import AddDeviceModal from "../../AddDeviceModal";
 import useBoolean from "../../../hooks/useBoolean";
 import { useAsyncFn } from "react-use";
 import { timeSleep } from "../../../utils/sleep";
+import { getSettingMode } from "../../../store/settings/settingMode";
 
 const DeviceActions = memo(function DeviceActions(props) {
   useLanguage();
-
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
   const {
     deleteDevice,
-    device
+    device,
   } = useCurrentDevice();
-
 
 
   const [{ loading }, deleteDeviceConfirm] = useAsyncFn( async () => {
@@ -35,6 +34,7 @@ const DeviceActions = memo(function DeviceActions(props) {
     });
   }, [deleteDevice]);
 
+
   return (
     <Menu {...props}>
       {/*<Menu.Item*/}
@@ -49,9 +49,9 @@ const DeviceActions = memo(function DeviceActions(props) {
       {/*>*/}
       {/*  <span>{t("disable")}</span>*/}
       {/*</Menu.Item>*/}
-      <Menu.Item onClick={showEditDevice}>
-        <span>{t("edit")}</span>
-      </Menu.Item>
+      {/*<Menu.Item onClick={showEditDevice}>*/}
+      {/*  <span>{t("edit")}</span>*/}
+      {/*</Menu.Item>*/}
       <AddDeviceModal
         onClose={hideEditDevice}
         visible={isEditDeviceVisible}

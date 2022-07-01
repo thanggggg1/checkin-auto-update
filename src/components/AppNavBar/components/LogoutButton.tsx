@@ -15,6 +15,7 @@ const LogoutButton = memo(function LogoutButton() {
         Fetch.setToken({
           token: "",
           password: "",
+          sysDomain:''
         });
       },
       ...antdModalLanguageProps

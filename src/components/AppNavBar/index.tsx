@@ -1,15 +1,10 @@
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import { styled } from "../../global";
-import { Button, Row } from "antd";
-import Fetch from "../../utils/Fetch";
+import { Row } from "antd";
 import PushButton from "./components/PushButton";
 import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
-import { requestEventLog } from "../../store/devices/functions";
-import { getSettingSystem, setSettingSystem, useSettingSystem } from "../../store/settings/settingDevice";
-import { getPwdChangeParams } from '../../utils/portalCheck';
-import { useCurrentDevice } from "../DevicesRow/context";
 
 
 const AppNavBar = memo(function AppNavBar() {

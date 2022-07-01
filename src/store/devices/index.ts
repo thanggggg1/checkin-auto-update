@@ -8,12 +8,9 @@ export enum DeviceSyncMethod {
 }
 
 export interface Device {
-  syncMethod?: void;
   name: string;
-  timeout?: number;
-  heartbeat?: number;
-  autoReconnect?: number;
   ip?:number;
+  port?:number;
 
   domain: string; // key
   username: string;
@@ -30,6 +27,16 @@ export interface Device {
   syncing?: boolean
   doors?: string // BR-ACS-1F-02, BR-ACS-1F-09...
   status: "Online" | "Offline"
+
+
+  connection:"tcp"| "udp" ;
+  inport?:number;
+  timeout?: number;
+  heartbeat?: number;
+  autoReconnect?: number;
+  syncMethod?: DeviceSyncMethod;
+
+
 }
 
 export const {

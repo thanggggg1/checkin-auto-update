@@ -10,6 +10,8 @@ import {
 } from "../../../store/settings/languages";
 import _ from "lodash";
 
+
+// Biostar va zkBiosecurity khong dung
 const LoginButton = memo(function LoginButton() {
   useLanguage();
   const [visible, toggle] = useBoolean(false);
