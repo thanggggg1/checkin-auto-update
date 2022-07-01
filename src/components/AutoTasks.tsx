@@ -126,7 +126,7 @@ export const AutoTasks = memo(function AutoTasks() {
           }
 
         } catch (e) {
-          console.log("Should cancel timerange error", e);
+          console.log("Should cancel timeRange error", e);
           return true;
         }
       })();

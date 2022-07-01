@@ -83,7 +83,7 @@ const Fetch = {
         client_password: token.password,
       });
       // if not response error, set Token
-      // setToken(token);
+      return token
     } catch (e) {
       if (e.message === "INVALID_EMPLOYEE") {
         // setToken(token);

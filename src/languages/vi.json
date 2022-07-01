@@ -51,7 +51,7 @@
   "password_from_checkin_client": "Mật khẩu lấy từ Checkin client",
   "sync_desc": "Tải về các bản ghi từ toàn bộ các máy chấm công đã được thêm",
   "push_desc": "Đẩy các bản ghi lên Base HRM",
-  "device_name": "Tên hệ thống",
+  "device_name": "Tên hệ thống/thiết bị",
   "device_ip": "Địa chỉ IP",
   "device_port": "Cổng kết nối",
   "device_name_placeholder": "Ví dụ: Cửa chính",

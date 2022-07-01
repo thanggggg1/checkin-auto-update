@@ -51,7 +51,7 @@
   "password_from_checkin_client": "Password from Checkin client",
   "sync_desc": "Download all logs from all added devices",
   "push_desc": "Push logs to Base HRM",
-  "device_name": "System name",
+  "device_name": "System/Device name",
   "device_ip": "IP Address",
   "device_port": "Port",
   "device_name_placeholder": "Ex: Main door",
