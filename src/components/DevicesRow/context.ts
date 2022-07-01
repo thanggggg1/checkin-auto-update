@@ -25,9 +25,9 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
     [_setSyncPercent]
   );
-  const newDevice={...device}
+  const newDevice=getSettingSystem();
   if(!newDevice.startSync){
-    syncDevices([{...device,startSync:moment().subtract(6, "months").valueOf()}])
+    setSettingSystem([{...device,startSync:moment().subtract(6, "months").valueOf()}])
   }
 
   /**
@@ -127,6 +127,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       //   Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
       //   return;
       // }
+
       const result: AttendanceRecord[] = [];
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]?.data || undefined;

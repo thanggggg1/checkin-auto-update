@@ -7,7 +7,7 @@ import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { styled } from "../../global";
-import { setSettingSystem } from "../../store/settings/settingSystem";
+import { getSettingSystem, setSettingSystem } from "../../store/settings/settingSystem";
 import Requests from "../../Services/Requests";
 import { getPwdChangeParams } from "../../utils/portalCheck";
 import { hex_md5 } from "../../utils/hex_md5";
@@ -39,6 +39,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
   const [valueSelect, setValueSelect] = useState("");
   const [mode, setMode] = useState("multi_mcc");
+  const _device =getSettingSystem();
 
   useEffect(() => {
     setDevice(props.device || defaultValue);
@@ -375,7 +376,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {
-        device.startSync && (mode === " zk_teco" || mode === "bio_star") &&
+        _device.startSync && (mode === " zk_teco" || mode === "bio_star") &&
         <>
           <br/>
           <br/>
@@ -388,7 +389,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
                 onLastSyncChange(value.unix() * 1000);
               }}
               placeholder={""}
-              value={moment(device.startSync)}
+              value={moment(_device.startSync)}
             />
           </Input.Group>
         </>
