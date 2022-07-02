@@ -376,7 +376,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {
-        _device.startSync && (mode === " zk_teco" || mode === "bio_star") &&
+        _device.startSync && (mode === "zk_teco" || mode === "bio_star") &&
         <>
           <br/>
           <br/>

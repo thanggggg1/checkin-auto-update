@@ -25,9 +25,10 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
     [_setSyncPercent]
   );
-  const newDevice=getSettingSystem();
-  if(!newDevice.startSync){
-    setSettingSystem([{...device,startSync:moment().subtract(6, "months").valueOf()}])
+
+  const __newDevice=getSettingSystem();
+  if(!__newDevice.startSync){
+    setSettingSystem({...__newDevice,startSync:moment().subtract(6, "months").valueOf()})
   }
 
   /**
@@ -38,14 +39,13 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     { loading: isGettingAttendances },
     syncAttendances
   ] = useAsyncFn(async () => {
-
+let newDevice = {...device}
     let canSync = true;
 
     while (canSync) {
       // if (!newDevice.sessionId) {
       //   continue;
       // }
-
 
       let _device = getSettingSystem();
       if (!_device.domain) {
