@@ -213,23 +213,29 @@ const AddDeviceModal = memo(function AddDeviceModal(
             value={mode}
             onChange={onChangeMode}
           >
-            <Select.Option value={"multi_mcc"}>Old Manufacturer</Select.Option>
-            <Select.Option value={"zk_teco"}>Zk Bio Security</Select.Option>
+            <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
+            <Select.Option
+              disabled={!!getSettingSystem().domain}
+              value={"zk_teco"}>Zk Bio Security</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>
         </span>
       </span>
       <br/>
-      <br/>
+      {
+        _device.domain &&  <p style={{fontStyle:'italic'}}>{"*You can only add one system of ZkBioSecurity*"}</p>
+      }
       {
         mode === "zk_teco" || mode === "bio_star" ?
+          <>
           <Input
             addonBefore={"Domain/Admin*"}
             placeholder={"https://14.241.105.154:8098"}
             value={device.domain}
             onChange={values.onDomainChange}
             disabled={!!props.device}
-          /> :
+          />
+          </>:
           <>
             <Input
               addonBefore={"IP Address*"}
@@ -263,7 +269,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
           <br/>
           <br/>
         </>
-
       }
       <Input.Password
         addonBefore={"Password*"}

@@ -94,12 +94,7 @@ const DevicesRow = memo(function DevicesRow() {
           />;
         })
         }
-        {
-          Object.values(devices).length==0 ? <AddButton type={"dashed"} onClick={values.openModal}>
-            + {t("add_device")}
-          </AddButton> : null
-        }
-
+     <AddButton type={"dashed"} onClick={values.openModal}>+ {t("add_device")}</AddButton>
       </Wrapper>
       <AddDeviceModal
         visible={isAddDeviceModalVisible}

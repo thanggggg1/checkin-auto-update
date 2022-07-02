@@ -3,7 +3,12 @@ import { deleteDevices, Device, resetDevices, syncDevices } from "../../store/de
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAsyncFn } from "react-use";
 import _ from "lodash";
-import { requestEventLog, requestLoginDevice } from "../../store/devices/functions";
+import {
+  requestEventLogBioStar,
+  requestEventLogZkBio,
+  requestLoginDevice,
+  requestLoginDeviceBioStar
+} from "../../store/devices/functions";
 import moment from "moment";
 import { FormatDateSearch, MaxEvenEachRequest } from "../../store/devices/types";
 import { Events, events } from "../../utils/events";
@@ -12,6 +17,8 @@ import { timeSleep } from "../../utils/sleep";
 import Fetch from "../../utils/Fetch";
 import { getSyncing } from "../../store/settings/autoPush";
 import { clearSettingSystem, getSettingSystem, setSettingSystem } from "../../store/settings/settingSystem";
+import { Modal } from "antd";
+import { getDeviceById } from "../../store/devices/actions";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -39,25 +46,34 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     { loading: isGettingAttendances },
     syncAttendances
   ] = useAsyncFn(async () => {
-let newDevice = {...device}
+let BioStarDevice = {...device};
+
     let canSync = true;
 
+    let lastSyncBioStarDevices = BioStarDevice.lastSync ?
+      moment(BioStarDevice.lastSync).subtract(7,'hours').format(FormatDateSearch.normal)
+      : moment().subtract(1,'months').format(FormatDateSearch.start)
+
+    let hint ='';
     while (canSync) {
-      // if (!newDevice.sessionId) {
-      //   continue;
-      // }
+      if (!BioStarDevice.sessionId) {
+        continue;
+      }
+      let lastSyncZkBio = '';
 
       let _device = getSettingSystem();
-      if (!_device.domain) {
-        canSync = false
+      const __device =getDeviceById(BioStarDevice.domain)
+
+      // Lay last sync cua zkteco
+      if (_device.domain) {
+         lastSyncZkBio = _device.lastSync
+          ? moment(_device.lastSync).format(FormatDateSearch.normal)
+          : moment().subtract(6, "months").format(FormatDateSearch.start);
       }
 
-      let lastSync = _device.lastSync
-        ? moment(_device.lastSync).format(FormatDateSearch.normal)
-        : moment().subtract(6, "months").format(FormatDateSearch.start);
+      // Lay last sync cua biostar
+      lastSyncBioStarDevices = moment(__device.lastSync).subtract(7,'hours').format(FormatDateSearch.normal)
 
-
-      console.log('LAST SEENNNNNNN', lastSync);
 
       const syncing = getSyncing();
 
@@ -67,6 +83,7 @@ let newDevice = {...device}
       }
       setSyncPercent(0);
 
+      //Handle sync ZkBioSecurity
       if (_device.domain && _device.status === "Offline") {
         await timeSleep(10);
         await requestLoginDevice({
@@ -79,13 +96,11 @@ let newDevice = {...device}
         continue;
       }
 
-      console.log("LAST SYNCC", lastSync);
-
       _device = getSettingSystem();
 
-      let data = await requestEventLog({
+      let data = await requestEventLogZkBio({
         domain: _device.domain,
-        startTime: lastSync,
+        startTime: lastSyncZkBio,
         endTime: moment().format(FormatDateSearch.end),
         token: _device.token
       });
@@ -101,41 +116,48 @@ let newDevice = {...device}
         events.emit(Events.SYNC_DONE);
         continue;
       }
-      let rows = JSON.parse(data || "{rows: []}").rows;
-      console.log("length", rows.length);
+      let rowsZkBio = JSON.parse(data || "{rows: []}").rows;
 
-      // if (rows === 401) {
-      //   const res = await requestLoginDevice({
-      //     domain: newDevice.domain,
-      //     username: newDevice.username,
-      //     password: newDevice.password
-      //   });
-      //   if (res.error) {
-      //     Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
-      //     return;
-      //   } else {
-      //     newDevice = { ...newDevice, sessionId: res.sessionId };
-      //     syncDevices([newDevice]);
-      //     rows = await requestEventLog({
-      //       sessionId: newDevice.sessionId,
-      //       from: lastSync,
-      //       domain: newDevice.domain
-      //     });
-      //   }
-      // }
-      // if (typeof rows === "number") {
-      //   Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
-      //   return;
-      // }
+      //Handle sync BioStar
+      let rowsBioStar = await requestEventLogBioStar({
+        sessionId: BioStarDevice.sessionId,
+        from: lastSyncBioStarDevices,
+        domain: device.domain,
+        hint
+      });
+      if (rowsBioStar === 401) {
+        const res = await requestLoginDeviceBioStar({
+          domain: BioStarDevice.domain,
+          username: BioStarDevice.username,
+          password: BioStarDevice.password
+        });
+        if (res.error) {
+          Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
+          return;
+        } else {
+          BioStarDevice = { ...BioStarDevice, sessionId: res.sessionId };
+          syncDevices([BioStarDevice]);
+          rowsBioStar = await requestEventLogBioStar({
+            sessionId: BioStarDevice.sessionId,
+            from: lastSyncBioStarDevices,
+            domain: BioStarDevice.domain
+          });
+        }
+      }
+      if (typeof rowsBioStar === "number") {
+        Modal.error({ title: "Đăng nhập vào máy " + BioStarDevice.name + " không thành công!!!" });
+        return;
+      }
+
 
       const result: AttendanceRecord[] = [];
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i]?.data || undefined;
+      const doors = (__device?.doors || '').split(',').map(item=>item.trim()).filter(Boolean)
+      for (let i = 0; i < rowsZkBio.length; i++) {
+        const row = rowsZkBio[i]?.data || undefined;
         if (!row || !Array.isArray(row) || row[0] <= 0) {
           continue;
         }
         const mm = moment(row[1], "YYYY-MM-DD HH:mm:ss");
-
 
         if (row[7] > 0) {
           result.push({
@@ -188,7 +210,7 @@ let newDevice = {...device}
       } else {
         await timeSleep(3);
       }
-      if (rows?.length < MaxEvenEachRequest) {
+      if (rowsZkBio?.length < MaxEvenEachRequest) {
         canSync = false;
         events.emit(Events.SYNC_DONE);
       }
