@@ -1,12 +1,13 @@
 import constate from "constate";
-import { deleteDevices, Device, resetDevices, syncDevices } from "../../store/devices";
+import { deleteDevices, Device, syncDevices } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAsyncFn } from "react-use";
 import _ from "lodash";
 import {
   requestEventLogBioStar,
   requestEventLogZkBio,
-  requestLoginDeviceBioStar, requestLoginDeviceZkBio
+  requestLoginDeviceBioStar,
+  requestLoginDeviceZkBio
 } from "../../store/devices/functions";
 import moment from "moment";
 import { FormatDateSearch, MaxEvenEachRequest } from "../../store/devices/types";
@@ -15,9 +16,13 @@ import { AttendanceRecord, filterRecords, getAllRecordsArr, syncAttendanceRecord
 import { timeSleep } from "../../utils/sleep";
 import Fetch from "../../utils/Fetch";
 import { getSyncing } from "../../store/settings/autoPush";
-import { clearSettingSystem, getSettingSystem, setSettingSystem } from "../../store/settings/settingSystem";
 import { Modal } from "antd";
 import { getDeviceById } from "../../store/devices/actions";
+import {
+  clearSettingZkBioSystem,
+  getSettingZkBioSystem,
+  setSettingZkBioSystem
+} from "../../store/settings/settingZkBioSystem";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -32,11 +37,6 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     [_setSyncPercent]
   );
 
-  const __newDevice=getSettingSystem();
-  if(!__newDevice.startSync){
-    setSettingSystem({...__newDevice,startSync:moment().subtract(6, "months").valueOf()})
-  }
-
   /**
    * SYNC ATTENDANCES
    */
@@ -45,33 +45,33 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     { loading: isGettingAttendances },
     syncAttendances
   ] = useAsyncFn(async () => {
-let BioStarDevice = {...device};
+    let BioStarDevice = { ...device };
 
     let canSync = true;
 
     let lastSyncBioStarDevices = BioStarDevice.lastSync ?
-      moment(BioStarDevice.lastSync).subtract(7,'hours').format(FormatDateSearch.normal)
-      : moment().subtract(1,'months').format(FormatDateSearch.start)
+      moment(BioStarDevice.lastSync).subtract(7, "hours").format(FormatDateSearch.normal)
+      : moment().subtract(1, "months").format(FormatDateSearch.start);
 
-    let hint ='';
+    let hint = "";
     while (canSync) {
       if (!BioStarDevice.sessionId) {
         continue;
       }
-      let lastSyncZkBio = '';
+      let lastSyncZkBio = "";
 
-      let _device = getSettingSystem();
-      const __device =getDeviceById(BioStarDevice.domain)
+      let _ZkBioSystem = getSettingZkBioSystem();
+      const __device = getDeviceById(BioStarDevice.domain);
 
       // Lay last sync cua zkteco
-      if (_device.domain) {
-         lastSyncZkBio = _device.lastSync
-          ? moment(_device.lastSync).format(FormatDateSearch.normal)
+      if (_ZkBioSystem.domain) {
+        lastSyncZkBio = _ZkBioSystem.lastSync
+          ? moment(_ZkBioSystem.lastSync).format(FormatDateSearch.normal)
           : moment().subtract(6, "months").format(FormatDateSearch.start);
       }
 
       // Lay last sync cua biostar
-      lastSyncBioStarDevices = moment(__device.lastSync).subtract(7,'hours').format(FormatDateSearch.normal)
+      lastSyncBioStarDevices = moment(__device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
 
 
       const syncing = getSyncing();
@@ -83,35 +83,36 @@ let BioStarDevice = {...device};
       setSyncPercent(0);
 
       //Handle sync ZkBioSecurity
-      if (_device.domain && _device.status === "Offline") {
+      if (_ZkBioSystem.domain && _ZkBioSystem.status === "Offline") {
         await timeSleep(10);
         await requestLoginDeviceZkBio({
-          domain: _device.domain,
-          username: _device.username,
-          password: _device.password
+          domain: _ZkBioSystem.domain,
+          username: _ZkBioSystem.username,
+          password: _ZkBioSystem.password
         });
         canSync = false;
         events.emit(Events.SYNC_DONE);
         continue;
       }
 
-      _device = getSettingSystem();
+      _ZkBioSystem = getSettingZkBioSystem();
+      console.log("systemBio", _ZkBioSystem);
 
       let data = await requestEventLogZkBio({
-        domain: _device.domain,
+        domain: _ZkBioSystem.domain,
         startTime: lastSyncZkBio,
         endTime: moment().format(FormatDateSearch.end),
-        token: _device.token
+        token: _ZkBioSystem.token
       });
 
       //kiem tra neu token het han
       if (!data || data === 401) {
         await requestLoginDeviceZkBio({
-          domain: _device.domain,
-          username: _device.username,
-          password: _device.password
+          domain: _ZkBioSystem.domain,
+          username: _ZkBioSystem.username,
+          password: _ZkBioSystem.password
         });
-        canSync=false;
+        canSync = false;
         events.emit(Events.SYNC_DONE);
         continue;
       }
@@ -150,7 +151,7 @@ let BioStarDevice = {...device};
 
 
       const result: AttendanceRecord[] = [];
-      const doors = (__device?.doors || '').split(',').map(item=>item.trim()).filter(Boolean)
+      const doors = (__device?.doors || "").split(",").map(item => item.trim()).filter(Boolean);
       for (let i = 0; i < rowsZkBio.length; i++) {
         const row = rowsZkBio[i]?.data || undefined;
         if (!row || !Array.isArray(row) || row[0] <= 0) {
@@ -164,27 +165,27 @@ let BioStarDevice = {...device};
             timeFormatted: mm.format("HH:mm:ss"),
             dateFormatted: mm.format("DD/MM/YYYY"),
             deviceName: row[3],
-            deviceIp: _device.domain,
+            deviceIp: _ZkBioSystem.domain,
             //@ts-ignore
             uid: row[7],
             id: `${row[0]}_${mm.valueOf()}`
           });
         }
       }
-      setSettingSystem({ ..._device, syncTime: moment().valueOf() });
+      setSettingZkBioSystem({ ..._ZkBioSystem, syncTime: moment().valueOf() });
       await timeSleep(3);
       if (result.length) {
         syncAttendanceRecords(result);
-        const __device = getSettingSystem();
+        const __ZkBioSystem = getSettingZkBioSystem();
 
-        if (__device.domain) setSettingSystem({
-          ...__device,
+        if (__ZkBioSystem.domain) setSettingZkBioSystem({
+          ...__ZkBioSystem,
           lastSync: result[result.length - 1].timestamp
-        }) && syncDevices([{ ...__device, lastSync: result[result.length - 1].timestamp }]);
+        }) && syncDevices([{ ...__ZkBioSystem, lastSync: result[result.length - 1].timestamp }]);
         await timeSleep(2);
 
         // const _currentDevice = getDeviceById(__device.domain);
-        if (!__device) {
+        if (!__ZkBioSystem) {
           canSync = false;
           events.emit(Events.SYNC_DONE);
           return;
@@ -229,8 +230,7 @@ let BioStarDevice = {...device};
 
   const deleteDevice = useCallback(() => {
     deleteDevices([device.domain]);
-    resetDevices();
-    clearSettingSystem();
+    clearSettingZkBioSystem();
   }, []);
 
 

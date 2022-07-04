@@ -7,7 +7,8 @@ import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
-import { getSettingSystem } from "../../store/settings/settingSystem";
+import { getSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import DeviceZkBioItem from "./DeviceZkBio";
 
 
 const DevicesRow = memo(function DevicesRow() {
@@ -16,11 +17,21 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
-  const _device=getSettingSystem();
+  const _ZkBioSystem=getSettingZkBioSystem();
+
+  // useEffect(()=>{
+  //   if(_ZkBioSystem.domain && !turnSyncIP)
+  //   {
+  //     setTurnSyncIP(_ZkBioSystem.domain)
+  //     events.on(Events.MASS_SYNC);
+  //
+  //   }
+  // },[_ZkBioSystem])
+
 
   useEffect(() => {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
-    if (turnSyncIP && turnSyncIP === _device.domain) {
+    if (turnSyncIP) {
       return;
     }
     const _t = setInterval(() => {
@@ -35,9 +46,11 @@ const DevicesRow = memo(function DevicesRow() {
 
   useEffect(() => {
     // handle chuc nang sync khi ng dung nhan vao chu syncAll
+    console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
+
     const handler = () => {
 
-      if (turnSyncIP  && turnSyncIP === _device.domain) {
+      if (turnSyncIP) {
         return;
       }
 
@@ -46,7 +59,6 @@ const DevicesRow = memo(function DevicesRow() {
         setTurnSyncIP(_devices[0].domain);
       }
     };
-
     events.on(Events.MASS_SYNC, handler);
     return () => {
       events.off(Events.MASS_SYNC, handler);
@@ -55,11 +67,12 @@ const DevicesRow = memo(function DevicesRow() {
 
   useEffect(() => {
     // handle TH khi ma sync xong 1 cai thi can next sang cai tiep theo
+    console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
+
     const handler = () => {
       const _devices = Object.values(devices || {});
       const currentIndex = _devices.findIndex(item => item.domain === turnSyncIP);
       if (currentIndex > -1 && currentIndex < _devices.length) {
-
         if (currentIndex + 1 === _devices.length) {
           setTurnSyncIP("");
         } else {
@@ -83,7 +96,6 @@ const DevicesRow = memo(function DevicesRow() {
   }, []);
   console.log('turn sync ip',turnSyncIP);
 
-
   return (
     <>
       <Wrapper>
@@ -93,6 +105,9 @@ const DevicesRow = memo(function DevicesRow() {
                              syncTurn={device.domain === turnSyncIP}
           />;
         })
+        }
+        {
+          _ZkBioSystem.domain && <DeviceZkBioItem syncTurn={_ZkBioSystem.domain === turnSyncIP} device={_ZkBioSystem}/>
         }
      <AddButton type={"dashed"} onClick={values.openModal}>+ {t("add_device")}</AddButton>
       </Wrapper>

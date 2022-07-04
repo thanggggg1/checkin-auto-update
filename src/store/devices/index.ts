@@ -29,7 +29,7 @@ export interface Device {
   status: "Online" | "Offline"
 
 
-  connection:"tcp"| "udp" ;
+  connection?:"tcp"| "udp" ;
   inport?:number;
   timeout?: number;
   heartbeat?: number;
