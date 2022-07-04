@@ -6,8 +6,7 @@ import _ from "lodash";
 import {
   requestEventLogBioStar,
   requestEventLogZkBio,
-  requestLoginDevice,
-  requestLoginDeviceBioStar
+  requestLoginDeviceBioStar, requestLoginDeviceZkBio
 } from "../../store/devices/functions";
 import moment from "moment";
 import { FormatDateSearch, MaxEvenEachRequest } from "../../store/devices/types";
@@ -86,7 +85,7 @@ let BioStarDevice = {...device};
       //Handle sync ZkBioSecurity
       if (_device.domain && _device.status === "Offline") {
         await timeSleep(10);
-        await requestLoginDevice({
+        await requestLoginDeviceZkBio({
           domain: _device.domain,
           username: _device.username,
           password: _device.password
@@ -107,7 +106,7 @@ let BioStarDevice = {...device};
 
       //kiem tra neu token het han
       if (!data || data === 401) {
-        await requestLoginDevice({
+        await requestLoginDeviceZkBio({
           domain: _device.domain,
           username: _device.username,
           password: _device.password
