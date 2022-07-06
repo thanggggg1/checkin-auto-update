@@ -23,10 +23,8 @@ const DevicesRow = memo(function DevicesRow() {
   //   if(_ZkBioSystem.domain && !turnSyncIP)
   //   {
   //     setTurnSyncIP(_ZkBioSystem.domain)
-  //     events.on(Events.MASS_SYNC);
-  //
   //   }
-  // },[_ZkBioSystem])
+  // },[_ZkBioSystem.domain])
 
 
   useEffect(() => {
