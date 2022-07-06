@@ -23,8 +23,9 @@ const DevicesRow = memo(function DevicesRow() {
   //   if(_ZkBioSystem.domain && !turnSyncIP)
   //   {
   //     setTurnSyncIP(_ZkBioSystem.domain)
+  //     console.log('abcabcabc');
   //   }
-  // },[_ZkBioSystem.domain])
+  // },[turnSyncIP])
 
 
   useEffect(() => {
@@ -97,6 +98,9 @@ const DevicesRow = memo(function DevicesRow() {
   return (
     <>
       <Wrapper>
+        {
+          getSettingZkBioSystem().domain ? <DeviceZkBioItem syncTurn={_ZkBioSystem.domain === turnSyncIP} device={_ZkBioSystem}/> : null
+        }
         {Object.values(devices).map((device) => {
           return <DeviceItem key={device.domain}
                              device={device}
@@ -104,9 +108,7 @@ const DevicesRow = memo(function DevicesRow() {
           />;
         })
         }
-        {
-          _ZkBioSystem.domain && <DeviceZkBioItem syncTurn={_ZkBioSystem.domain === turnSyncIP} device={_ZkBioSystem}/>
-        }
+
      <AddButton type={"dashed"} onClick={values.openModal}>+ {t("add_device")}</AddButton>
       </Wrapper>
       <AddDeviceModal

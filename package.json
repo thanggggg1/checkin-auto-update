@@ -95,7 +95,11 @@
       "icon": "./assets/AppIcon.icns"
     },
     "win": {
-      "icon": "./assets/AppIcon.ico"
+      "icon": "./assets/AppIcon.ico",
+      "target": ["portable"]
+    },
+    "portable": {
+      "artifactName": "BaseCheckinClientV3_portable.exe"
     },
     "files": [
       "!node_modules/**/*",
