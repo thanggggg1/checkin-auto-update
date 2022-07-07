@@ -3,18 +3,18 @@ import { Device } from "../../store/devices";
 import { Card } from "antd";
 import { styled } from "../../global";
 import DeviceItemExtra from "./DeviceItemExtra";
-import { ConnectionState, DeviceProvider, useCurrentDevice } from "./context";
+import { DeviceProvider } from "./context";
 import SyncTag from "./tags/SyncTag";
 import { t, useLanguage } from "../../store/settings/languages";
 import moment from "moment";
 import { useSyncing } from "../../store/settings/autoPush";
-import {getSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import { getSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
 
 
 const DeviceZkBioInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean }) {
   useLanguage();
   const syncing = useSyncing();
-  const _ZkBioSystem=getSettingZkBioSystem();
+  const _ZkBioSystem = getSettingZkBioSystem();
 
   const openHref = () => {
     const shell = require("electron").shell;
@@ -29,23 +29,33 @@ const DeviceZkBioInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boole
       {
         syncTurn && syncing === "1"
           ? <InfoRow>
-            {t('auto_syncing')}
+            {t("auto_syncing")}
           </InfoRow>
           : null
       }
       <InfoRow>
-        {t('newest_eventLog')}:
+        {t("newest_eventLog")}:
         {
-          _ZkBioSystem?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(_ZkBioSystem.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
+          _ZkBioSystem?.lastSync ? <div style={{
+            fontWeight: "bold",
+            paddingLeft: 8
+          }}>{" "}{moment(_ZkBioSystem.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
         }
       </InfoRow>
       <InfoRow>
-        {t('last_auto_sync')}:
+        {t("last_auto_sync")}:
         {
-          _ZkBioSystem?.syncTime ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(_ZkBioSystem.syncTime).format("DD-MM-YYYY HH:mm")}</div> : null
+          _ZkBioSystem?.syncTime ? <div style={{
+            fontWeight: "bold",
+            paddingLeft: 8
+          }}>{" "}{moment(_ZkBioSystem.syncTime).format("DD-MM-YYYY HH:mm")}</div> : null
         }
       </InfoRow>
-      <InfoRow>{t('status')}: <div style={{fontWeight:'bold',paddingLeft:8,color: _ZkBioSystem?.status == 'Online' ? '#64ef64' : 'red'}}>{_ZkBioSystem?.status}</div></InfoRow>
+      <InfoRow>{t("status")}: <div style={{
+        fontWeight: "bold",
+        paddingLeft: 8,
+        color: _ZkBioSystem?.status == "Online" ? "#64ef64" : "red"
+      }}>{_ZkBioSystem?.status}</div></InfoRow>
       <TagsWrapper>
         <SyncTag/>
       </TagsWrapper>

@@ -7,7 +7,7 @@ import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
-import { getSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import { getSettingZkBioSystem, useSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
 import DeviceZkBioItem from "./DeviceZkBio";
 
 
@@ -17,7 +17,7 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
-  const _ZkBioSystem=getSettingZkBioSystem();
+  const _ZkBioSystem=useSettingZkBioSystem();
 
   // useEffect(()=>{
   //   if(_ZkBioSystem.domain && !turnSyncIP)
@@ -25,7 +25,7 @@ const DevicesRow = memo(function DevicesRow() {
   //     setTurnSyncIP(_ZkBioSystem.domain)
   //     console.log('abcabcabc');
   //   }
-  // },[turnSyncIP])
+  // },[_ZkBioSystem.domain])
 
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const DevicesRow = memo(function DevicesRow() {
     return () => {
       events.off(Events.SYNC_DONE, handler);
     };
-  }, [turnSyncIP, devices]);
+  }, [turnSyncIP, devices,_ZkBioSystem]);
 
   const values = useMemo(() => {
     return {
@@ -99,7 +99,7 @@ const DevicesRow = memo(function DevicesRow() {
     <>
       <Wrapper>
         {
-          getSettingZkBioSystem().domain ? <DeviceZkBioItem syncTurn={_ZkBioSystem.domain === turnSyncIP} device={_ZkBioSystem}/> : null
+          _ZkBioSystem?.domain && <DeviceZkBioItem syncTurn={_ZkBioSystem.domain === turnSyncIP} device={_ZkBioSystem}/>
         }
         {Object.values(devices).map((device) => {
           return <DeviceItem key={device.domain}
