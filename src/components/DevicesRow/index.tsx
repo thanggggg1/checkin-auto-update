@@ -17,20 +17,13 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
-  const _ZkBioSystem=useSettingZkBioSystem();
-
-  // useEffect(()=>{
-  //   if(_ZkBioSystem.domain && !turnSyncIP)
-  //   {
-  //     setTurnSyncIP(_ZkBioSystem.domain)
-  //     console.log('abcabcabc');
-  //   }
-  // },[_ZkBioSystem.domain])
+  const _ZkBioSystem = useSettingZkBioSystem();
 
 
   useEffect(() => {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
     if (turnSyncIP) {
+      console.log("vao abc1");
       return;
     }
     const _t = setInterval(() => {
@@ -48,13 +41,15 @@ const DevicesRow = memo(function DevicesRow() {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
 
     const handler = () => {
-
+let testZkBioSystem = getSettingZkBioSystem();
+if(testZkBioSystem.domain) setTurnSyncIP(testZkBioSystem.domain)
       if (turnSyncIP) {
         return;
       }
 
       const _devices = Object.values(devices || {});
       if (_devices.length) {
+        console.log("vao abc2");
         setTurnSyncIP(_devices[0].domain);
       }
     };
@@ -73,10 +68,12 @@ const DevicesRow = memo(function DevicesRow() {
       const currentIndex = _devices.findIndex(item => item.domain === turnSyncIP);
       if (currentIndex > -1 && currentIndex < _devices.length) {
         if (currentIndex + 1 === _devices.length) {
+          console.log("vao abc3");
           setTurnSyncIP("");
         } else {
           if (_devices[currentIndex + 1]) {
             setTurnSyncIP(_devices[currentIndex + 1].domain);
+            console.log("vao abc4");
           }
         }
       }
@@ -85,7 +82,7 @@ const DevicesRow = memo(function DevicesRow() {
     return () => {
       events.off(Events.SYNC_DONE, handler);
     };
-  }, [turnSyncIP, devices,_ZkBioSystem]);
+  }, [turnSyncIP, devices]);
 
   const values = useMemo(() => {
     return {
@@ -93,7 +90,7 @@ const DevicesRow = memo(function DevicesRow() {
       closeModal: () => setAddDeviceModalVisible(false)
     };
   }, []);
-  console.log('turn sync ip',turnSyncIP);
+  console.log("turn sync ip", turnSyncIP);
 
   return (
     <>
@@ -109,7 +106,7 @@ const DevicesRow = memo(function DevicesRow() {
         })
         }
 
-     <AddButton type={"dashed"} onClick={values.openModal}>+ {t("add_device")}</AddButton>
+        <AddButton type={"dashed"} onClick={values.openModal}>+ {t("add_device")}</AddButton>
       </Wrapper>
       <AddDeviceModal
         visible={isAddDeviceModalVisible}

@@ -15,6 +15,7 @@ const DeviceZkBioInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boole
   useLanguage();
   const syncing = useSyncing();
   const _ZkBioSystem = getSettingZkBioSystem();
+  console.log('syncturn zk bio',syncTurn);
 
   const openHref = () => {
     const shell = require("electron").shell;

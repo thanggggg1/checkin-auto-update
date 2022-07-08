@@ -45,23 +45,23 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
     { loading: isGettingAttendances },
     syncAttendances
   ] = useAsyncFn(async () => {
-    let BioStarDevice = { ...device };
+    // let BioStarDevice = { ...device };
 
     let canSync = true;
-
-    let lastSyncBioStarDevices = BioStarDevice.lastSync ?
-      moment(BioStarDevice.lastSync).subtract(7, "hours").format(FormatDateSearch.normal)
-      : moment().subtract(1, "months").format(FormatDateSearch.start);
+    //
+    // let lastSyncBioStarDevices = BioStarDevice?.lastSync ?
+    //   moment(BioStarDevice.lastSync).subtract(7, "hours").format(FormatDateSearch.normal)
+    //   : moment().subtract(1, "months").format(FormatDateSearch.start);
 
     let hint = "";
     while (canSync) {
-      if (!BioStarDevice.sessionId) {
-        continue;
-      }
+      // if (!BioStarDevice.sessionId) {
+      //   continue;
+      // }
       let lastSyncZkBio = "";
 
       let _ZkBioSystem = getSettingZkBioSystem();
-      const __device = getDeviceById(BioStarDevice.domain);
+      // const __device = getDeviceById(BioStarDevice.domain);
 
       // Lay last sync cua zkteco
       if (_ZkBioSystem.domain) {
@@ -71,7 +71,7 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       }
 
       // Lay last sync cua biostar
-      lastSyncBioStarDevices = moment(__device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
+      // lastSyncBioStarDevices = moment(__device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
 
 
       const syncing = getSyncing();
@@ -118,40 +118,40 @@ const useDeviceValue = ({ device, syncTurn }: { syncTurn: boolean, device: Devic
       }
       let rowsZkBio = JSON.parse(data || "{rows: []}").rows;
 
-      //Handle sync BioStar
-      let rowsBioStar = await requestEventLogBioStar({
-        sessionId: BioStarDevice.sessionId,
-        from: lastSyncBioStarDevices,
-        domain: device.domain,
-        hint
-      });
-      if (rowsBioStar === 401) {
-        const res = await requestLoginDeviceBioStar({
-          domain: BioStarDevice.domain,
-          username: BioStarDevice.username,
-          password: BioStarDevice.password
-        });
-        if (res.error) {
-          Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
-          return;
-        } else {
-          BioStarDevice = { ...BioStarDevice, sessionId: res.sessionId };
-          syncDevices([BioStarDevice]);
-          rowsBioStar = await requestEventLogBioStar({
-            sessionId: BioStarDevice.sessionId,
-            from: lastSyncBioStarDevices,
-            domain: BioStarDevice.domain
-          });
-        }
-      }
-      if (typeof rowsBioStar === "number") {
-        Modal.error({ title: "Đăng nhập vào máy " + BioStarDevice.name + " không thành công!!!" });
-        return;
-      }
+      // // Handle sync BioStar
+      // let rowsBioStar = await requestEventLogBioStar({
+      //   sessionId: BioStarDevice.sessionId,
+      //   from: lastSyncBioStarDevices,
+      //   domain: device.domain,
+      //   hint
+      // });
+      // if (rowsBioStar === 401) {
+      //   const res = await requestLoginDeviceBioStar({
+      //     domain: BioStarDevice.domain,
+      //     username: BioStarDevice.username,
+      //     password: BioStarDevice.password
+      //   });
+      //   if (res.error) {
+      //     Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
+      //     return;
+      //   } else {
+      //     BioStarDevice = { ...BioStarDevice, sessionId: res.sessionId };
+      //     syncDevices([BioStarDevice]);
+      //     rowsBioStar = await requestEventLogBioStar({
+      //       sessionId: BioStarDevice.sessionId,
+      //       from: lastSyncBioStarDevices,
+      //       domain: BioStarDevice.domain
+      //     });
+      //   }
+      // }
+      // if (typeof rowsBioStar === "number") {
+      //   Modal.error({ title: "Đăng nhập vào máy " + BioStarDevice.name + " không thành công!!!" });
+      //   return;
+      // }
 
 
       const result: AttendanceRecord[] = [];
-      const doors = (__device?.doors || "").split(",").map(item => item.trim()).filter(Boolean);
+      // const doors = (__device?.doors || "").split(",").map(item => item.trim()).filter(Boolean);
       for (let i = 0; i < rowsZkBio.length; i++) {
         const row = rowsZkBio[i]?.data || undefined;
         if (!row || !Array.isArray(row) || row[0] <= 0) {
