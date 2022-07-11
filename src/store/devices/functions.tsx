@@ -57,7 +57,7 @@ export const requestLoginDeviceBioStar = async ({ domain, username, password }: 
 
 interface EventLogParamsBioStar {
   domain: string,
-  sessionId: string,
+  sessionId: string |undefined,
   hint?: string
   from: string // 2022-03-26T17:00:00.000Z
 }

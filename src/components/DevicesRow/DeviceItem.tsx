@@ -40,12 +40,7 @@ const DeviceInfo = memo(function DeviceInfo({ syncTurn }: { syncTurn: boolean })
           device?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
         }
       </InfoRow>
-      <InfoRow>
-        {t('last_auto_sync')}:
-        {
-          device?.syncTime ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(device.syncTime).format("DD-MM-YYYY HH:mm")}</div> : null
-        }
-      </InfoRow>
+
       <InfoRow>{t('status')}: <div style={{fontWeight:'bold',paddingLeft:8,color: device?.status == 'Online' ? '#64ef64' : 'red'}}>{device?.status}</div></InfoRow>
       <TagsWrapper>
         <SyncTag/>
@@ -66,6 +61,7 @@ export default DeviceItem;
 
 const Wrapper = styled(Card)`
   flex: 0 0 350px;
+  height: 180px;
 `;
 
 const InfoRow = styled.div`

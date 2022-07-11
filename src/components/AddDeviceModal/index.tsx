@@ -128,6 +128,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
     }
 
     //login Device de set Token vao
+  if (mode == 'zk_teco') {
     try {
       // check password before login
       const res = await new Requests().fetch({
@@ -158,17 +159,11 @@ const AddDeviceModal = memo(function AddDeviceModal(
       });
 
       if (data?.response) {
-        if(mode == 'zk_teco'){
-          setSettingZkBioSystem({
-            ...device,
-            token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
-            status: "Online"
-          });
-        }
-        else {
-          syncDevices([{ ...device, status: "Online" }]);
-
-        }
+        setSettingZkBioSystem({
+          ...device,
+          token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
+          status: "Online"
+        })
       } else {
         Modal.error({
           title: `${t("unable_login")}`,
@@ -183,6 +178,9 @@ const AddDeviceModal = memo(function AddDeviceModal(
       });
       return;
     }
+  }
+
+    if (mode!=='zk_teco')  syncDevices([{ ...device, status: "Online" }]);
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 

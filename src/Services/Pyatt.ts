@@ -31,7 +31,7 @@ class Pyatt {
   isUdp = false;
   isDebug = false;
 
-  constructor(address: string, port?: number, password?: string) {
+  constructor(address: number | undefined, port?: number | undefined, password?: string) {
     this._address = address;
     if (port) this._port = port;
     if (password) this._password = password;

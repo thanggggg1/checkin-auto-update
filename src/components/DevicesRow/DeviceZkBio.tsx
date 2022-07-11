@@ -75,7 +75,8 @@ const DeviceZkBioItem = memo(function DeviceItem({ device, syncTurn }: { syncTur
 export default DeviceZkBioItem;
 
 const Wrapper = styled(Card)`
-  flex: 0 0 350px;
+    flex: 0 0 350px;
+  height: 180px;
 `;
 
 const InfoRow = styled.div`
