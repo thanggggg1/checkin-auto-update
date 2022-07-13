@@ -1,14 +1,16 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { Button, Row } from "antd";
 import AddDeviceModal from "../AddDeviceModal";
-import { useDevicesRecord } from "../../store/devices";
-import DeviceItem from "./DeviceItem";
+import { DeviceSyncMethod, useDevicesRecord } from "../../store/devices";
 import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
 import { getSettingZkBioSystem, useSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
-import DeviceZkBioItem from "./DeviceZkBio";
+import PyattDevice from "../AccessDirectlyPyattDevice";
+import LegacyDevice from "../AccessDirectlyLegacyDevice";
+import BioStarDevice from "../AccessBioStarDevice";
+import ZkBioSecurityDevice from "../AccessZkBioSecurityDevice";
 
 
 const DevicesRow = memo(function DevicesRow() {
@@ -17,7 +19,6 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
-  const _ZkBioSystem = useSettingZkBioSystem();
 
 
   useEffect(() => {
@@ -41,8 +42,6 @@ const DevicesRow = memo(function DevicesRow() {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
 
     const handler = () => {
-let testZkBioSystem = getSettingZkBioSystem();
-if(testZkBioSystem.domain) setTurnSyncIP(testZkBioSystem.domain)
       if (turnSyncIP) {
         return;
       }
@@ -96,14 +95,20 @@ if(testZkBioSystem.domain) setTurnSyncIP(testZkBioSystem.domain)
     <>
       <Wrapper>
         {
-          _ZkBioSystem?.domain && <DeviceZkBioItem syncTurn={_ZkBioSystem.domain === turnSyncIP} device={_ZkBioSystem}/>
-        }
-        {Object.values(devices).map((device) => {
-          return <DeviceItem key={device.domain}
-                             device={device}
-                             syncTurn={device.domain === turnSyncIP}
-          />;
-        })
+          Object.values(devices).map((device) => {
+            if(device.token){
+              return <ZkBioSecurityDevice device={device} syncTurn={device.domain === turnSyncIP} key={device.domain}/>
+            }
+            if (device.syncMethod === DeviceSyncMethod.PY) {
+              return <PyattDevice device={device} syncTurn={device.domain === turnSyncIP} key={device.ip}/>;
+            }
+            if (device.syncMethod === DeviceSyncMethod.LARGE_DATASET || device.syncMethod === DeviceSyncMethod.LEGACY) {
+              return <LegacyDevice device={device} syncTurn={device.domain === turnSyncIP} key={device.ip}/>;
+            } else {
+              if (device.doors)
+                return <BioStarDevice syncTurn={device.ip === turnSyncIP} key={device.domain} device={device}/>;
+            }
+          })
         }
 
         <AddButton type={"dashed"} onClick={values.openModal}>+ {t("add_device")}</AddButton>

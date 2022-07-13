@@ -9,7 +9,7 @@ export enum DeviceSyncMethod {
 
 export interface Device {
   name: string;
-  ip?:number;
+  ip?:string;
   port?:number;
 
   domain: string; // key
@@ -34,7 +34,7 @@ export interface Device {
   timeout?: number;
   heartbeat?: number;
   autoReconnect?: number;
-  syncMethod?: DeviceSyncMethod;
+  syncMethod?: DeviceSyncMethod | string;
 
 
 }

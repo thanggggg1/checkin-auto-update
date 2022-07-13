@@ -2,16 +2,16 @@ import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } f
 import { DatePicker, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
-import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
+import { t, useLanguage } from "../../store/settings/languages";
 import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
 import moment from "moment";
 import { styled } from "../../global";
-import { getSettingZkBioSystem, setSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
 import Requests from "../../Services/Requests";
 import { getPwdChangeParams } from "../../utils/portalCheck";
 import { hex_md5 } from "../../utils/hex_md5";
 import { setSettingMode } from "../../store/settings/settingMode";
+import { setSettingZkBioSystem, useSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -22,7 +22,7 @@ const defaultValue: Device = {
   username: "", //"admin",
   status: "Online",
   token: "",
-  syncMethod: DeviceSyncMethod.PY,
+  syncMethod: "",
   connection: "tcp"
 };
 
@@ -39,7 +39,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
   const [valueSelect, setValueSelect] = useState("");
   const [mode, setMode] = useState("multi_mcc");
-  const _ZkBioSystem = getSettingZkBioSystem();
+  const isZkBioSystem = useSettingZkBioSystem();
 
   useEffect(() => {
     setDevice(props.device || defaultValue);
@@ -112,12 +112,12 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [{ loading }, onOk] = useAsyncFn(async () => {
     // @todo Validate device
 
-    if (!device.domain || !device.name || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword) {
-      return Modal.error({
-        title: t("please_enter_all_required_fields"),
-        ...antdModalLanguageProps
-      });
-    }
+    // if (!device.domain || !device.name || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword) {
+    //   return Modal.error({
+    //     title: t("please_enter_all_required_fields"),
+    //     ...antdModalLanguageProps
+    //   });
+    // }
     const isValidPassword = await validateTokenPassword();
     if (!isValidPassword) {
       Modal.error({
@@ -128,66 +128,70 @@ const AddDeviceModal = memo(function AddDeviceModal(
     }
 
     //login Device de set Token vao
-  if (mode == 'zk_teco') {
-    try {
-      // check password before login
-      const res = await new Requests().fetch({
-        paramStr: JSON.stringify({
-          "url": `${device.domain}/portalPwdEffectiveCheck.do`,
-          "method": "post",
-          "params": {
-            "content": `${getPwdChangeParams(`${device.username}`, `${hex_md5(device.password)}`, "")}`
-          }
-        })
-      });
-      // @ts-ignore
-      const cookie = res.header._store["set-cookie"][1].split(";")[0].split("=")[1];
-      // request login
-      const data: any = await new Requests().fetch({
-        paramStr: JSON.stringify({
-          "url": `${device.domain}/login.do`,
-          "method": "post",
-          "headers": {
-            "Cookie": `SESSION=${cookie}`
-          },
-          "params": {
-            "loginType": "NORMAL",
-            "username": `${device.username}`,
-            "password": `${hex_md5(device.password)}`
-          }
-        })
-      });
+    if (mode == "zk_teco") {
+      try {
+        // check password before login
+        const res = await new Requests().fetch({
+          paramStr: JSON.stringify({
+            "url": `${device.domain}/portalPwdEffectiveCheck.do`,
+            "method": "post",
+            "params": {
+              "content": `${getPwdChangeParams(`${device.username}`, `${hex_md5(device.password)}`, "")}`
+            }
+          })
+        });
+        // @ts-ignore
+        const cookie = res.header._store["set-cookie"][1].split(";")[0].split("=")[1];
+        // request login
+        const data: any = await new Requests().fetch({
+          paramStr: JSON.stringify({
+            "url": `${device.domain}/login.do`,
+            "method": "post",
+            "headers": {
+              "Cookie": `SESSION=${cookie}`
+            },
+            "params": {
+              "loginType": "NORMAL",
+              "username": `${device.username}`,
+              "password": `${hex_md5(device.password)}`
+            }
+          })
+        });
 
-      if (data?.response) {
-        setSettingZkBioSystem({
-          ...device,
-          token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
-          status: "Online"
-        })
-      } else {
+        if (data?.response) {
+          setSettingZkBioSystem(true);
+          syncDevices([{
+            ...device,
+            token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
+            status: "Online"
+          }]);
+        } else {
+          Modal.error({
+            title: `${t("unable_login")}`,
+            content: `${"error_domain"}`
+          });
+          return;
+        }
+      } catch (e) {
         Modal.error({
           title: `${t("unable_login")}`,
-          content: `${"error_domain"}`
+          content: `${t("error_domain")}`
         });
         return;
       }
-    } catch (e) {
-      Modal.error({
-        title: `${t("unable_login")}`,
-        content: `${t("error_domain")}`
-      });
-      return;
     }
-  }
-
-    if (mode!=='zk_teco')  syncDevices([{ ...device, status: "Online" }]);
+    if (mode !== "zk_teco") {
+      if (device.ip) {
+        syncDevices([{ ...device, domain: device.ip, status: "Online" }]);
+      } else syncDevices([{ ...device, status: "Online" }]);
+    }
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 
   const handleChangeSelect = useCallback((value) => {
     setValueSelect(value);
   }, [valueSelect]);
-
+  // @ts-ignore
   return (
     <Modal
       title={props.device ? t("edit_device") : t("add_device")}
@@ -217,7 +221,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           >
             <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
             <Select.Option
-              disabled={!!_ZkBioSystem.domain}
+              disabled={!!isZkBioSystem}
               value={"zk_teco"}>Zk Bio Security</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>
@@ -226,18 +230,18 @@ const AddDeviceModal = memo(function AddDeviceModal(
       <br/>
       <br/>
       {
-        _ZkBioSystem.domain && <p style={{ fontStyle: "italic" }}>{"*You can only add one system of ZkBioSecurity*"}</p>
+        isZkBioSystem && <p style={{ fontStyle: "italic" }}>{"*You can only add one system of ZkBioSecurity*"}</p>
       }
       {
         mode === "zk_teco" || mode === "bio_star" ?
 
-            <Input
-              addonBefore={"Domain/Admin*"}
-              placeholder={"https://14.241.105.154:8098"}
-              value={device.domain}
-              onChange={values.onDomainChange}
-              disabled={!!props.device}
-            /> :
+          <Input
+            addonBefore={"Domain/Admin*"}
+            placeholder={"https://14.241.105.154:8098"}
+            value={device.domain}
+            onChange={values.onDomainChange}
+            disabled={!!props.device}
+          /> :
           <>
             <Input
               addonBefore={"IP Address*"}
@@ -270,16 +274,16 @@ const AddDeviceModal = memo(function AddDeviceModal(
           />
           <br/>
           <br/>
+          <Input.Password
+            addonBefore={"Password*"}
+            placeholder={"Admin"}
+            value={device.password}
+            onChange={values.onPasswordChange}
+          />
+          <br/>
+          <br/>
         </>
       }
-      <Input.Password
-        addonBefore={"Password*"}
-        placeholder={"Admin"}
-        value={device.password}
-        onChange={values.onPasswordChange}
-      />
-      <br/>
-      <br/>
       {/** thong tin token lay tu HRM **/}
       <Input.Password
         addonBefore={"Client token *"}
@@ -319,6 +323,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           </span>
           <SelectDropDown
             value={device.connection}
+            // @ts-ignore
             onChange={values.onConnectionChange}
           >
             <Select.Option value={"tcp"}>TCP</Select.Option>
@@ -368,6 +373,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           </span>
           <SelectDropDown
             value={device.syncMethod || DeviceSyncMethod.PY}
+            // @ts-ignore
             onChange={values.onMethodChange}
           >
             <Select.Option value={DeviceSyncMethod.PY}>Pyatt</Select.Option>

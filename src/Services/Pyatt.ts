@@ -31,7 +31,7 @@ class Pyatt {
   isUdp = false;
   isDebug = false;
 
-  constructor(address: number | undefined, port?: number | undefined, password?: string) {
+  constructor(address: string, port?: number, password?: string) {
     this._address = address;
     if (port) this._port = port;
     if (password) this._password = password;
@@ -243,7 +243,7 @@ class Pyatt {
     let total = 0; // Total records
 
     return this.parseInfo(
-      await this.runScript(["--records " + ], (data) => {
+      await this.runScript(["--records"], (data) => {
         if (!isRunStarted) {
           params.onStarted?.();
           isRunStarted = true;
@@ -287,7 +287,8 @@ class Pyatt {
         dateFormatted: time.format("DD/MM/YYYY"),
         timeFormatted: time.format("HH:mm:ss"),
         timestamp: time.valueOf(),
-        uid: 0
+        uid: 0,
+        deviceName:deviceIp
       }
     }
 
@@ -298,6 +299,7 @@ class Pyatt {
       timestamp: time.valueOf(),
       uid: Number(record.user_id),
       deviceIp,
+      deviceName:deviceIp
     };
   };
 }

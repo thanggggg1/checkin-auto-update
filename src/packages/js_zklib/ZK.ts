@@ -43,14 +43,7 @@ export default class ZK {
   disableDevice: () => Bluebird<void>;
   getFreeSizes: () => Bluebird<ZKFreeSizes>;
 
-  constructor(options: {
-    ip: string;
-    port?: number;
-    inport: number;
-    timeout: number;
-    attendanceParser?: (data: any) => any;
-    connectionType?: 'tcp' | 'udp';
-  }) {
+  constructor(options: { port: number | undefined; ip: string | undefined; inport: number; connectionType: "tcp" | "udp" | undefined; timeout: number }) {
     this.zklib = new ZKLib(options);
 
     this.createSocket = this._createPromisify('createSocket');

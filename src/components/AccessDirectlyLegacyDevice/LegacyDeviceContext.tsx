@@ -1,5 +1,5 @@
 import constate from "constate";
-import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod } from "../../store/devices";
+import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod,resetDevices } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
@@ -9,6 +9,7 @@ import { Events, events } from "../../utils/events";
 import ZK from "../../packages/js_zklib/ZK";
 import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
+import _ from "lodash";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -27,7 +28,6 @@ const LegacyDeviceContext = (() => {
       () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
       [_setSyncPercent]
     );
-
     const connection = useMemo(() => {
       return new ZK({
         ip: device.ip,
@@ -156,6 +156,7 @@ const LegacyDeviceContext = (() => {
                 dateFormatted: mm.format("DD/MM/YYYY"),
                 deviceIp: device.ip,
                 uid: attendance.id,
+                deviceName:device.ip,
                 id
               };
             })
@@ -190,7 +191,7 @@ const LegacyDeviceContext = (() => {
       attendances.data &&
       syncAttendanceRecords(
         // filter exists & map at the same time (filter exists for performance)
-        attendances.data.reduce<AttendanceRecord[]>((filtered, raw) => {
+        attendances.data.reduce<AttendanceRecord[]>((filtered:AttendanceRecord[], raw:any) => {
           const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
           const mm = moment(raw.recordTime);
 
@@ -206,8 +207,11 @@ const LegacyDeviceContext = (() => {
             timestamp: mm.valueOf(),
             id,
             dateFormatted: mm.format("DD/MM/YYYY"),
+            // @ts-ignore
             deviceIp: device.ip,
-            timeFormatted: mm.format("HH:mm")
+            // @ts-ignore
+            deviceName:device.ip,
+            timeFormatted: mm.format("HH:mm:ss")
           });
 
           return filtered;
@@ -246,7 +250,10 @@ const LegacyDeviceContext = (() => {
             timestamp: mm.valueOf(),
             id: `${ret.userId}_${mm.valueOf()}`,
             dateFormatted: mm.format("DD/MM/YYYY"),
+            // @ts-ignore
             deviceIp: device.ip,
+            // @ts-ignore
+            deviceName:device.ip,
             timeFormatted: mm.format("HH:mm:ss")
           };
 
@@ -328,9 +335,9 @@ const LegacyDeviceContext = (() => {
     }, [canSendRequest]);
 
     const deleteDevice = useCallback(() => {
-      deleteDevices([device.ip]);
-    }, [device.ip]);
-
+      // @ts-ignore
+      deleteDevices([device.domain]);
+    }, [device.domain]);
     return {
       device,
       connection,

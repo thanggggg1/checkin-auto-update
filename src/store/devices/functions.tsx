@@ -1,10 +1,11 @@
 import Requests from "../../Services/Requests";
 import { hex_md5 } from "../../utils/hex_md5";
 import { getPwdChangeParams } from "../../utils/portalCheck";
-import { getSettingZkBioSystem, setSettingZkBioSystem } from "../settings/settingZkBioSystem";
+import { setSettingZkBioSystem } from "../settings/settingZkBioSystem";
 import axios from "axios";
 import { FormatDateSearch, MaxEvenEachRequest, RawEvent, RawUserInterface } from "./types";
 import dayjs from "dayjs";
+import { Device, syncDevices } from "../../store/devices";
 
 
 const https = require("https");
@@ -57,7 +58,7 @@ export const requestLoginDeviceBioStar = async ({ domain, username, password }: 
 
 interface EventLogParamsBioStar {
   domain: string,
-  sessionId: string |undefined,
+  sessionId: string | undefined,
   hint?: string
   from: string // 2022-03-26T17:00:00.000Z
 }
@@ -160,15 +161,16 @@ export const requestEventLogZkBio = async ({
 interface LoginParamsZkBio {
   domain: string,
   username: string,
-  password: string
+  password: string,
+  device: Device
 }
 
 export const requestLoginDeviceZkBio = async ({
                                                 domain,
                                                 username,
-                                                password
+                                                password,
+                                                device
                                               }: LoginParamsZkBio) => {
-  const _ZkBioSystem = getSettingZkBioSystem();
   try {
     // check password before login
     const res = await new Requests().fetch({
@@ -199,17 +201,16 @@ export const requestLoginDeviceZkBio = async ({
     });
 
     if (data?.response) {
-      _ZkBioSystem && setSettingZkBioSystem({
-        ..._ZkBioSystem,
-        token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
+      device && syncDevices([{
+        ...device, token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
         status: "Online"
-      });
+      }]);
     } else {
-      _ZkBioSystem && setSettingZkBioSystem({ ..._ZkBioSystem, status: "Offline" });
+      device && syncDevices([{...device,status:'Offline'}]);
     }
     return data;
   } catch (e) {
-    _ZkBioSystem && setSettingZkBioSystem({ ..._ZkBioSystem, status: "Offline" });
+    device && syncDevices([{...device,status:'Offline'}]);
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
       return 401;

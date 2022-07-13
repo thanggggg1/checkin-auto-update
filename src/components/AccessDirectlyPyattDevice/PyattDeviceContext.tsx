@@ -1,11 +1,11 @@
 import constate from "constate";
 import { deleteDevices, Device } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Pyatt from "../../Services/Pyatt";
+import Pyatt, { PyattRecord } from "../../Services/Pyatt";
 import useLatest from "react-use/lib/useLatest";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
-import { syncAttendanceRecords } from "../../store/records";
+import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
 import { Modal } from "antd";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
@@ -31,6 +31,7 @@ const PyattDeviceContext = (() => {
     const isGettingRecordRef = useRef(false);
 
     const instance = useMemo(() => {
+      // @ts-ignore
       const output = new Pyatt(device.ip, device.port, device.password);
 
       if (device.connection === "udp") output.isUdp = true;
@@ -49,13 +50,14 @@ const PyattDeviceContext = (() => {
       setRealtimeStatus(PyattRealtimeStatus.CONNECTING);
 
       return instance.liveCapture(
-        (error) => {
+        (error:Error) => {
           if (isGettingRecordRef.current) return;
 
           Modal.error({ content: error.message });
           setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
         },
-        (record) => {
+        (record:PyattRecord) => {
+          // @ts-ignore
           const log = Pyatt.pyattRecordToAttendance(record, device.ip);
 
           if (log.uid == 0) return;
@@ -66,7 +68,7 @@ const PyattDeviceContext = (() => {
         () => {
           setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
         },
-        (anyData) => {
+        (anyData:string) => {
           console.log("anyData", device.ip, anyData);
 
           if (latestRealtimeStatus.current !== PyattRealtimeStatus.CONNECTED) {
@@ -114,16 +116,17 @@ const PyattDeviceContext = (() => {
         isGettingRecordRef.current = true;
         const data = await instance.getRecords({
           onStarted: () => setSyncPercent("Preparing"),
-          onRecords: (records) => {
+          onRecords: (records:PyattRecord[]) => {
             syncAttendanceRecords(
               records
                 .map((record) =>
+                  // @ts-ignore
                   Pyatt.pyattRecordToAttendance(record, device.ip)
                 )
                 .filter((r) => r.uid != 0)
             );
           },
-          onPercent: (total, current) => {
+          onPercent: (total:number, current:number) => {
             console.log("total", total, current);
             setSyncPercent(`${current}/${total}`);
           },
@@ -135,8 +138,9 @@ const PyattDeviceContext = (() => {
 
         syncAttendanceRecords(
           data.records
-            .map((record) => Pyatt.pyattRecordToAttendance(record, device.ip))
-            .filter((r) => r.uid != 0)
+            // @ts-ignore
+            .map((record:PyattRecord) => Pyatt.pyattRecordToAttendance(record, device.ip))
+            .filter((r:AttendanceRecord) => r.uid != 0)
         );
 
         setSyncPercent("Done");
@@ -163,8 +167,9 @@ const PyattDeviceContext = (() => {
     }, [instance, realtimeStatus, startRealtime]);
 
     const deleteDevice = useCallback(() => {
-      deleteDevices([device.ip]);
-    }, [device.ip]);
+      // @ts-ignore
+      deleteDevices([device.domain]);
+    }, [device.domain]);
 
     useEffect(() => {
       if (syncTurn && !latestSyncPercent.current) {

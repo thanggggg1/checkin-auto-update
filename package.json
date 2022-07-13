@@ -1,5 +1,5 @@
 {
-  "name": "base-checkin-station-desktop-v3",
+  "name": "base-checkin-station-desktop-full",
   "version": "3.0.1",
   "license": "MIT",
   "main": "./dist/main.js",
@@ -78,8 +78,8 @@
     "styled-components": "^5.1.1"
   },
   "build": {
-    "appId": "vn.base.checkinstation3",
-    "productName": "Base Checkin Client v3",
+    "appId": "vn.base.checkinstationfull",
+    "productName": "Base Checkin Client Full",
     "copyright": "Copyright © 2022 Base.vn",
     "extends": null,
     "directories": {
