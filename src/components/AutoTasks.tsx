@@ -109,29 +109,29 @@ export const AutoTasks = memo(function AutoTasks() {
         return;
 
       // if on prevent auto sync, cancel
-      const shouldCancel = (() => {
-        try {
-          const timeRanges = getPreventSyncLogsTimeRanges().split(",").map(t => t.trim());
-
-          for (const range of timeRanges) {
-            const [start, end] = range.split("-");
-            if (!start || !end) {
-              console.log("start or end time not correct formatted");
-              return true;
-            }
-            if (nowMm.isBetween(moment(start, "HH:mm:ss"), moment(end, "HH:mm:ss"))) {
-              console.log("auto sync cancelled");
-              return true;
-            }
-          }
-
-        } catch (e) {
-          console.log("Should cancel timeRange error", e);
-          return true;
-        }
-      })();
-
-      if (shouldCancel) return;
+      // const shouldCancel = (() => {
+      //   try {
+      //     const timeRanges = getPreventSyncLogsTimeRanges().split(",").map(t => t.trim());
+      //
+      //     for (const range of timeRanges) {
+      //       const [start, end] = range.split("-");
+      //       if (!start || !end) {
+      //         console.log("start or end time not correct formatted");
+      //         return true;
+      //       }
+      //       if (nowMm.isBetween(moment(start, "HH:mm:ss"), moment(end, "HH:mm:ss"))) {
+      //         console.log("auto sync cancelled");
+      //         return true;
+      //       }
+      //     }
+      //
+      //   } catch (e) {
+      //     console.log("Should cancel timeRange error", e);
+      //     return true;
+      //   }
+      // })();
+      //
+      // if (shouldCancel) return;
 
       // start auto sync
       console.log("fire autoSync");

@@ -1,9 +1,9 @@
 import React, { memo, useCallback } from "react";
 import { Device } from "../../store/devices";
 import styled from "styled-components";
-import { Button, Card, Dropdown, Menu, Modal, Tag } from "antd";
+import { Button, Card, Dropdown, Menu, Modal, Popover, Tag } from "antd";
 import { t, useLanguage } from "../../store/settings/languages";
-import { useSyncing } from "../../store/settings/autoPush";
+import { setSyncing, useSyncing } from "../../store/settings/autoPush";
 import moment from "moment";
 import ZkBioSecurityContext from "./ZkBioSecurityDeviceContext";
 import { getSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
@@ -11,9 +11,13 @@ import useBoolean from "../../hooks/useBoolean";
 import { useAsyncFn } from "react-use";
 import { timeSleep } from "../../utils/sleep";
 import AddDeviceModal from "../AddDeviceModal";
+import { Events, events } from "../../utils/events";
+import { DownloadOutlined } from "@ant-design/icons/lib";
 
 const ExtraOverlay = (props: any) => {
   useLanguage();
+  const syncing = useSyncing();
+
 
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
@@ -38,6 +42,15 @@ const ExtraOverlay = (props: any) => {
     });
   }, [deleteDevice]);
 
+  const onClickSync = useCallback(() => {
+    if (syncing === "1") {
+      setSyncing("2"); // chuyen sang pause
+      return;
+    }
+    setSyncing("1"); // chuyen sang dang sync
+    events.emit(Events.MASS_SYNC);
+  }, [syncing]);
+
   return (
     <Menu {...props}>
 
@@ -48,13 +61,19 @@ const ExtraOverlay = (props: any) => {
         onClose={hideEditDevice}
         visible={isEditDeviceVisible}
         device={device}
+        mode={'zk_teco'}
       />
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
       </Menu.Item>
+      <Menu.Item onClick={onClickSync}>
+        <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
+      </Menu.Item>
     </Menu>
   );
 };
+
+
 
 const Extra = () => {
   return (
@@ -109,10 +128,10 @@ const ZkBioSecurityDevice = memo(function ZkBioSecurityDevice({ device, syncTurn
         <InfoRow>
           {t("last_auto_sync")}:
           {
-            device?.syncTime ? <div style={{
+            <div style={{
               fontWeight: "bold",
               paddingLeft: 8
-            }}>{" "}{moment(device.syncTime).format("DD-MM-YYYY HH:mm")}</div> : null
+            }}>{" "}{moment(device.syncTime).format("DD-MM-YYYY HH:mm")}</div>
           }
         </InfoRow>
         <InfoRow>{t("status")}: <div style={{

@@ -39,6 +39,7 @@
   "clear_pushed_evidents": "Xóa lịch sử đẩy",
   "auto_syncing": "Đang đồng bộ....",
   "stop_syncing": "Đã tạm dừng",
+  "start_syncing": "Tiếp tục đồng bộ",
   "newest_eventLog": "Dữ liệu mới nhất lúc",
   "sync_data_from": "Thời gian đồng bộ từ",
   "last_auto_sync": "Lần tự đồng bộ gần nhất",

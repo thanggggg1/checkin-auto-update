@@ -39,6 +39,7 @@
   "clear_pushed_evidents": "Remove push evidents",
   "auto_syncing": "Syncing...",
   "stop_syncing": "Stop sync",
+  "start_syncing": "Start sync",
   "newest_eventLog": "The lastest data at",
   "sync_data_from": "Sync data from",
   "last_auto_sync": "Last auto sync",

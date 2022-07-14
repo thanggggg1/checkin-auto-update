@@ -81,33 +81,33 @@ const SyncTag = () => {
   );
 };
 
+const LegacyDeviceInfo=memo(function LegacyDeviceInfo() {
+  const {device,connectionState}=LegacyDeviceContext.use()
+  return (
+    <Wrapper title={device.name} size={"small"} extra={<Extra />}>
+      <InfoRow>IP: {device.ip}</InfoRow>
+      <InfoRow>
+        {t("status")}:{" "}
+        {(() => {
+          if (connectionState === ConnectionState.CONNECTED) return t('connected');
+          if (connectionState === ConnectionState.CONNECTING)
+            return t("connecting");
+          if (connectionState === ConnectionState.DISCONNECTED)
+            return t("disconnected");
+          return t("unknown");
+        })()}
+      </InfoRow>
+      <TagsWrapper>
+        <SyncTag />
+      </TagsWrapper>
+    </Wrapper>
+)
+})
+
 const LegacyDevice = memo(function LegacyDevice({ device, syncTurn }: { device: Device, syncTurn: boolean }) {
-  const {connectionState}=LegacyDeviceContext.use()
-  console.log('connection',LegacyDeviceContext.use())
   return (
     <LegacyDeviceContext.Provider device={device} syncTurn={syncTurn}>
-      <Wrapper title={device.name} size={"small"} extra={<Extra />}>
-        <InfoRow>IP: {device.ip}</InfoRow>
-        <InfoRow>
-          {t("status")}:{" "}
-          {(() => {
-            if (connectionState === ConnectionState.CONNECTED) return t('connected');
-            if (connectionState === ConnectionState.CONNECTING)
-              return t("connecting");
-            if (connectionState === ConnectionState.DISCONNECTED)
-              return t("disconnected");
-            return t("unknown");
-          })()}
-        </InfoRow>
-        <InfoRow>{t("status")}: <div style={{
-          fontWeight: "bold",
-          paddingLeft: 8,
-          color: device?.status == "Online" ? "#64ef64" : "red"
-        }}>{device?.status}</div></InfoRow>
-        <TagsWrapper>
-          <SyncTag />
-        </TagsWrapper>
-      </Wrapper>
+      <LegacyDeviceInfo/>
     </LegacyDeviceContext.Provider>
   );
 });

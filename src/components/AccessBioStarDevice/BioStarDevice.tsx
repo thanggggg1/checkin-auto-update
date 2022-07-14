@@ -4,10 +4,11 @@ import BioStarDeviceContext from "./BioStarDeviceContext";
 import styled from "styled-components";
 import { Button, Card, Dropdown, Menu, Modal, Tag } from "antd";
 import { t, useLanguage } from "../../store/settings/languages";
-import { useSyncing } from "../../store/settings/autoPush";
+import { setSyncing, useSyncing } from "../../store/settings/autoPush";
 import moment from "moment";
 import useBoolean from "../../hooks/useBoolean";
 import AddDeviceModal from "../AddDeviceModal";
+import { Events, events } from "../../utils/events";
 
 
 const ExtraOverlay = (props: any) => {
@@ -16,6 +17,8 @@ const ExtraOverlay = (props: any) => {
     deleteDevice,
     device,
   } = BioStarDeviceContext.use();
+  const syncing = useSyncing();
+
 
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
@@ -25,7 +28,14 @@ const ExtraOverlay = (props: any) => {
       onOk: deleteDevice,
     });
   }, [deleteDevice]);
-
+  const onClickSync = useCallback(() => {
+    if (syncing === "1") {
+      setSyncing("2"); // chuyen sang pause
+      return;
+    }
+    setSyncing("1"); // chuyen sang dang sync
+    events.emit(Events.MASS_SYNC);
+  }, [syncing]);
 
   return (
     <Menu {...props}>
@@ -53,9 +63,13 @@ const ExtraOverlay = (props: any) => {
         onClose={hideEditDevice}
         visible={isEditDeviceVisible}
         device={device}
+        mode={'bio_star'}
       />
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
+      </Menu.Item>
+      <Menu.Item onClick={onClickSync}>
+        <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
       </Menu.Item>
     </Menu>
   );

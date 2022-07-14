@@ -12,6 +12,7 @@ import { timeSleep } from "../../utils/sleep";
 import { requestEventLogZkBio, requestLoginDeviceZkBio } from "../../store/devices/functions";
 import _ from "lodash";
 import { getDeviceById } from "../../store/devices/actions";
+import { setSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
 
 
 const ZkBioSecurityContext = (() => {
@@ -96,6 +97,7 @@ const ZkBioSecurityContext = (() => {
           continue;
         }
         let rows = JSON.parse(data || "{rows: []}").rows;
+
         console.log("length", rows.length);
 
         const result: AttendanceRecord[] = [];
@@ -120,10 +122,11 @@ const ZkBioSecurityContext = (() => {
             });
           }
         }
-        syncDevices([{ ..._device, syncTime: moment().valueOf() }]);
-        await timeSleep(3);
+        syncDevices([{ ...newDevice, syncTime: moment().valueOf() }]);
+
         if (result.length) {
           console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));
+
           syncAttendanceRecords(result);
           syncDevices([{
             ..._device, lastSync: result[result.length - 1].timestamp
@@ -176,6 +179,7 @@ const ZkBioSecurityContext = (() => {
 
     const deleteDevice = useCallback(() => {
       deleteDevices([device.domain]);
+      setSettingZkBioSystem(false)
     }, []);
 
     return {

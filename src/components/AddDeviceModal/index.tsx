@@ -30,6 +30,7 @@ const defaultValue: Device = {
 export interface AddDeviceModalProps extends ModalProps {
   onClose: () => void;
   device?: Device;
+  mode?:string;
 }
 
 const AddDeviceModal = memo(function AddDeviceModal(
@@ -38,8 +39,9 @@ const AddDeviceModal = memo(function AddDeviceModal(
   useLanguage();
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
   const [valueSelect, setValueSelect] = useState("");
-  const [mode, setMode] = useState("multi_mcc");
+  const [mode, setMode] = useState(props.mode || 'multi_mcc');
   const isZkBioSystem = useSettingZkBioSystem();
+
 
   useEffect(() => {
     setDevice(props.device || defaultValue);
@@ -221,7 +223,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           >
             <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
             <Select.Option
-              disabled={!!isZkBioSystem}
+              disabled={isZkBioSystem && props.mode!='zk_teco' }
               value={"zk_teco"}>Zk Bio Security</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>
