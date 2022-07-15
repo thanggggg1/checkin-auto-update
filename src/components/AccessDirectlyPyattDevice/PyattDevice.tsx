@@ -47,6 +47,7 @@ const ExtraOverlay = (props: any) => {
         onClose={hideEditDevice}
         visible={isEditDeviceVisible}
         device={device}
+        mode={'multi_mcc'}
       />
 
       <Menu.Item onClick={onClickDeleteDevice}>
@@ -70,10 +71,10 @@ const Status = () => {
     <InfoRow>
       {t("status") + ": "}
       {((status) => {
-        if (status === PyattRealtimeStatus.CONNECTED) return t("connected");
-        if (status === PyattRealtimeStatus.PREPARING) return t("preparing");
-        if (status === PyattRealtimeStatus.CONNECTING) return t("connecting");
-        return t("disconnected");
+        if (status === PyattRealtimeStatus.CONNECTED) return  <TextStatusConnected>{t('connected')}</TextStatusConnected>
+        if (status === PyattRealtimeStatus.PREPARING) return  <TextStatusConnecting>{t('preparing')}</TextStatusConnecting>
+        if (status === PyattRealtimeStatus.CONNECTING) return  <TextStatusConnecting>{t('connecting')}</TextStatusConnecting>
+        return  <TextStatusDisconnected>{t('disconnected')}</TextStatusDisconnected>
       })(realtimeStatus)}
     </InfoRow>
   );
@@ -120,8 +121,9 @@ const Wrapper = styled(Card)`
   height: 180px;
 `;
 
-const InfoRow = styled.p`
+const InfoRow = styled.div`
   margin-bottom: 0;
+  display: flex;
 `;
 
 const TagsWrapper = styled.div`
@@ -134,3 +136,16 @@ const TagsWrapper = styled.div`
     display: none;
   }
 `;
+
+export const TextStatusDisconnected = styled.div`
+font-weight: bold;
+padding-left: 8px;
+color: red;
+`
+export const TextStatusConnecting = styled(TextStatusDisconnected)`
+color:#2d87bb;
+`
+export const TextStatusConnected = styled(TextStatusDisconnected)`
+color: #64ef64;
+
+`

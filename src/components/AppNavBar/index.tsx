@@ -19,7 +19,7 @@ const AppNavBar = memo(function AppNavBar() {
       <Row>
         <ButtonGroup>
           <SettingButton/>
-          {/*<SyncButton/>*/}
+          <SyncButton/>
           <PushButton/>
           {/*{token.token ? (*/}
           {/*  <>*/}

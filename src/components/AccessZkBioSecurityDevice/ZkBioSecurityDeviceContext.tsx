@@ -143,13 +143,13 @@ const ZkBioSecurityContext = (() => {
             continue;
           }
           await timeSleep(3);
-          try {
+          try  {
             await Fetch.massPushSplitByChunks(
-              filterRecords(getAllRecordsArr(), {
+              filterRecords(result, {
                 onlyNotPushed: true,
                 onlyInEmployeeCheckinCodes: true,
-                startTime: moment(result[0].timestamp).clone().startOf("day").valueOf(),
-                endTime: moment(result[0].timestamp).clone().endOf("day").valueOf()
+                startTime: result[0].timestamp,
+                endTime: result[result.length-1].timestamp
               })
             );
           } catch (e) {

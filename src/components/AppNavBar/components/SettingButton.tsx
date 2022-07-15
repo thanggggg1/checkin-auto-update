@@ -53,7 +53,7 @@ const SettingButton = memo(function SettingButton() {
     const { name, value } = event.currentTarget;
 
     if (name === "autoSyncMinutes") {
-      // if (Number(value) % 15 !== 0) return;
+      if (Number(value) % 15 !== 0) return;
       return setAutoSyncLogsMinutes(Number(value));
     }
 
@@ -98,7 +98,7 @@ const SettingButton = memo(function SettingButton() {
           type={"number"}
           addonAfter={t("minutes")}
           placeholder={"Ex: 15, 0 means disabled"}
-          step={1}
+          step={15}
           min={0}
           max={4320} // 72 hours, 3 days
           onChange={onChange}

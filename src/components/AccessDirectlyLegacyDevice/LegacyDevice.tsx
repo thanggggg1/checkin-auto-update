@@ -6,6 +6,11 @@ import styled from "styled-components";
 import { t, useLanguage } from "../../store/settings/languages";
 import useBoolean from "../../hooks/useBoolean";
 import AddDeviceModal from "../AddDeviceModal";
+import {
+  TextStatusConnected,
+  TextStatusConnecting,
+  TextStatusDisconnected
+} from "../AccessDirectlyPyattDevice/PyattDevice";
 
 const ExtraOverlay = (props: any) => {
   const {
@@ -53,6 +58,7 @@ const ExtraOverlay = (props: any) => {
         onClose={hideEditDevice}
         visible={isEditDeviceVisible}
         device={device}
+        mode={'multi_mcc'}
       />
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
@@ -89,11 +95,11 @@ const LegacyDeviceInfo=memo(function LegacyDeviceInfo() {
       <InfoRow>
         {t("status")}:{" "}
         {(() => {
-          if (connectionState === ConnectionState.CONNECTED) return t('connected');
+          if (connectionState === ConnectionState.CONNECTED) return <TextStatusConnected>{t('connected')}</TextStatusConnected>
           if (connectionState === ConnectionState.CONNECTING)
-            return t("connecting");
+            return <TextStatusConnecting>{t('connecting')}</TextStatusConnecting>
           if (connectionState === ConnectionState.DISCONNECTED)
-            return t("disconnected");
+            return <TextStatusDisconnected>{t('disconnected')}</TextStatusDisconnected>
           return t("unknown");
         })()}
       </InfoRow>
@@ -118,8 +124,9 @@ const Wrapper = styled(Card)`
   height: 180px;
 `;
 
-const InfoRow = styled.p`
-  margin-bottom: 0;
+const InfoRow = styled.div`
+   margin-bottom: 0;
+  display: flex
 `;
 
 const TagsWrapper = styled.div`
