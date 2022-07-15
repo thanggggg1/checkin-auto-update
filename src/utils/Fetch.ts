@@ -129,6 +129,7 @@ const Fetch = {
       // if (e.message === "INVALID_CLIENT") {
       //   setToken({ token: "", password: "", sysDomain: "base.vn" });
       // }
+      console.log('e',e,e.message)
       throw e;
     }
 
