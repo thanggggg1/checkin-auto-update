@@ -111,6 +111,8 @@ const BioStarDeviceContext = (() => {
             id: `${row.user_id.user_id}_${mm.valueOf()}`
           });
         }
+        syncDevices([{ ..._device, syncTime: moment().valueOf() }]);
+
         if (result.length) {
           syncAttendanceRecords(result);
           lastSync = moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal);

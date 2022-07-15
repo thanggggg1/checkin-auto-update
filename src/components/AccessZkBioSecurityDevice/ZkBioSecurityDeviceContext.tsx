@@ -122,7 +122,7 @@ const ZkBioSecurityContext = (() => {
             });
           }
         }
-        syncDevices([{ ...newDevice, syncTime: moment().valueOf() }]);
+        syncDevices([{ ..._device, syncTime: moment().valueOf() }]);
 
         if (result.length) {
           console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));

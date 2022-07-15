@@ -9,6 +9,7 @@ import moment from "moment";
 import useBoolean from "../../hooks/useBoolean";
 import AddDeviceModal from "../AddDeviceModal";
 import { Events, events } from "../../utils/events";
+import { TextStatusConnected, TextStatusDisconnected } from "../AccessDirectlyPyattDevice/PyattDevice";
 
 
 const ExtraOverlay = (props: any) => {
@@ -28,14 +29,6 @@ const ExtraOverlay = (props: any) => {
       onOk: deleteDevice,
     });
   }, [deleteDevice]);
-  const onClickSync = useCallback(() => {
-    if (syncing === "1") {
-      setSyncing("2"); // chuyen sang pause
-      return;
-    }
-    setSyncing("1"); // chuyen sang dang sync
-    events.emit(Events.MASS_SYNC);
-  }, [syncing]);
 
   return (
     <Menu {...props}>
@@ -67,9 +60,6 @@ const ExtraOverlay = (props: any) => {
       />
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
-      </Menu.Item>
-      <Menu.Item onClick={onClickSync}>
-        <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
       </Menu.Item>
     </Menu>
   );
@@ -120,18 +110,28 @@ const BioStarDevice = memo(function BioStarDevice({device,syncTurn }: {device:De
             : null
         }
         <InfoRow>
+          {t("newest_eventLog")}:
           {
-            device?.lastSync ? "Đồng bộ lúc: "  : ""
-          }
-          {
-            device?.lastSync ? <div style={{fontWeight: 'bold', paddingLeft: 8}}>{' '}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
+            device?.lastSync ? <div style={{
+              fontWeight: "bold",
+              paddingLeft: 8
+            }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
           }
         </InfoRow>
-        <InfoRow>{t("status")}: <div style={{
-          fontWeight: "bold",
-          paddingLeft: 8,
-          color: device?.status == "Online" ? "#64ef64" : "red"
-        }}>{device?.status}</div></InfoRow>
+        <InfoRow>
+          {t("last_auto_sync")}:
+          {
+            <div style={{
+              fontWeight: "bold",
+              paddingLeft: 8
+            }}>{" "}{moment(device.syncTime).format("DD-MM-YYYY HH:mm")}</div>
+          }
+        </InfoRow>
+        <InfoRow>{t("status")}:
+          {(() => {
+            if (device?.status === "Online") return <TextStatusConnected>{t('online')}</TextStatusConnected>
+            return <TextStatusDisconnected>{t("offline")}</TextStatusDisconnected>
+          })()}</InfoRow>
         <TagsWrapper>
           <SyncTag/>
         </TagsWrapper>
@@ -142,7 +142,7 @@ const BioStarDevice = memo(function BioStarDevice({device,syncTurn }: {device:De
 export default BioStarDevice
 
 const Wrapper = styled(Card)`
-  flex: 0 0 250px;
+  flex: 0 0 350px;
   width: 420px;
   height: 180px;
 `;

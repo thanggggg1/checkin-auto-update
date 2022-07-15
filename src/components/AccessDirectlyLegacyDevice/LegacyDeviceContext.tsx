@@ -1,5 +1,5 @@
 import constate from "constate";
-import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod,resetDevices } from "../../store/devices";
+import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod,syncDevices } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
@@ -10,6 +10,7 @@ import ZK from "../../packages/js_zklib/ZK";
 import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
 import _ from "lodash";
+import { deleteDeviceById } from "../../store/devices/actions";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -161,11 +162,15 @@ const LegacyDeviceContext = (() => {
               };
             })
             .filter(Boolean) as AttendanceRecord[];
+          console.log('time',records[records.length-1].timestamp)
+
+          syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:records[records.length-1].timestamp }]);
 
           syncAttendanceRecords(records);
           // when sync done thi goi vao day de chuyen sang client tiep theo
           await require("bluebird").delay(400);
           events.emit(Events.SYNC_DONE);
+
           return records;
         } catch (e) {
           await enableDevice();
@@ -187,7 +192,6 @@ const LegacyDeviceContext = (() => {
       setSyncPercent(0);
 
       await enableDevice();
-
       attendances.data &&
       syncAttendanceRecords(
         // filter exists & map at the same time (filter exists for performance)
@@ -216,7 +220,8 @@ const LegacyDeviceContext = (() => {
 
           return filtered;
         }, [])
-      );
+      ) &&       syncDevices([{ ...device, syncTime: moment().valueOf() }]);
+
       // when sync done thi goi vao day de chuyen sang client tiep theo
       events.emit(Events.SYNC_DONE);
       return attendances;
@@ -336,8 +341,8 @@ const LegacyDeviceContext = (() => {
 
     const deleteDevice = useCallback(() => {
       // @ts-ignore
-      deleteDevices([device.domain]);
-    }, [device.domain]);
+      deleteDeviceById(device.ip);
+    }, [device.ip]);
     return {
       device,
       connection,

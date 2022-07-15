@@ -51,9 +51,11 @@ export const {
 });
 
 const devicesSelector = (state: any) => state.devices.byKey;
+
 export const useDevicesRecord = (): Record<string, Device> => {
   return useSelector(devicesSelector);
 };
+
 
 
 export const useDeviceSyncMethod = (device: Device): DeviceSyncMethod => {

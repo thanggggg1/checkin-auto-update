@@ -24,7 +24,6 @@ const DevicesRow = memo(function DevicesRow() {
   useEffect(() => {
     console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
     if (turnSyncIP) {
-      console.log("vao abc1");
       return;
     }
     const _t = setInterval(() => {
@@ -48,7 +47,6 @@ const DevicesRow = memo(function DevicesRow() {
 
       const _devices = Object.values(devices || {});
       if (_devices.length) {
-        console.log("vao abc2");
         setTurnSyncIP(_devices[0].domain);
       }
     };

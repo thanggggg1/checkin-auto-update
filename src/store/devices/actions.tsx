@@ -5,3 +5,8 @@ export const getDeviceById = (id: string) => {
   const _state = getStore().getState();
   return ((_state || {})['devices'] || {}).byKey[id] as Device
 };
+
+export const deleteDeviceById = (id:string) => {
+  const _state = getStore().getState();
+
+}

@@ -30,7 +30,7 @@ const defaultValue: Device = {
 export interface AddDeviceModalProps extends ModalProps {
   onClose: () => void;
   device?: Device;
-  mode?:string;
+  mode?: string;
 }
 
 const AddDeviceModal = memo(function AddDeviceModal(
@@ -39,7 +39,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
   useLanguage();
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
   const [valueSelect, setValueSelect] = useState("");
-  const [mode, setMode] = useState(props.mode || 'multi_mcc');
+  const [mode, setMode] = useState(props.mode || "multi_mcc");
   const isZkBioSystem = useSettingZkBioSystem();
 
 
@@ -183,9 +183,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       }
     }
     if (mode !== "zk_teco") {
-      if (device.ip) {
-        syncDevices([{ ...device, domain: device.ip, status: "Online" }]);
-      } else syncDevices([{ ...device, status: "Online" }]);
+      syncDevices([{ ...device, status: "Online" }]);
     }
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
@@ -223,7 +221,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           >
             <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
             <Select.Option
-              disabled={isZkBioSystem && props.mode!='zk_teco' }
+              disabled={isZkBioSystem && props.mode != "zk_teco"}
               value={"zk_teco"}>Zk Bio Security</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>

@@ -11,6 +11,8 @@
   "users_plural": "{{count}} users",
   "used": "used",
   "status": "Status",
+  "online": "Online",
+  "offline": "Offline",
   "connecting": "Connecting",
   "connected": "Connected",
   "disconnected": "Disconnected",

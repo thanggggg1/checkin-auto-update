@@ -1,5 +1,5 @@
 import constate from "constate";
-import { deleteDevices, Device } from "../../store/devices";
+import { deleteDevices, Device,syncDevices } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pyatt, { PyattRecord } from "../../Services/Pyatt";
 import useLatest from "react-use/lib/useLatest";
@@ -11,6 +11,7 @@ import { Modal } from "antd";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
 import { Events, events } from "../../utils/events";
+import moment from "moment";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -46,6 +47,9 @@ const PyattDeviceContext = (() => {
       value: closeLiveCapture,
     } = useAsyncEffect(async () => {
       if (isGettingRecordRef.current) return;
+//setSyncTime
+      syncDevices([{ ...device, syncTime: moment().valueOf() }]);
+
 
       setRealtimeStatus(PyattRealtimeStatus.CONNECTING);
 

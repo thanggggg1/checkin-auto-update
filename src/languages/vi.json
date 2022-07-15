@@ -11,6 +11,8 @@
   "users_plural": "{{count}} người dùng",
   "used": "đã sử dụng",
   "status": "Trạng thái",
+  "online": "Đang hoạt động",
+  "offline": "Mất kết nối",
   "connecting": "Đang kết nối",
   "connected": "Đã kết nối",
   "disconnected": "Mất kết nối",

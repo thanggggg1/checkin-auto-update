@@ -100,11 +100,6 @@ const PyattDevice = memo(function PyattDevice({ device, syncTurn }: { device: De
       <Wrapper title={device.name} size={"small"} extra={<Extra />}>
         <InfoRow>IP: {device.ip}</InfoRow>
         <Status />
-        <InfoRow>{t("status")}: <div style={{
-          fontWeight: "bold",
-          paddingLeft: 8,
-          color: device?.status == "Online" ? "#64ef64" : "red"
-        }}>{device?.status}</div></InfoRow>
         <TagsWrapper>
           {/*<SyncTag />*/}
         </TagsWrapper>
@@ -116,7 +111,7 @@ const PyattDevice = memo(function PyattDevice({ device, syncTurn }: { device: De
 export default PyattDevice;
 
 const Wrapper = styled(Card)`
-  flex: 0 0 220px;
+  flex: 0 0 350px;
   width: 420px;
   height: 180px;
 `;
