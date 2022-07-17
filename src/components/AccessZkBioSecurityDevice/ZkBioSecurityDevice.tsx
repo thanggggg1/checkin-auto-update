@@ -93,7 +93,7 @@ const device= useSettingZkBioSystem()
     shell.openExternal(device.domain);
   };
   return (
-    <ZkBioSecurityContext.Provider>
+    <ZkBioSecurityContext.Provider device={device}>
       <Wrapper title={device.name} size={"small"} extra={<Extra/>}>
         <InfoRow>
           Domain: <Href onClick={openHref}>{device.domain}</Href>

@@ -20,7 +20,7 @@ import {
 
 
 const ZkBioSecurityContext = (() => {
-  const [Provider, use] = constate(() => {
+  const [Provider, use] = constate(({device}:{device:Device}) => {
     const [syncPercent, _setSyncPercent] = useState(0);
     const setSyncPercent = useMemo(
       () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
@@ -170,19 +170,18 @@ const ZkBioSecurityContext = (() => {
         }
       }
       return [];
-    }, []);
+    }, [device]);
 
     useEffect(() => {
       if (isGettingAttendances) {
         return;
       }
-      const _t = setInterval(() => {
-        syncAttendances().then();
-          }, 18000);
-
-          return () => {
-            clearInterval(_t);
-          };
+      const _t =setInterval(()=>{
+        syncAttendances().then()
+      },20000)
+      return ()=>{
+        _t && clearInterval()
+      }
     }, []);
     //
 
@@ -194,7 +193,7 @@ const ZkBioSecurityContext = (() => {
     return {
       syncAttendances,
       deleteDevice,
-      syncPercent
+      syncPercent,
     };
   });
 

@@ -14,7 +14,6 @@ const SyncButton = memo(function SyncButton() {
       return;
     }
     setSyncing("1"); // chuyen sang dang sync
-    events.emit(Events.MASS_SYNC);
   }, [syncing]);
 
   return (
