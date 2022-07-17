@@ -9,7 +9,7 @@ export enum DeviceSyncMethod {
 
 export interface Device {
   name: string;
-  ip?:string;
+  ip:string;
   port?:number;
 
   domain: string; // key
@@ -45,7 +45,7 @@ export const {
   sync: syncDevices,
   multiDelete: deleteDevices,
   reset:resetDevices
-} = createDynamicReducer<Device>("devices", "domain", {
+} = createDynamicReducer<Device>("devices", "ip", {
   byKey: {},
   query: {}
 });

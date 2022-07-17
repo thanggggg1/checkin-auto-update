@@ -19,21 +19,22 @@ const DevicesRow = memo(function DevicesRow() {
   const devices = useDevicesRecord();
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
+  const ZkBioSystem =useSettingZkBioSystem()
 
 
-  useEffect(() => {
-    console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
-    if (turnSyncIP) {
-      return;
-    }
-    const _t = setInterval(() => {
-      events.emit(Events.MASS_SYNC);
-    }, 18000);
-
-    return () => {
-      _t && clearInterval(_t);
-    };
-  }, [turnSyncIP]);
+  // useEffect(() => {
+  //   console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
+  //   if (turnSyncIP) {
+  //     return;
+  //   }
+  //   const _t = setInterval(() => {
+  //     events.emit(Events.MASS_SYNC);
+  //   }, 18000);
+  //
+  //   return () => {
+  //     _t && clearInterval(_t);
+  //   };
+  // }, [turnSyncIP]);
 
 
   useEffect(() => {
@@ -47,7 +48,7 @@ const DevicesRow = memo(function DevicesRow() {
 
       const _devices = Object.values(devices || {});
       if (_devices.length) {
-        setTurnSyncIP(_devices[0].domain);
+        setTurnSyncIP(_devices[0].ip);
       }
     };
     events.on(Events.MASS_SYNC, handler);
@@ -62,14 +63,14 @@ const DevicesRow = memo(function DevicesRow() {
 
     const handler = () => {
       const _devices = Object.values(devices || {});
-      const currentIndex = _devices.findIndex(item => item.domain === turnSyncIP);
+      const currentIndex = _devices.findIndex(item => item.ip === turnSyncIP);
       if (currentIndex > -1 && currentIndex < _devices.length) {
         if (currentIndex + 1 === _devices.length) {
           console.log("vao abc3");
           setTurnSyncIP("");
         } else {
           if (_devices[currentIndex + 1]) {
-            setTurnSyncIP(_devices[currentIndex + 1].domain);
+            setTurnSyncIP(_devices[currentIndex + 1].ip);
             console.log("vao abc4");
           }
         }
@@ -92,19 +93,17 @@ const DevicesRow = memo(function DevicesRow() {
   return (
     <>
       <Wrapper>
+        {ZkBioSystem.domain && <ZkBioSecurityDevice/>}
         {
           Object.values(devices).map((device) => {
-            if(device.token){
-              return <ZkBioSecurityDevice device={device} syncTurn={device.domain === turnSyncIP} key={device.domain}/>
-            }
             if (device.syncMethod === DeviceSyncMethod.PY) {
-              return <PyattDevice device={device} syncTurn={device.domain === turnSyncIP} key={device.ip}/>;
+              return <PyattDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
             }
             if (device.syncMethod === DeviceSyncMethod.LARGE_DATASET || device.syncMethod === DeviceSyncMethod.LEGACY) {
-              return <LegacyDevice device={device} syncTurn={device.domain === turnSyncIP} key={device.ip}/>;
+              return <LegacyDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
             } else {
               if (device.doors)
-                return <BioStarDevice syncTurn={device.ip === turnSyncIP} key={device.domain} device={device}/>;
+                return <BioStarDevice key={device.domain} device={device}/>;
             }
           })
         }

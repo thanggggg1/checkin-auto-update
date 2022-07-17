@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import constate from "constate";
-import { deleteDevices, Device, syncDevices } from "../../store/devices";
+import { deleteDevices, Device, syncDevices,resetDevices } from "../../store/devices";
 import useAsyncFn from "react-use/lib/useAsyncFn";
-import { AttendanceRecord, filterRecords, getAllRecordsArr, syncAttendanceRecords } from "../../store/records";
+import { AttendanceRecord, filterRecords, syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
 import { Events, events } from "../../utils/events";
 import moment from "moment";
@@ -12,19 +12,23 @@ import { timeSleep } from "../../utils/sleep";
 import { requestEventLogZkBio, requestLoginDeviceZkBio } from "../../store/devices/functions";
 import _ from "lodash";
 import { getDeviceById } from "../../store/devices/actions";
-import { setSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import {
+  clearSettingZkBioSystem,
+  getSettingZkBioSystem,
+  setSettingZkBioSystem
+} from "../../store/settings/settingZkBioSystem";
 
 
 const ZkBioSecurityContext = (() => {
-  const [Provider, use] = constate(({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
+  const [Provider, use] = constate(() => {
     const [syncPercent, _setSyncPercent] = useState(0);
     const setSyncPercent = useMemo(
       () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
       [_setSyncPercent]
     );
-    const newDevice = { ...device };
+    const newDevice = getSettingZkBioSystem();
     if (!newDevice.startSync) {
-      syncDevices([{ ...newDevice, startSync: moment().subtract(6, "months").valueOf() }]);
+      setSettingZkBioSystem({ ...newDevice, startSync: moment().subtract(6, "months").valueOf() });
     }
 
     /**
@@ -42,9 +46,7 @@ const ZkBioSecurityContext = (() => {
         // if (!newDevice.sessionId) {
         //   continue;
         // }
-
-
-        const _device = getDeviceById(newDevice.domain);
+        let _device=getSettingZkBioSystem()
         if (!_device.domain) {
           canSync = false;
         }
@@ -62,7 +64,7 @@ const ZkBioSecurityContext = (() => {
         setSyncPercent(0);
 
         if (_device.domain && _device.status === "Offline") {
-          await timeSleep(10);
+          await timeSleep(15);
           await requestLoginDeviceZkBio({
             domain: _device.domain,
             username: _device.username,
@@ -76,6 +78,8 @@ const ZkBioSecurityContext = (() => {
 
         console.log("LAST SYNCC", lastSync);
 
+        _device=getSettingZkBioSystem()
+
 
         let data = await requestEventLogZkBio({
           domain: _device.domain,
@@ -83,6 +87,7 @@ const ZkBioSecurityContext = (() => {
           endTime: moment().format(FormatDateSearch.end),
           token: _device.token
         });
+
 
         //kiem tra neu token het han
         if (!data || data === 401) {
@@ -122,19 +127,19 @@ const ZkBioSecurityContext = (() => {
             });
           }
         }
-        syncDevices([{ ..._device, syncTime: moment().valueOf() }]);
+        setSettingZkBioSystem({..._device,syncTime:moment().valueOf()})
 
         if (result.length) {
           console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));
 
           syncAttendanceRecords(result);
-          syncDevices([{
-            ..._device, lastSync: result[result.length - 1].timestamp
-          }]);
+          const __device = getSettingZkBioSystem()
+          __device && setSettingZkBioSystem({...__device, lastSync: result[result.length - 1].timestamp})
+
           await timeSleep(2);
 
           // const _currentDevice = getDeviceById(__device.domain);
-          if (!_device) {
+          if (!__device) {
             canSync = false;
             events.emit(Events.SYNC_DONE);
             return;
@@ -143,13 +148,13 @@ const ZkBioSecurityContext = (() => {
             continue;
           }
           await timeSleep(3);
-          try  {
+          try {
             await Fetch.massPushSplitByChunks(
               filterRecords(result, {
                 onlyNotPushed: true,
                 onlyInEmployeeCheckinCodes: true,
                 startTime: result[0].timestamp,
-                endTime: result[result.length-1].timestamp
+                endTime: result[result.length - 1].timestamp
               })
             );
           } catch (e) {
@@ -165,25 +170,28 @@ const ZkBioSecurityContext = (() => {
         }
       }
       return [];
-    }, [device]);
+    }, []);
 
     useEffect(() => {
       if (isGettingAttendances) {
         return;
       }
-      if (syncTurn) {
-        console.log("effect sync attendance");
+      const _t = setInterval(() => {
         syncAttendances().then();
-      }
-    }, [syncTurn]);
+          }, 18000);
+
+          return () => {
+            clearInterval(_t);
+          };
+    }, []);
+    //
 
     const deleteDevice = useCallback(() => {
-      deleteDevices([device.domain]);
-      setSettingZkBioSystem(false)
+     clearSettingZkBioSystem();
+     resetDevices()
     }, []);
 
     return {
-      device,
       syncAttendances,
       deleteDevice,
       syncPercent

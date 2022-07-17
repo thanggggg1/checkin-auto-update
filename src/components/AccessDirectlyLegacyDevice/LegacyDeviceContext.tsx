@@ -341,8 +341,8 @@ const LegacyDeviceContext = (() => {
 
     const deleteDevice = useCallback(() => {
       // @ts-ignore
-      deleteDeviceById(device.ip);
-    }, [device.ip]);
+      deleteDevices([device.domain]);
+    }, [device.domain]);
     return {
       device,
       connection,

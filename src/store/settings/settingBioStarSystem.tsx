@@ -2,11 +2,11 @@ import { createSetting } from "./index";
 import { Device } from "../devices";
 
 const {
-  get: getSettingZkBioSystem,
-  set: setSettingZkBioSystem,
-  use: useSettingZkBioSystem,
-  clear: clearSettingZkBioSystem
-} = createSetting<Device>("settingZkBioSystem",{
+  get: getSettingBioStar,
+  set: setSettingBioStar,
+  use: useSettingBioStar,
+  clear: clearSettingBioStar
+} = createSetting<Device>("settingBioStar",{
   clientPassword: "", //"123456",
   clientToken: "", //"NzktMTEtZDg1MWZmNGE2ZTM1M2UxMA",
   domain: "", // "https://10.20.1.201:8098",
@@ -20,4 +20,4 @@ const {
   ip:''
 });
 
-export { getSettingZkBioSystem, setSettingZkBioSystem, useSettingZkBioSystem, clearSettingZkBioSystem };
+export { getSettingBioStar, setSettingBioStar, useSettingBioStar, clearSettingBioStar };

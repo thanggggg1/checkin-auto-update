@@ -22,7 +22,7 @@ import _ from "lodash";
 
 
 const BioStarDeviceContext = (() => {
-  const [Provider, use] = constate(({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
+  const [Provider, use] = constate(({ device }: { device: Device }) => {
     const [syncPercent, _setSyncPercent] = useState(0);
     const setSyncPercent = useMemo(
       () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
@@ -156,10 +156,10 @@ const BioStarDeviceContext = (() => {
       if (isGettingAttendances) {
         return;
       }
-      if (syncTurn) {
+      setInterval(()=>{
         syncAttendances().then();
-      }
-    }, [syncTurn]);
+      },18000)
+    }, []);
 
     const deleteDevice = useCallback(() => {
       deleteDevices([device.domain]);

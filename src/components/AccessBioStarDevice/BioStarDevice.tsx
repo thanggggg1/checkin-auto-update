@@ -89,7 +89,7 @@ const SyncTag = () => {
 };
 
 
-const BioStarDevice = memo(function BioStarDevice({device,syncTurn }: {device:Device, syncTurn: boolean }) {
+const BioStarDevice = memo(function BioStarDevice({device }: {device:Device }) {
   useLanguage();
   const syncing = useSyncing();
   const openHref = () => {
@@ -97,13 +97,13 @@ const BioStarDevice = memo(function BioStarDevice({device,syncTurn }: {device:De
     shell.openExternal(device.domain);
   };
   return (
-    <BioStarDeviceContext.Provider device={device} syncTurn={syncTurn}>
+    <BioStarDeviceContext.Provider device={device} >
       <Wrapper title={device.name} size={"small"} extra={<Extra/>}>
         <InfoRow>
           Domain: <Href onClick={openHref}>{device.domain}</Href>
         </InfoRow>
         {
-          syncTurn && syncing === "1"
+            syncing === "1"
             ? <InfoRow>
               Đang đồng bộ
             </InfoRow>

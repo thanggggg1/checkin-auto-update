@@ -23,7 +23,8 @@ const defaultValue: Device = {
   status: "Online",
   token: "",
   syncMethod: "",
-  connection: "tcp"
+  connection: "tcp",
+  ip:''
 };
 
 
@@ -161,12 +162,11 @@ const AddDeviceModal = memo(function AddDeviceModal(
         });
 
         if (data?.response) {
-          setSettingZkBioSystem(true);
-          syncDevices([{
+          setSettingZkBioSystem({
             ...device,
             token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
             status: "Online"
-          }]);
+          })
         } else {
           Modal.error({
             title: `${t("unable_login")}`,
@@ -221,7 +221,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           >
             <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
             <Select.Option
-              disabled={isZkBioSystem && props.mode != "zk_teco"}
+              // disabled={isZkBioSystem && props.mode != "zk_teco"}
               value={"zk_teco"}>Zk Bio Security</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>

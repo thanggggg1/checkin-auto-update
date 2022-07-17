@@ -201,16 +201,16 @@ export const requestLoginDeviceZkBio = async ({
     });
 
     if (data?.response) {
-      device && syncDevices([{
+      device && setSettingZkBioSystem({
         ...device, token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
         status: "Online"
-      }]);
+      })
     } else {
-      device && syncDevices([{...device,status:'Offline'}]);
+      device && setSettingZkBioSystem({...device,status:'Offline'});
     }
     return data;
   } catch (e) {
-    device && syncDevices([{...device,status:'Offline'}]);
+    device && setSettingZkBioSystem({...device,status:'Offline'});
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
       return 401;

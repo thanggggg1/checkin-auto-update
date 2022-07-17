@@ -28,7 +28,8 @@ const useAutoFetchCheckinCodes = () => {
       if (!device.clientPassword || !device.clientToken) {
         continue
       }
-      await Fetch.requestCheckinCodes(device.domain, {
+      // @ts-ignore
+      await Fetch.requestCheckinCodes(device.ip, {
         token: device.clientToken,
         password: device.clientPassword
       });
@@ -61,28 +62,26 @@ export const AutoTasks = memo(function AutoTasks() {
       return
     }
     const interval = setInterval(() => {
-      const nowMm = moment();
-      const now = nowMm.valueOf();
-
       /**
        * AUTO PUSH
        */
       (async () => {
-        const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-        if (now - minutesToMs(autoPushLogsMinutes) < lastAutoPushLogsTime)
-          return;
-
         // start auto push
-        console.log("fire autoPush");
-        await Fetch.massPushSplitByChunks(
-          filterRecords(getAllRecordsArr(), {
-            onlyNotPushed: true,
-            onlyInEmployeeCheckinCodes: true
-          })
-        );
+        try {
+          console.log("fire autoPush");
+          setLastAutoPushLogsTime(Date.now());
+          await Fetch.massPushSplitByChunks(
+            filterRecords(getAllRecordsArr(), {
+              onlyNotPushed: true,
+              onlyInEmployeeCheckinCodes: true
+            })
+          );
+        } catch (e) {
 
-        // save last auto push
-        setLastAutoPushLogsTime(Date.now());
+        } finally {
+          // save last auto push
+          setLastAutoPushLogsTime(Date.now());
+        }
       })();
     }, minutesToMs(autoPushLogsMinutes));
 
@@ -105,13 +104,19 @@ export const AutoTasks = memo(function AutoTasks() {
       if (autoSyncLogsMinutes === 0) return;
 
       const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
-      if (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)
+      if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
+        // save last auto sync
+        setLastAutoSyncLogsTime(now);
         return;
-
+      }
       // if on prevent auto sync, cancel
       const shouldCancel = (() => {
         try {
-          const timeRanges = getPreventSyncLogsTimeRanges().split(",").map(t => t.trim());
+          const logGetPreventSyncLogsTimeRanges = getPreventSyncLogsTimeRanges();
+          if (!logGetPreventSyncLogsTimeRanges) {
+            return false
+          }
+          const timeRanges = logGetPreventSyncLogsTimeRanges.split(",").map(t => t.trim());
 
           for (const range of timeRanges) {
             const [start, end] = range.split("-");
@@ -119,19 +124,22 @@ export const AutoTasks = memo(function AutoTasks() {
               console.log("start or end time not correct formatted");
               return true;
             }
-            if (nowMm.isBetween(moment(start, "HH:mm:ss"), moment(end, "HH:mm:ss"))) {
+            if (nowMm.isBetween(moment(start, "HH:mm"), moment(end, "HH:mm"))) {
               console.log("auto sync cancelled");
               return true;
             }
           }
 
         } catch (e) {
-          console.log("Should cancel timeRange error", e);
+          console.log("Should cancel timerange error", e);
           return true;
         }
       })();
-      //
-      if (shouldCancel) return;
+
+      if (shouldCancel) {
+        setLastAutoSyncLogsTime(now);
+        return;
+      }
 
       // start auto sync
       console.log("fire autoSync");
