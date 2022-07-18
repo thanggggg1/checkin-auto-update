@@ -23,7 +23,7 @@ const defaultValue: Device = {
   username: "", //"admin",
   status: "Online",
   token: "",
-  syncMethod: "",
+  syncMethod: DeviceSyncMethod.PY,
   connection: "tcp",
   ip:''
 };
@@ -42,7 +42,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [device, setDevice] = useState<Device>(props.device || defaultValue);
   const [valueSelect, setValueSelect] = useState("");
   const [mode, setMode] = useState(props.mode || "multi_mcc");
-  const isZkBioSystem = useSettingZkBioSystem();
+  const ZkBioSystem = useSettingZkBioSystem();
 
 
   useEffect(() => {
@@ -90,7 +90,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const onLastSyncChange = useCallback((value: number) => {
     setDevice({
       ...device,
-      lastSync: value
+      lastSync: value,
+      startSync:value
     });
   }, []);
 
@@ -168,6 +169,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
             token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
             status: "Online"
           })
+          setMode('multi_mcc')
         } else {
           Modal.error({
             title: `${t("unable_login")}`,
@@ -225,7 +227,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           >
             <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
             <Select.Option
-              // disabled={isZkBioSystem && props.mode != "zk_teco"}
+              disabled={!!ZkBioSystem.domain && props.mode != "zk_teco"}
               value={"zk_teco"}>Zk Bio Security</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>
@@ -234,7 +236,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       <br/>
       <br/>
       {
-        isZkBioSystem && <p style={{ fontStyle: "italic" }}>{"*You can only add one system of ZkBioSecurity*"}</p>
+        ZkBioSystem.domain && <p style={{ fontStyle: "italic" }}>{"*You can only add one system of ZkBioSecurity*"}</p>
       }
       {
         mode === "zk_teco" || mode === "bio_star" ?
@@ -393,23 +395,24 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {
-        device.lastSync && (mode === "zk_teco" || mode === "bio_star") &&
-        <>
-          <br/>
-          <br/>
-          <Input.Group compact={true}>
-            <Input disabled={true} style={{ width: 160 }} value={t<string>("sync_data_from")}/>
-            <DatePicker
-              showTime={{ format: "DD/MM/YYYY HH:mm" }}
-              format="DD/MM/YYYY HH:mm:ss"
-              onOk={(value: any) => {
-                onLastSyncChange(value.unix() * 1000);
-              }}
-              placeholder={""}
-              value={moment(device.lastSync)}
-            />
-          </Input.Group>
-        </>
+        ZkBioSystem.startSync
+          ? <>
+            <br/>
+            <br/>
+            <Input.Group compact={true}>
+              <Input disabled={true} style={{ width: 160 }} value={t<string>("sync_data_from")}/>
+              <DatePicker
+                showTime={{ format: "DD/MM/YYYY HH:mm" }}
+                format="DD/MM/YYYY HH:mm:ss"
+                onOk={(value: any) => {
+                  onLastSyncChange(value.unix() * 1000);
+                }}
+                placeholder={""}
+                value={moment(device.startSync)}
+              />
+            </Input.Group>
+          </>
+          : null
       }
     </Modal>
   );

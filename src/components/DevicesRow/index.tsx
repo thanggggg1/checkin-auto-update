@@ -104,9 +104,6 @@ const DevicesRow = memo(function DevicesRow() {
             }
             if (device.syncMethod === DeviceSyncMethod.LARGE_DATASET || device.syncMethod === DeviceSyncMethod.LEGACY) {
               return <LegacyDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
-            } else {
-              if (device.doors)
-                return <BioStarDevice key={device.domain} device={device}/>;
             }
           })
         }

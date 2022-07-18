@@ -220,7 +220,8 @@ const LegacyDeviceContext = (() => {
 
           return filtered;
         }, [])
-      ) &&       syncDevices([{ ...device, syncTime: moment().valueOf() }]);
+      )
+      &&       syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:attendances.data[attendances.data?.length-1].recordTime.valueOf() }]);
 
       // when sync done thi goi vao day de chuyen sang client tiep theo
       events.emit(Events.SYNC_DONE);
@@ -263,6 +264,7 @@ const LegacyDeviceContext = (() => {
           };
 
           Fetch.realtimePush(log);
+
 
           syncAttendanceRecords([log]);
         }
@@ -341,8 +343,8 @@ const LegacyDeviceContext = (() => {
 
     const deleteDevice = useCallback(() => {
       // @ts-ignore
-      deleteDevices([device.domain]);
-    }, [device.domain]);
+      deleteDevices([device.ip]);
+    }, [device.ip]);
     return {
       device,
       connection,

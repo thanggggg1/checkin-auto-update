@@ -172,8 +172,8 @@ const PyattDeviceContext = (() => {
 
     const deleteDevice = useCallback(() => {
       // @ts-ignore
-      deleteDevices([device.domain]);
-    }, [device.domain]);
+      deleteDevices([device.ip]);
+    }, [device.ip]);
 
     useEffect(() => {
       if (syncTurn && !latestSyncPercent.current) {

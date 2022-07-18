@@ -8,6 +8,7 @@ import _ from "lodash";
 import { setPushingPercent } from "../store/settings/pushingPercent";
 import { getCheckinCodesSetByIp, setCheckinCodes } from "../store/settings/checkinCodes";
 import { getDeviceById } from "../store/devices/actions";
+import {syncDevices} from '../store/devices'
 
 axios.defaults.baseURL = "https://base.vn";
 axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -113,6 +114,7 @@ const Fetch = {
     // const token = getToken();
     console.log('realtimePush ', record);
     const device = getDeviceById(record.deviceIp);
+    syncDevices([{...device,lastSync:record.timestamp}])
 
     if (!device || !device.clientToken) throw new Error("INVALID TOKEN");
 
