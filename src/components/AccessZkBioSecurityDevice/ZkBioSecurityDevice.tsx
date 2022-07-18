@@ -6,7 +6,7 @@ import { t, useLanguage } from "../../store/settings/languages";
 import { setSyncing, useSyncing } from "../../store/settings/autoPush";
 import moment from "moment";
 import ZkBioSecurityContext from "./ZkBioSecurityDeviceContext";
-import { getSettingZkBioSystem, useSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import { getSettingZkBioSystem, useSettingZkBioSystem } from "./settingZkBioSystem";
 import useBoolean from "../../hooks/useBoolean";
 import { useAsyncFn } from "react-use";
 import { timeSleep } from "../../utils/sleep";
@@ -18,12 +18,12 @@ import { TextStatusConnected, TextStatusDisconnected } from "../AccessDirectlyPy
 const ExtraOverlay = (props: any) => {
   useLanguage();
   const syncing = useSyncing();
-const device=useSettingZkBioSystem()
 
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
   const {
     deleteDevice,
+    device
   } = ZkBioSecurityContext.use();
 
   const [{ loading }, deleteDeviceConfirm] = useAsyncFn(async () => {
@@ -42,6 +42,14 @@ const device=useSettingZkBioSystem()
     });
   }, [deleteDevice]);
 
+  const onClickSync = useCallback(() => {
+    if (syncing === "1") {
+      setSyncing("2"); // chuyen sang pause
+      return;
+    }
+    setSyncing("1"); // chuyen sang dang sync
+  }, [syncing]);
+
 
   return (
     <Menu {...props}>
@@ -57,6 +65,9 @@ const device=useSettingZkBioSystem()
       />
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
+      </Menu.Item>
+      <Menu.Item onClick={onClickSync}>
+        <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
       </Menu.Item>
     </Menu>
   );
@@ -84,22 +95,21 @@ const SyncTag = () => {
     <Tag>{t("sync")}: {syncPercent}%</Tag>
   );
 };
-const ZkBioSecurityDevice = memo(function ZkBioSecurityDevice() {
+const ZkBioSecurityDevice = memo(function ZkBioSecurityDevice({ device }: { device: Device }) {
   useLanguage();
   const syncing = useSyncing();
-const device= useSettingZkBioSystem()
   const openHref = () => {
     const shell = require("electron").shell;
     shell.openExternal(device.domain);
   };
   return (
-    <ZkBioSecurityContext.Provider device={device}>
+    <ZkBioSecurityContext.Provider device={device} >
       <Wrapper title={device.name} size={"small"} extra={<Extra/>}>
         <InfoRow>
           Domain: <Href onClick={openHref}>{device.domain}</Href>
         </InfoRow>
         {
-            syncing === "1"
+           syncing === "1"
             ? <InfoRow>
               {t("auto_syncing")}
             </InfoRow>

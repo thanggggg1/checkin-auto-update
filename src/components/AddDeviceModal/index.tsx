@@ -11,7 +11,8 @@ import Requests from "../../Services/Requests";
 import { getPwdChangeParams } from "../../utils/portalCheck";
 import { hex_md5 } from "../../utils/hex_md5";
 import { setSettingMode } from "../../store/settings/settingMode";
-import { setSettingZkBioSystem, useSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import { setSettingZkBioSystem, useSettingZkBioSystem } from "../AccessZkBioSecurityDevice/settingZkBioSystem";
+import { setSettingBioStar } from "../AccessBioStarDevice/settingBioStarSystem";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -182,7 +183,10 @@ const AddDeviceModal = memo(function AddDeviceModal(
         return;
       }
     }
-    if (mode !== "zk_teco") {
+    if(mode=='bio_star'){
+      setSettingBioStar({...device,status:'Online'})
+    }
+    if (mode !== "zk_teco" && mode !== 'bio_star') {
       syncDevices([{ ...device, status: "Online" }]);
     }
     props.onClose();

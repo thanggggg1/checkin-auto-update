@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import constate from "constate";
-import { deleteDevices, Device, syncDevices,resetDevices } from "../../store/devices";
+import { Device } from "../../store/devices";
 import useAsyncFn from "react-use/lib/useAsyncFn";
 import { AttendanceRecord, filterRecords, syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
@@ -11,16 +11,15 @@ import { getSyncing } from "../../store/settings/autoPush";
 import { timeSleep } from "../../utils/sleep";
 import { requestEventLogZkBio, requestLoginDeviceZkBio } from "../../store/devices/functions";
 import _ from "lodash";
-import { getDeviceById } from "../../store/devices/actions";
 import {
   clearSettingZkBioSystem,
   getSettingZkBioSystem,
   setSettingZkBioSystem
-} from "../../store/settings/settingZkBioSystem";
+} from "./settingZkBioSystem";
 
 
 const ZkBioSecurityContext = (() => {
-  const [Provider, use] = constate(({device}:{device:Device}) => {
+  const [Provider, use] = constate(({ device }: { device: Device }) => {
     const [syncPercent, _setSyncPercent] = useState(0);
     const setSyncPercent = useMemo(
       () => _.throttle(_setSyncPercent, 500, { leading: true, trailing: true }),
@@ -46,16 +45,19 @@ const ZkBioSecurityContext = (() => {
         // if (!newDevice.sessionId) {
         //   continue;
         // }
-        let _device=getSettingZkBioSystem()
+        let _device = getSettingZkBioSystem();
+        let syncing = getSyncing();
         if (!_device.domain) {
           canSync = false;
+          events.emit(Events.SYNC_DONE);
+          continue;
         }
 
         let lastSync = _device.lastSync
           ? moment(_device.lastSync).format(FormatDateSearch.normal)
           : moment().subtract(6, "months").format(FormatDateSearch.start);
 
-        const syncing = getSyncing();
+        syncing = getSyncing();
 
         if (syncing === "2" || syncing === "0") {
           await timeSleep(5);
@@ -78,7 +80,7 @@ const ZkBioSecurityContext = (() => {
 
         console.log("LAST SYNCC", lastSync);
 
-        _device=getSettingZkBioSystem()
+        _device = getSettingZkBioSystem();
 
 
         let data = await requestEventLogZkBio({
@@ -127,14 +129,14 @@ const ZkBioSecurityContext = (() => {
             });
           }
         }
-        setSettingZkBioSystem({..._device,syncTime:moment().valueOf()})
+        setSettingZkBioSystem({ ..._device, syncTime: moment().valueOf() });
 
         if (result.length) {
           console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));
 
           syncAttendanceRecords(result);
-          const __device = getSettingZkBioSystem()
-          __device && setSettingZkBioSystem({...__device, lastSync: result[result.length - 1].timestamp})
+          const __device = getSettingZkBioSystem();
+          __device && setSettingZkBioSystem({ ...__device, lastSync: result[result.length - 1].timestamp });
 
           await timeSleep(2);
 
@@ -144,7 +146,9 @@ const ZkBioSecurityContext = (() => {
             events.emit(Events.SYNC_DONE);
             return;
           }
+          syncing = getSyncing();
           if (syncing === "2" || syncing === "0") {
+            events.emit(Events.SYNC_DONE);
             continue;
           }
           await timeSleep(3);
@@ -176,24 +180,25 @@ const ZkBioSecurityContext = (() => {
       if (isGettingAttendances) {
         return;
       }
-      const _t =setInterval(()=>{
-        syncAttendances().then()
-      },20000)
-      return ()=>{
-        _t && clearInterval()
-      }
+      const _t = setInterval(() => {
+        console.log("effect sync attendance");
+        syncAttendances().then();
+      }, 30000);
+
+      return () => {
+        _t && clearInterval(_t);
+      };
     }, []);
-    //
 
     const deleteDevice = useCallback(() => {
-     clearSettingZkBioSystem();
-     resetDevices()
+      clearSettingZkBioSystem();
     }, []);
 
     return {
       syncAttendances,
       deleteDevice,
       syncPercent,
+      device
     };
   });
 

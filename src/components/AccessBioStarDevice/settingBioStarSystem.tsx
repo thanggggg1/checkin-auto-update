@@ -1,5 +1,5 @@
-import { createSetting } from "./index";
-import { Device } from "../devices";
+import { createSetting } from "../../store/settings";
+import { Device } from "../../store/devices";
 
 const {
   get: getSettingBioStar,

@@ -1,7 +1,7 @@
 import Requests from "../../Services/Requests";
 import { hex_md5 } from "../../utils/hex_md5";
 import { getPwdChangeParams } from "../../utils/portalCheck";
-import { setSettingZkBioSystem } from "../settings/settingZkBioSystem";
+import { setSettingZkBioSystem } from "../../components/AccessZkBioSecurityDevice/settingZkBioSystem";
 import axios from "axios";
 import { FormatDateSearch, MaxEvenEachRequest, RawEvent, RawUserInterface } from "./types";
 import dayjs from "dayjs";

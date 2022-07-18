@@ -59,6 +59,7 @@ export const useDevicesRecord = (): Record<string, Device> => {
 
 
 export const useDeviceSyncMethod = (device: Device): DeviceSyncMethod => {
+  // @ts-ignore
   if (
     !device.syncMethod ||
     !Object.values(DeviceSyncMethod).includes(device.syncMethod)

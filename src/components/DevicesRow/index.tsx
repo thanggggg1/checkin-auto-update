@@ -6,7 +6,7 @@ import { styled } from "../../global";
 import { t, useLanguage } from "../../store/settings/languages";
 import { Events, events } from "../../utils/events";
 import { useSyncing } from "../../store/settings/autoPush";
-import { getSettingZkBioSystem, useSettingZkBioSystem } from "../../store/settings/settingZkBioSystem";
+import { getSettingZkBioSystem, useSettingZkBioSystem } from "../AccessZkBioSecurityDevice/settingZkBioSystem";
 import PyattDevice from "../AccessDirectlyPyattDevice";
 import LegacyDevice from "../AccessDirectlyLegacyDevice";
 import BioStarDevice from "../AccessBioStarDevice";
@@ -21,7 +21,7 @@ const DevicesRow = memo(function DevicesRow() {
   const syncing = useSyncing();
   const ZkBioSystem =useSettingZkBioSystem()
 
-
+  // //
   // useEffect(() => {
   //   console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
   //   if (turnSyncIP) {
@@ -93,7 +93,7 @@ const DevicesRow = memo(function DevicesRow() {
   return (
     <>
       <Wrapper>
-        {ZkBioSystem.domain && <ZkBioSecurityDevice/>}
+        {ZkBioSystem.domain && <ZkBioSecurityDevice device={ZkBioSystem}/>}
         {
           Object.values(devices).map((device) => {
             if (device.syncMethod === DeviceSyncMethod.PY) {
