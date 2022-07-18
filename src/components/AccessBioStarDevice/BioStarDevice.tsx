@@ -30,6 +30,15 @@ const ExtraOverlay = (props: any) => {
     });
   }, [deleteDevice]);
 
+  const onClickSync = useCallback(() => {
+    if (syncing === "1") {
+      setSyncing("2"); // chuyen sang pause
+      return;
+    }
+    setSyncing("1"); // chuyen sang dang sync
+  }, [syncing]);
+
+
   return (
     <Menu {...props}>
       <Menu.Item
@@ -61,6 +70,9 @@ const ExtraOverlay = (props: any) => {
       <Menu.Item onClick={onClickDeleteDevice}>
         <span>{t("delete")}</span>
       </Menu.Item>
+      <Menu.Item onClick={onClickSync}>
+        <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
+      </Menu.Item>
     </Menu>
   );
 };
@@ -89,7 +101,7 @@ const SyncTag = () => {
 };
 
 
-const BioStarDevice = memo(function BioStarDevice({device }: {device:Device }) {
+export const BioStarDevice = memo(function BioStarDevice({device }: {device:Device }) {
   useLanguage();
   const syncing = useSyncing();
   const openHref = () => {

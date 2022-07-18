@@ -19,6 +19,7 @@ import { getSyncing } from "../../store/settings/autoPush";
 import { timeSleep } from "../../utils/sleep";
 import { requestEventLogBioStar, requestLoginDeviceBioStar } from "../../store/devices/functions";
 import _ from "lodash";
+import { clearSettingBioStar, getSettingBioStar, setSettingBioStar } from "./settingBioStarSystem";
 
 
 const BioStarDeviceContext = (() => {
@@ -80,7 +81,7 @@ const BioStarDeviceContext = (() => {
             return;
           } else {
             newDevice = { ...newDevice, sessionId: res.sessionId };
-            syncDevices([newDevice]);
+            setSettingBioStar(newDevice);
             rows = await requestEventLogBioStar({
               sessionId: newDevice.sessionId,
               from: lastSync,
@@ -111,12 +112,12 @@ const BioStarDeviceContext = (() => {
             id: `${row.user_id.user_id}_${mm.valueOf()}`
           });
         }
-        syncDevices([{ ..._device, syncTime: moment().valueOf() }]);
+        setSettingBioStar({ ..._device, syncTime: moment().valueOf() });
 
         if (result.length) {
           syncAttendanceRecords(result);
           lastSync = moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal);
-          const _currentDevice = getDeviceById(newDevice.domain);
+          const _currentDevice = getSettingBioStar()
           if (!_currentDevice) {
             canSync = false;
             events.emit(Events.SYNC_DONE);
@@ -125,7 +126,7 @@ const BioStarDeviceContext = (() => {
           if (syncing === "2" || syncing === "0") {
             continue;
           }
-          syncDevices([{ ...newDevice, lastSync: result[result.length - 1].timestamp }]);
+          setSettingBioStar({ ...newDevice, lastSync: result[result.length - 1].timestamp });
           await timeSleep(3);
           try {
             await Fetch.massPushSplitByChunks(
@@ -156,14 +157,18 @@ const BioStarDeviceContext = (() => {
       if (isGettingAttendances) {
         return;
       }
-      setInterval(()=>{
+      const _t = setInterval(() => {
+        console.log("effect sync attendance");
         syncAttendances().then();
-      },18000)
+      }, 30000);
+
+      return () => {
+        _t && clearInterval(_t);
+      };
     }, []);
 
     const deleteDevice = useCallback(() => {
-      deleteDevices([device.domain]);
-      resetDevices();
+      clearSettingBioStar()
     }, [device.domain]);
 
     return {

@@ -11,6 +11,7 @@ import PyattDevice from "../AccessDirectlyPyattDevice";
 import LegacyDevice from "../AccessDirectlyLegacyDevice";
 import BioStarDevice from "../AccessBioStarDevice";
 import ZkBioSecurityDevice from "../AccessZkBioSecurityDevice";
+import { useSettingBioStar } from "../AccessBioStarDevice/settingBioStarSystem";
 
 
 const DevicesRow = memo(function DevicesRow() {
@@ -20,6 +21,7 @@ const DevicesRow = memo(function DevicesRow() {
   const [turnSyncIP, setTurnSyncIP] = useState("");
   const syncing = useSyncing();
   const ZkBioSystem =useSettingZkBioSystem()
+  const BioStarSystem = useSettingBioStar()
 
   // //
   // useEffect(() => {
@@ -94,6 +96,7 @@ const DevicesRow = memo(function DevicesRow() {
     <>
       <Wrapper>
         {ZkBioSystem.domain && <ZkBioSecurityDevice device={ZkBioSystem}/>}
+        {BioStarSystem.domain && <BioStarDevice device={BioStarSystem}/>}
         {
           Object.values(devices).map((device) => {
             if (device.syncMethod === DeviceSyncMethod.PY) {

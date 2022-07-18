@@ -95,7 +95,7 @@ const SyncTag = () => {
     <Tag>{t("sync")}: {syncPercent}%</Tag>
   );
 };
-const ZkBioSecurityDevice = memo(function ZkBioSecurityDevice({ device }: { device: Device }) {
+ export const ZkBioSecurityDevice = memo(function ZkBioSecurityDevice({ device }: { device: Device }) {
   useLanguage();
   const syncing = useSyncing();
   const openHref = () => {
