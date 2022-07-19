@@ -38,7 +38,7 @@ const BioStarDeviceContext = (() => {
       syncAttendances
     ] = useAsyncFn(async () => {
 
-      let newDevice = { ...device };
+      let newDevice = getSettingBioStar();
       let canSync = true;
       let lastSync = newDevice.lastSync
         ? moment(newDevice.lastSync).subtract(7, "hours").format(FormatDateSearch.normal)
@@ -49,7 +49,7 @@ const BioStarDeviceContext = (() => {
         if (!newDevice.sessionId) {
           continue;
         }
-        const _device = getDeviceById(newDevice.domain);
+        const _device = getSettingBioStar()
 
         let _a = moment(_device.lastSync).subtract(7, "hours").format(FormatDateSearch.normal);
         if (lastSync !== _a && _device.lastSync) {
@@ -169,7 +169,7 @@ const BioStarDeviceContext = (() => {
 
     const deleteDevice = useCallback(() => {
       clearSettingBioStar()
-    }, [device.domain]);
+    }, []);
 
     return {
       device,

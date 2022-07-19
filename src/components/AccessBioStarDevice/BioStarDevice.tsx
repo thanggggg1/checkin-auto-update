@@ -41,11 +41,11 @@ const ExtraOverlay = (props: any) => {
 
   return (
     <Menu {...props}>
-      <Menu.Item
-        onClick={syncAttendances}
-      >
-        <span>{t("sync_attendances")}</span>
-      </Menu.Item>
+      {/*<Menu.Item*/}
+      {/*  onClick={syncAttendances}*/}
+      {/*>*/}
+      {/*  <span>{t("sync_attendances")}</span>*/}
+      {/*</Menu.Item>*/}
       {/*<Menu.Item*/}
       {/*  disabled={connectionState !== ConnectionState.CONNECTED}*/}
       {/*  onClick={enableDevice}*/}

@@ -2,7 +2,7 @@ import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } f
 import { DatePicker, Input, Modal, Select } from "antd";
 import { ModalProps } from "antd/es/modal";
 import { Device, DeviceSyncMethod, syncDevices } from "../../store/devices";
-import { t, useLanguage } from "../../store/settings/languages";
+import { antdModalLanguageProps, t, useLanguage } from "../../store/settings/languages";
 import { useAsyncFn } from "react-use";
 import Fetch from "../../utils/Fetch";
 import moment from "moment";
@@ -13,6 +13,7 @@ import { hex_md5 } from "../../utils/hex_md5";
 import { setSettingMode } from "../../store/settings/settingMode";
 import { setSettingZkBioSystem, useSettingZkBioSystem } from "../AccessZkBioSecurityDevice/settingZkBioSystem";
 import { setSettingBioStar } from "../AccessBioStarDevice/settingBioStarSystem";
+import { requestLoginDeviceBioStar } from "../../store/devices/functions";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -25,7 +26,7 @@ const defaultValue: Device = {
   token: "",
   syncMethod: DeviceSyncMethod.PY,
   connection: "tcp",
-  ip:''
+  ip: ""
 };
 
 
@@ -91,7 +92,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
     setDevice({
       ...device,
       lastSync: value,
-      startSync:value
+      startSync: value
     });
   }, []);
 
@@ -117,12 +118,22 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const [{ loading }, onOk] = useAsyncFn(async () => {
     // @todo Validate device
 
-    // if (!device.domain || !device.name || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword) {
-    //   return Modal.error({
-    //     title: t("please_enter_all_required_fields"),
-    //     ...antdModalLanguageProps
-    //   });
-    // }
+    // Check condition to add device
+    //Check ZkBioSecurity
+    if (
+      (mode === "zk_teco" && (!device.domain || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword))
+      ||
+      //Check Multi MCC
+      (mode === "multi_mcc" && (!device.ip || !device.name || !device.port || !device.clientToken || !device.clientPassword))
+      ||
+      //Check BioStar
+      (mode === "bio_star" && (!device.domain || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword))
+    ) {
+      return Modal.error({
+        title: t("please_enter_all_required_fields"),
+        ...antdModalLanguageProps
+      });
+    }
     const isValidPassword = await validateTokenPassword();
     if (!isValidPassword) {
       Modal.error({
@@ -168,8 +179,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
             ...device,
             token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
             status: "Online"
-          })
-          setMode('multi_mcc')
+          });
+          setMode("multi_mcc");
         } else {
           Modal.error({
             title: `${t("unable_login")}`,
@@ -185,10 +196,21 @@ const AddDeviceModal = memo(function AddDeviceModal(
         return;
       }
     }
-    if(mode=='bio_star'){
-      setSettingBioStar({...device,status:'Online'})
+    if (mode == "bio_star") {
+      const r = await requestLoginDeviceBioStar({
+        domain: device.domain,
+        password: device.password,
+        username: device.username
+      });
+      if (!r || !r.sessionId) {
+        Modal.error({
+          title: r.message
+        });
+        return;
+      }
+      setSettingBioStar({ ...device, status: "Online" });
     }
-    if (mode !== "zk_teco" && mode !== 'bio_star') {
+    if (mode !== "zk_teco" && mode !== "bio_star") {
       syncDevices([{ ...device, status: "Online" }]);
     }
     props.onClose();
@@ -235,9 +257,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
       </span>
       <br/>
       <br/>
-      {
-        ZkBioSystem.domain && <p style={{ fontStyle: "italic" }}>{"*You can only add one system of ZkBioSecurity*"}</p>
-      }
       {
         mode === "zk_teco" || mode === "bio_star" ?
 
@@ -286,25 +305,35 @@ const AddDeviceModal = memo(function AddDeviceModal(
             value={device.password}
             onChange={values.onPasswordChange}
           />
-          <br/>
-          <br/>
         </>
       }
+      {device.syncMethod === DeviceSyncMethod.PY && mode == "multi_mcc" && <>
+        <Input.Password
+          addonBefore={t("device_password")}
+          placeholder={t("device_password_placeholder")}
+          value={device.password}
+          onChange={values.onPasswordChange}
+        />
+      </>}
       {/** thong tin token lay tu HRM **/}
-      <Input.Password
-        addonBefore={"Client token *"}
-        placeholder={"Client token"}
-        value={device.clientToken}
-        onChange={values.onClientTokenChange}
-      />
-      <br/>
-      <br/>
-      <Input.Password
-        addonBefore={"Client password *"}
-        placeholder={"Client password"}
-        value={device.clientPassword}
-        onChange={values.onClientPasswordChange}
-      />
+      <>
+        <br/>
+        <br/>
+        <Input.Password
+          addonBefore={"Client token *"}
+          placeholder={"Client token"}
+          value={device.clientToken}
+          onChange={values.onClientTokenChange}
+        />
+        <br/>
+        <br/>
+        <Input.Password
+          addonBefore={"Client password *"}
+          placeholder={"Client password"}
+          value={device.clientPassword}
+          onChange={values.onClientPasswordChange}
+        />
+      </>
       {
         mode == "bio_star" &&
         <>
@@ -318,6 +347,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
           />
         </>
       }
+
       {mode == "multi_mcc" &&
       <>
         <br/>
@@ -345,8 +375,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
           <br/>
           <br/>
           <Input
-            addonBefore={"Heartbeat rate"}
-            placeholder={"The rate to  check the connection between this app and the attendance machine. If your machine is low=end or not performance, you should set"}
+            addonBefore={t("heartbeat_rate")}
+            placeholder={t("heartbeat_rate_desc")}
             addonAfter={"minutes"}
             value={device.heartbeat || 1}
             onChange={values.onHeartbeatChange}
@@ -359,10 +389,10 @@ const AddDeviceModal = memo(function AddDeviceModal(
       {
         mode === "multi_mcc" &&
         <>
-          <p>{"The rate to  check the connection between this app and the attendance machine. If your machine is low=end or not performance, you should set"}</p>
+          <p>{t("heartbeat_rate_desc")}</p>
           <Input
-            addonBefore={"Auto reconnect rate"}
-            placeholder={"The rate that this app will reconnect to the attendance machine if not connectedThe rate that this app will reconnect to the attendance machine if not connected"}
+            addonBefore={t("auto_reconnect")}
+            placeholder={t("auto_reconnect_desc")}
             addonAfter={"seconds"}
             value={device.autoReconnect || 30}
             onChange={values.onAutoReconnectChange}
@@ -371,7 +401,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
             min={30}
             inputMode={"decimal"}
           />
-          <p>{"The rate to  check the connection between this app and the attendance machine. If your machine is low=end or not performance, you should set"}</p>
+          <p>{t("auto_reconnect_desc")}</p>
           <span className="ant-input-group-wrapper">
         <span className="ant-input-wrapper ant-input-group">
           <span className="ant-input-group-addon">
@@ -395,7 +425,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {
-        ZkBioSystem.startSync
+        ZkBioSystem.startSync && props.mode == "zk_teco"
           ? <>
             <br/>
             <br/>
