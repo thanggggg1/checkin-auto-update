@@ -121,7 +121,7 @@ const Fetch = {
     if (!getCheckinCodesSetByIp(record.deviceIp).has(record.uid)) return;
 
     try {
-      await this.post("@checkin/v1/client/realtime", {
+       await this.post("@checkin/v1/client/realtime", {
         client_token: device.clientToken,
         client_password: device.clientPassword,
         user_code: record.uid,

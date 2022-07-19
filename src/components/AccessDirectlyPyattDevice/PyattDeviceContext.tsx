@@ -137,6 +137,7 @@ const PyattDeviceContext = (() => {
         });
 
         console.log("got it all");
+        syncDevices([{...device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
 
         isGettingRecordRef.current = false;
 

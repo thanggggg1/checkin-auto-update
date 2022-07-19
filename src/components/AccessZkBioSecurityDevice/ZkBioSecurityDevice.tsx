@@ -63,11 +63,11 @@ const ExtraOverlay = (props: any) => {
         device={device}
         mode={'zk_teco'}
       />
-      <Menu.Item onClick={onClickDeleteDevice}>
-        <span>{t("delete")}</span>
-      </Menu.Item>
       <Menu.Item onClick={onClickSync}>
         <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
+      </Menu.Item>
+      <Menu.Item onClick={onClickDeleteDevice}>
+        <span>{t("delete")}</span>
       </Menu.Item>
     </Menu>
   );

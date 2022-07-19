@@ -6,6 +6,7 @@ import PyattDeviceContext, { PyattRealtimeStatus } from "./PyattDeviceContext";
 import { t, useLanguage } from "../../store/settings/languages";
 import AddDeviceModal from "../AddDeviceModal";
 import useBoolean from "../../hooks/useBoolean";
+import moment from "moment";
 
 const ExtraOverlay = (props: any) => {
   const {
@@ -99,9 +100,27 @@ const PyattDevice = memo(function PyattDevice({ device, syncTurn }: { device: De
     <PyattDeviceContext.Provider device={device} syncTurn={syncTurn}>
       <Wrapper title={device.name} size={"small"} extra={<Extra />}>
         <InfoRow>IP: {device.ip}</InfoRow>
+        <InfoRow>
+          {t("newest_eventLog")}:
+          {
+            device?.lastSync ? <div style={{
+              fontWeight: "bold",
+              paddingLeft: 8
+            }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
+          }
+        </InfoRow>
+        <InfoRow>
+          {t("last_auto_sync")}:
+          {
+            <div style={{
+              fontWeight: "bold",
+              paddingLeft: 8
+            }}>{" "}{moment(device.syncTime).format("DD-MM-YYYY HH:mm")}</div>
+          }
+        </InfoRow>
         <Status />
         <TagsWrapper>
-          {/*<SyncTag />*/}
+          <SyncTag />
         </TagsWrapper>
       </Wrapper>
     </PyattDeviceContext.Provider>

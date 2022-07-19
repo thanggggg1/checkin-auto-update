@@ -42,15 +42,11 @@ const ZkBioSecurityContext = (() => {
       let canSync = true;
 
       while (canSync) {
-        // if (!newDevice.sessionId) {
-        //   continue;
-        // }
+
         let _device = getSettingZkBioSystem();
         let syncing = getSyncing();
         if (!_device.domain) {
           canSync = false;
-          events.emit(Events.SYNC_DONE);
-          continue;
         }
 
         let lastSync = _device.lastSync

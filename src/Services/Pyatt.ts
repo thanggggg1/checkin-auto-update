@@ -287,7 +287,8 @@ class Pyatt {
         dateFormatted: time.format("DD/MM/YYYY"),
         timeFormatted: time.format("HH:mm:ss"),
         timestamp: time.valueOf(),
-        uid: 0
+        uid: 0,
+        deviceName:deviceIp
       }
     }
 
@@ -298,6 +299,7 @@ class Pyatt {
       timestamp: time.valueOf(),
       uid: Number(record.user_id),
       deviceIp,
+      deviceName:deviceIp
     };
   };
 }
