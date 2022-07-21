@@ -35,8 +35,6 @@ export interface Device {
   heartbeat?: number;
   autoReconnect?: number;
   syncMethod?: DeviceSyncMethod | string;
-
-
 }
 
 export const {

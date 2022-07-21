@@ -44,7 +44,6 @@ const ZkBioSecurityContext = (() => {
       while (canSync) {
 
         let _device = getSettingZkBioSystem();
-        let syncing = getSyncing();
         if (!_device.domain) {
           canSync = false;
         }
@@ -53,7 +52,7 @@ const ZkBioSecurityContext = (() => {
           ? moment(_device.lastSync).format(FormatDateSearch.normal)
           : moment().subtract(6, "months").format(FormatDateSearch.start);
 
-        syncing = getSyncing();
+        const syncing = getSyncing();
 
         if (syncing === "2" || syncing === "0") {
           await timeSleep(5);
@@ -142,9 +141,7 @@ const ZkBioSecurityContext = (() => {
             events.emit(Events.SYNC_DONE);
             return;
           }
-          syncing = getSyncing();
           if (syncing === "2" || syncing === "0") {
-            events.emit(Events.SYNC_DONE);
             continue;
           }
           await timeSleep(3);
@@ -158,9 +155,8 @@ const ZkBioSecurityContext = (() => {
               })
             );
           } catch (e) {
-
-          }
-          await timeSleep(3);
+            console.log('error push',e);
+          } await timeSleep(3);
         } else {
           await timeSleep(3);
         }

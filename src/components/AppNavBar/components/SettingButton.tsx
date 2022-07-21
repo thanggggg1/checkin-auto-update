@@ -58,7 +58,7 @@ const SettingButton = memo(function SettingButton() {
     }
 
     if (name === "autoPushMinutes") {
-      if (Number(value) % 15 !== 0) return;
+      // if (Number(value) % 15 !== 0) return;
       return setAutoPushLogsMinutes(Number(value));
     }
 
@@ -120,7 +120,7 @@ const SettingButton = memo(function SettingButton() {
           type={"number"}
           addonAfter={t("minutes")}
           placeholder={"Ex: 15, 0 means disabled"}
-          step={15}
+          step={2}
           min={0}
           max={4320} // 72 hours, 3 days
           onChange={onChange}

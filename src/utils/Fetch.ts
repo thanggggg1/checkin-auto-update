@@ -8,7 +8,8 @@ import _ from "lodash";
 import { setPushingPercent } from "../store/settings/pushingPercent";
 import { getCheckinCodesSetByIp, setCheckinCodes } from "../store/settings/checkinCodes";
 import { getDeviceById } from "../store/devices/actions";
-import {syncDevices} from '../store/devices'
+import { getSettingZkBioSystem } from "../components/AccessZkBioSecurityDevice/settingZkBioSystem";
+import { getSettingBioStar } from "../components/AccessBioStarDevice/settingBioStarSystem";
 
 axios.defaults.baseURL = "https://base.vn";
 axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -22,7 +23,7 @@ export interface TokenSetting {
 
 const { get: getToken, set: setToken, use: useToken } = createSetting<
   TokenSetting
->("token", {
+  >("token", {
   token: "",
   password: "",
   sysDomain: "base.vn",
@@ -84,7 +85,7 @@ const Fetch = {
         client_password: token.password,
       });
       // if not response error, set Token
-      return token
+      // setToken(token);
     } catch (e) {
       if (e.message === "INVALID_EMPLOYEE") {
         // setToken(token);
@@ -114,24 +115,22 @@ const Fetch = {
     // const token = getToken();
     console.log('realtimePush ', record);
     const device = getDeviceById(record.deviceIp);
-    syncDevices([{...device,lastSync:record.timestamp}])
 
     if (!device || !device.clientToken) throw new Error("INVALID TOKEN");
 
-    if (!getCheckinCodesSetByIp(record.deviceIp).has(record.uid)) return;
+    // if (!getCheckinCodesSetByIp(record.deviceIp).has(record.uid)) return;
 
     try {
-       await this.post("@checkin/v1/client/realtime", {
+      await this.post("@checkin/v1/client/realtime", {
         client_token: device.clientToken,
         client_password: device.clientPassword,
         user_code: record.uid,
         ts: Math.round(record.timestamp / 1000),
       });
     } catch (e) {
-      // if (e.message === "INVALID_CLIENT") {
+      // if (e.message =  == "INVALID_CLIENT") {
       //   setToken({ token: "", password: "", sysDomain: "base.vn" });
       // }
-      console.log('e',e,e.message)
       throw e;
     }
 
@@ -139,7 +138,6 @@ const Fetch = {
   },
 
   massPush: async function (records: AttendanceRecord[], token: {token: string, password: string, IP: string}) {
-    console.log('listIps ', records)
 
     interface MassPushLog {
       user_code: string | number;
@@ -159,8 +157,8 @@ const Fetch = {
     const willBeAddedToPushedRecordsArray: Map<
       string | number,
       Set<string>
-    > = new Map();
-    console.log('push log')
+      > = new Map();
+
     const logs: Record<string, MassPushLog> = {};
     records.forEach((record) => {
       if (!logs[record.uid]) {
@@ -194,7 +192,6 @@ const Fetch = {
     });
 
     try {
-      console.log('push here')
       const { data } = await this.post<{
         data: {
           errors: {
@@ -251,15 +248,24 @@ const Fetch = {
     const listIps = Object.keys(objectRecord);
     for (let i = 0; i< listIps.length; i++) {
       const deviceIp = listIps[i];
+
+      console.log('ip',deviceIp);
       const storeDevice = getDeviceById(deviceIp);
-      if (!storeDevice) {
-        continue
+      const ZkBioSystem = getSettingZkBioSystem();
+      const BioStarSystem = getSettingBioStar();
+      if(storeDevice){
+        if (!storeDevice.clientToken || !storeDevice.clientPassword) {
+          throw new Error("INVALID TOKEN")
+        }
+        await this.massPush(objectRecord[deviceIp], {token: storeDevice.clientToken, password: storeDevice.clientPassword, IP: storeDevice.ip})
       }
-      if (!storeDevice.clientToken || !storeDevice.clientPassword) {
-        throw new Error("INVALID TOKEN")
+      if(ZkBioSystem.domain == deviceIp) {
+        await this.massPush(objectRecord[deviceIp], {token: ZkBioSystem.clientToken, password: ZkBioSystem.clientPassword, IP: ZkBioSystem.domain})
       }
-      console.log('vao day')
-      await this.massPush(objectRecord[deviceIp], {token: storeDevice.clientToken, password: storeDevice.clientPassword, IP: storeDevice.domain})
+      if(BioStarSystem.domain == deviceIp) {
+        await this.massPush(objectRecord[deviceIp], {token: BioStarSystem.clientToken, password: BioStarSystem.clientPassword, IP: BioStarSystem.domain})
+      }
+
     }
   },
 

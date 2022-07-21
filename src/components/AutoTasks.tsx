@@ -65,6 +65,17 @@ export const AutoTasks = memo(function AutoTasks() {
       /**
        * AUTO PUSH
        */
+      const nowMm = moment();
+      const now = nowMm.valueOf();
+
+      if (autoPushLogsMinutes === 0) return;
+
+      const lastAutoPushLogsTime = getLastAutoPushLogsTime();
+      if (lastAutoPushLogsTime && (now - minutesToMs(lastAutoPushLogsTime) < lastAutoPushLogsTime)){
+        // save last auto sync
+        setLastAutoSyncLogsTime(now);
+        return;
+      }
       (async () => {
         // start auto push
         try {
