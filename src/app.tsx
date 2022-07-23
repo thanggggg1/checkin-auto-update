@@ -11,7 +11,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import AutoTasks from "./components/AutoTasks";
 import { getLanguage, i18next, initI18next } from "./store/settings/languages";
 import { useAsyncFn } from "react-use";
-
+import './App.css'
 initI18next().then();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 

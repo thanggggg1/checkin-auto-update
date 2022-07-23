@@ -180,7 +180,6 @@ const AddDeviceModal = memo(function AddDeviceModal(
             token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
             status: "Online"
           });
-          setMode("multi_mcc");
         } else {
           Modal.error({
             title: `${t("unable_login")}`,
@@ -286,11 +285,12 @@ const AddDeviceModal = memo(function AddDeviceModal(
             />
           </>
       }
-      <br/>
-      <br/>
+
       {
         (mode === "zk_teco" || mode == "bio_star") &&
         <>
+          <br/>
+          <br/>
           <Input
             addonBefore={"Username*"}
             placeholder={"Admin"}
@@ -308,6 +308,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {device.syncMethod === DeviceSyncMethod.PY && mode == "multi_mcc" && <>
+        <br/>
+        <br/>
         <Input.Password
           addonBefore={t("device_password")}
           placeholder={t("device_password_placeholder")}

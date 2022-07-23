@@ -62,25 +62,31 @@ export const AutoTasks = memo(function AutoTasks() {
       return
     }
     const interval = setInterval(() => {
+      const nowMm = moment();
+      const now = nowMm.valueOf();
       /**
        * AUTO PUSH
        */
-      const nowMm = moment();
-      const now = nowMm.valueOf();
-
-      if (autoPushLogsMinutes === 0) return;
-
-      const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-      if (lastAutoPushLogsTime && (now - minutesToMs(lastAutoPushLogsTime) < lastAutoPushLogsTime)){
-        // save last auto sync
-        setLastAutoSyncLogsTime(now);
-        return;
-      }
+      // const nowMm = moment();
+      // const now = nowMm.valueOf();
+      //
+      // if (autoPushLogsMinutes === 0) return;
+      //
+      // const lastAutoPushLogsTime = getLastAutoPushLogsTime();
+      // if (lastAutoPushLogsTime && (now - minutesToMs(lastAutoPushLogsTime) < lastAutoPushLogsTime)){
+      //   // save last auto sync
+      //   setLastAutoSyncLogsTime(now);
+      //   return;
+      // }
       (async () => {
         // start auto push
+        const lastAutoPushLogsTime = getLastAutoPushLogsTime();
+        if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
+          setLastAutoPushLogsTime(Date.now());
+          return;
+        }
         try {
           console.log("fire autoPush");
-          setLastAutoPushLogsTime(Date.now());
           await Fetch.massPushSplitByChunks(
             filterRecords(getAllRecordsArr(), {
               onlyNotPushed: true,

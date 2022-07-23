@@ -3,7 +3,7 @@ import { Button, Input, Modal, Radio } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
 import useBoolean from "../../../hooks/useBoolean";
 import {
-  setAutoPushLogsMinutes,
+  setAutoPushLogsMinutes, setLastAutoPushLogsTime,
   setPreventSyncLogsTimeRanges,
   useAutoPushLogsMinutes,
   useLastAutoPushLogsTime,
@@ -44,6 +44,11 @@ const SettingButton = memo(function SettingButton() {
   const lastAutoPushLogsMoment = useMemo(() => moment(lastAutoPushLogsTime ? lastAutoPushLogsTime : undefined), [
     lastAutoPushLogsTime
   ]);
+  // const willAutoPushAtMoment = useMemo(
+  //   () => moment() > lastAutoPushLogsMoment ? moment().clone().add(autoPushLogsMinutes, "minutes") : lastAutoPushLogsMoment.clone().add(autoPushLogsMinutes, "minutes"),
+  //   [lastAutoPushLogsMoment, autoPushLogsMinutes]
+  // );
+
   const willAutoPushAtMoment = useMemo(
     () => lastAutoPushLogsMoment.clone().add(autoPushLogsMinutes, "minutes"),
     [lastAutoPushLogsMoment, autoPushLogsMinutes]
@@ -120,7 +125,7 @@ const SettingButton = memo(function SettingButton() {
           type={"number"}
           addonAfter={t("minutes")}
           placeholder={"Ex: 15, 0 means disabled"}
-          step={2}
+          step={5}
           min={0}
           max={4320} // 72 hours, 3 days
           onChange={onChange}
