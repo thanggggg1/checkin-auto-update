@@ -249,7 +249,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
             <Select.Option value={"multi_mcc"}>Access Directly</Select.Option>
             <Select.Option
               disabled={!!ZkBioSystem.domain && props.mode != "zk_teco"}
-              value={"zk_teco"}>Zk Bio Security</Select.Option>
+              value={"zk_teco"}>Zk Bio Security/Zk Bio Access</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
           </SelectDropDown>
         </span>

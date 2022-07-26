@@ -8,8 +8,6 @@ import SettingButton from "./components/SettingButton";
 
 
 const AppNavBar = memo(function AppNavBar() {
-
-
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
       <AppNameWrapper>
@@ -21,6 +19,7 @@ const AppNavBar = memo(function AppNavBar() {
           <SettingButton/>
           <SyncButton/>
           <PushButton/>
+
           {/*{token.token ? (*/}
           {/*  <>*/}
           {/*    <PushButton />*/}

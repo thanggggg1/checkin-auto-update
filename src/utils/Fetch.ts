@@ -6,10 +6,11 @@ import moment from "moment";
 import { addPushedRecords } from "../store/pushedRecords";
 import _ from "lodash";
 import { setPushingPercent } from "../store/settings/pushingPercent";
-import { getCheckinCodesSetByIp, setCheckinCodes } from "../store/settings/checkinCodes";
+import { setCheckinCodes } from "../store/settings/checkinCodes";
 import { getDeviceById } from "../store/devices/actions";
 import { getSettingZkBioSystem } from "../components/AccessZkBioSecurityDevice/settingZkBioSystem";
 import { getSettingBioStar } from "../components/AccessBioStarDevice/settingBioStarSystem";
+import { syncDevices } from "../store/devices";
 
 axios.defaults.baseURL = "https://base.vn";
 axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -21,12 +22,10 @@ export interface TokenSetting {
   sysDomain: string;
 }
 
-const { get: getToken, set: setToken, use: useToken } = createSetting<
-  TokenSetting
-  >("token", {
+const { get: getToken, set: setToken, use: useToken } = createSetting<TokenSetting>("token", {
   token: "",
   password: "",
-  sysDomain: "base.vn",
+  sysDomain: "base.vn"
 });
 
 interface BaseResponse {
@@ -78,11 +77,11 @@ const Fetch = {
     return response;
   },
 
-  checkTokenIsValid: async function (token: TokenSetting) {
+  checkTokenIsValid: async function(token: TokenSetting) {
     try {
       await this.post("@checkin/v1/client/realtime", {
         client_token: token.token,
-        client_password: token.password,
+        client_password: token.password
       });
       // if not response error, set Token
       // setToken(token);
@@ -95,14 +94,14 @@ const Fetch = {
     }
   },
 
-  requestCheckinCodes: async function (ip: string, token: {token: string, password: string}) {
+  requestCheckinCodes: async function(ip: string, token: { token: string, password: string }) {
     if (!token.token) throw new Error("INVALID TOKEN");
 
     const { data } = await this.post<{ checkin_codes: string[] }>(
       "@checkin/v1/client/checkin_codes",
       {
         client_token: token.token,
-        client_password: token.password,
+        client_password: token.password
       }
     );
 
@@ -111,9 +110,9 @@ const Fetch = {
     return data.checkin_codes;
   },
 
-  realtimePush: async function (record: AttendanceRecord) {
+  realtimePush: async function(record: AttendanceRecord) {
     // const token = getToken();
-    console.log('realtimePush ', record);
+    console.log("realtimePush ", record);
     const device = getDeviceById(record.deviceIp);
 
     if (!device || !device.clientToken) throw new Error("INVALID TOKEN");
@@ -125,7 +124,7 @@ const Fetch = {
         client_token: device.clientToken,
         client_password: device.clientPassword,
         user_code: record.uid,
-        ts: Math.round(record.timestamp / 1000),
+        ts: Math.round(record.timestamp / 1000)
       });
     } catch (e) {
       // if (e.message =  == "INVALID_CLIENT") {
@@ -133,11 +132,11 @@ const Fetch = {
       // }
       throw e;
     }
-
+    syncDevices([{ ...device, lastSync: record.timestamp }]);
     addPushedRecords([record.id]);
   },
 
-  massPush: async function (records: AttendanceRecord[], token: {token: string, password: string, IP: string}) {
+  massPush: async function(records: AttendanceRecord[], token: { token: string, password: string, IP: string }) {
 
     interface MassPushLog {
       user_code: string | number;
@@ -154,10 +153,8 @@ const Fetch = {
       };
     }
 
-    const willBeAddedToPushedRecordsArray: Map<
-      string | number,
-      Set<string>
-      > = new Map();
+    const willBeAddedToPushedRecordsArray: Map<string | number,
+      Set<string>> = new Map();
 
     const logs: Record<string, MassPushLog> = {};
     records.forEach((record) => {
@@ -166,7 +163,7 @@ const Fetch = {
 
         logs[record.uid] = {
           user_code: record.uid,
-          dates: {},
+          dates: {}
         };
       }
 
@@ -179,7 +176,7 @@ const Fetch = {
       if (!logs[record.uid].dates[firstOfDay]) {
         logs[record.uid].dates[firstOfDay] = {
           date: firstOfDay,
-          logs: [],
+          logs: []
         };
       }
 
@@ -187,7 +184,7 @@ const Fetch = {
         deviceUserId: record.uid,
         id: record.id,
         ip: record.deviceIp,
-        time: Math.floor(record.timestamp / 1000),
+        time: Math.floor(record.timestamp / 1000)
       });
     });
 
@@ -202,7 +199,7 @@ const Fetch = {
       }>("@checkin/v1/client/mass_sync", {
         client_token: token.token,
         client_password: token.password,
-        logs: JSON.stringify(Object.values(logs)),
+        logs: JSON.stringify(Object.values(logs))
       });
 
       data.data.errors.forEach(
@@ -220,9 +217,9 @@ const Fetch = {
       });
       addPushedRecords(pushRecordIds);
     } catch (e) {
-      console.log('e ',e )
+      console.log("e ", e);
       if (e.message === "INVALID_CLIENT") {
-        throw `${token.IP} invalid client token or password`
+        throw `${token.IP} invalid client token or password`;
       }
       // if (e.message === "INVALID_CLIENT") {
       //   setToken({
@@ -235,41 +232,53 @@ const Fetch = {
     }
   },
 
-  massPushByIp: async function (records: AttendanceRecord[]) {
-    let objectRecord: {[id: string]: any[]} = {};
-    for (let i =0; i<records.length; i++) {
+  massPushByIp: async function(records: AttendanceRecord[]) {
+    let objectRecord: { [id: string]: any[] } = {};
+    for (let i = 0; i < records.length; i++) {
       const _record = records[i];
       if (objectRecord[_record.deviceIp]) {
-        objectRecord[_record.deviceIp].push(_record)
+        objectRecord[_record.deviceIp].push(_record);
       } else {
-        objectRecord[_record.deviceIp] = [_record]
+        objectRecord[_record.deviceIp] = [_record];
       }
     }
     const listIps = Object.keys(objectRecord);
-    for (let i = 0; i< listIps.length; i++) {
+    for (let i = 0; i < listIps.length; i++) {
       const deviceIp = listIps[i];
 
-      console.log('ip',deviceIp);
+      console.log("ip", deviceIp);
       const storeDevice = getDeviceById(deviceIp);
       const ZkBioSystem = getSettingZkBioSystem();
       const BioStarSystem = getSettingBioStar();
-      if(storeDevice){
+      if (storeDevice) {
         if (!storeDevice.clientToken || !storeDevice.clientPassword) {
-          throw new Error("INVALID TOKEN")
+          throw new Error("INVALID TOKEN");
         }
-        await this.massPush(objectRecord[deviceIp], {token: storeDevice.clientToken, password: storeDevice.clientPassword, IP: storeDevice.ip})
+        await this.massPush(objectRecord[deviceIp], {
+          token: storeDevice.clientToken,
+          password: storeDevice.clientPassword,
+          IP: storeDevice.ip
+        });
       }
-      if(ZkBioSystem.domain == deviceIp) {
-        await this.massPush(objectRecord[deviceIp], {token: ZkBioSystem.clientToken, password: ZkBioSystem.clientPassword, IP: ZkBioSystem.domain})
+      if (ZkBioSystem.domain == deviceIp) {
+        await this.massPush(objectRecord[deviceIp], {
+          token: ZkBioSystem.clientToken,
+          password: ZkBioSystem.clientPassword,
+          IP: ZkBioSystem.domain
+        });
       }
-      if(BioStarSystem.domain == deviceIp) {
-        await this.massPush(objectRecord[deviceIp], {token: BioStarSystem.clientToken, password: BioStarSystem.clientPassword, IP: BioStarSystem.domain})
+      if (BioStarSystem.domain == deviceIp) {
+        await this.massPush(objectRecord[deviceIp], {
+          token: BioStarSystem.clientToken,
+          password: BioStarSystem.clientPassword,
+          IP: BioStarSystem.domain
+        });
       }
 
     }
   },
 
-  massPushSplitByChunks: async function (
+  massPushSplitByChunks: async function(
     logs: AttendanceRecord[],
     progressCallback?: (current: number, total: number) => any
   ) {
@@ -287,7 +296,7 @@ const Fetch = {
     }
 
     setPushingPercent(0);
-  },
+  }
 };
 
 export default Fetch;
