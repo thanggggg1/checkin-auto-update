@@ -369,12 +369,11 @@ const AddDeviceModal = memo(function AddDeviceModal(
           </SelectDropDown>
         </span>
       </span>
+        <br/>
       </>
       }
-
       {device.syncMethod !== DeviceSyncMethod.PY && mode === "multi_mcc" && (
         <>
-          <br/>
           <br/>
           <Input
             addonBefore={t("heartbeat_rate")}
@@ -386,12 +385,14 @@ const AddDeviceModal = memo(function AddDeviceModal(
             step={1}
             min={1}
           />
+          <br/>
+          <p>{t("heartbeat_rate_desc")}</p>
         </>
       )}
       {
         mode === "multi_mcc" &&
         <>
-          <p>{t("heartbeat_rate_desc")}</p>
+          <br/>
           <Input
             addonBefore={t("auto_reconnect")}
             placeholder={t("auto_reconnect_desc")}

@@ -59,7 +59,7 @@ const ExtraOverlay = (props: any) => {
       {/*  <span>{t("disable")}</span>*/}
       {/*</Menu.Item>*/}
       <Menu.Item onClick={showEditDevice}>
-        <span>{t("edit")}</span>
+        <span>{t("edit_system")}</span>
       </Menu.Item>
       <AddDeviceModal
         onClose={hideEditDevice}
@@ -68,7 +68,7 @@ const ExtraOverlay = (props: any) => {
         mode={'bio_star'}
       />
       <Menu.Item onClick={onClickDeleteDevice}>
-        <span>{t("delete")}</span>
+        <span>{t("delete_system")}</span>
       </Menu.Item>
       <Menu.Item onClick={onClickSync}>
         <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>

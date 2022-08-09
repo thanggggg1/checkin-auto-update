@@ -24,6 +24,8 @@ const ExtraOverlay = (props: any) => {
     Modal.confirm({
       title: t("delete_device_confirmation"),
       onOk: deleteDevice,
+      okText: `${t("OK")}`,
+      cancelText: `${t("cancel")}`
     });
   }, [deleteDevice]);
 
@@ -42,7 +44,7 @@ const ExtraOverlay = (props: any) => {
       </Menu.Item>
 
       <Menu.Item onClick={showEditDevice}>
-        <span>{t("edit")}</span>
+        <span>{t("edit_device")}</span>
       </Menu.Item>
       <AddDeviceModal
         onClose={hideEditDevice}
@@ -52,7 +54,7 @@ const ExtraOverlay = (props: any) => {
       />
 
       <Menu.Item onClick={onClickDeleteDevice}>
-        <span>{t("delete")}</span>
+        <span>{t("delete_device")}</span>
       </Menu.Item>
     </Menu>
   );
@@ -107,15 +109,6 @@ const PyattDevice = memo(function PyattDevice({ device, syncTurn }: { device: De
               fontWeight: "bold",
               paddingLeft: 8
             }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
-          }
-        </InfoRow>
-        <InfoRow>
-          {t("last_auto_sync")}:
-          {
-            <div style={{
-              fontWeight: "bold",
-              paddingLeft: 8
-            }}>{" "}{moment(device.syncTime).format("DD-MM-YYYY HH:mm")}</div>
           }
         </InfoRow>
         <Status />

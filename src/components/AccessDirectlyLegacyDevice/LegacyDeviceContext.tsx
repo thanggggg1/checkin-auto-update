@@ -164,7 +164,7 @@ const LegacyDeviceContext = (() => {
             .filter(Boolean) as AttendanceRecord[];
           console.log('time',records[records.length-1].timestamp)
 
-          syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:records[records.length-1].timestamp }]);
+          // syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:records[records.length-1].timestamp }]);
 
           syncAttendanceRecords(records);
           // when sync done thi goi vao day de chuyen sang client tiep theo
@@ -221,7 +221,7 @@ const LegacyDeviceContext = (() => {
           return filtered;
         }, [])
       )
-      &&       syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:attendances.data[attendances.data?.length-1].recordTime.valueOf() }]);
+      &&       syncDevices([{ ...device, lastSync:attendances.data[attendances.data?.length-1].recordTime.valueOf() }]);
 
       // when sync done thi goi vao day de chuyen sang client tiep theo
       events.emit(Events.SYNC_DONE);

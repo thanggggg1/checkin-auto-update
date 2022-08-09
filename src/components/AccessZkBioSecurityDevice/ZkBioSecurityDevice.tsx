@@ -34,8 +34,8 @@ const ExtraOverlay = (props: any) => {
 
   const onClickDeleteDevice = useCallback(() => {
     Modal.confirm({
-      title: t("delete_device_confirmation"),
-      content: t("clear_devices_confirm_description"),
+      title: t("delete_system_confirmation"),
+      content: t("clear_system_confirm_description"),
       onOk: deleteDeviceConfirm,
       okText: `${t("OK")}`,
       cancelText: `${t("cancel")}`
@@ -55,7 +55,7 @@ const ExtraOverlay = (props: any) => {
     <Menu {...props}>
 
       <Menu.Item onClick={showEditDevice}>
-        <span>{t("edit")}</span>
+        <span>{t("edit_system")}</span>
       </Menu.Item>
       <AddDeviceModal
         onClose={hideEditDevice}
@@ -67,7 +67,7 @@ const ExtraOverlay = (props: any) => {
         <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
       </Menu.Item>
       <Menu.Item onClick={onClickDeleteDevice}>
-        <span>{t("delete")}</span>
+        <span>{t("delete_system")}</span>
       </Menu.Item>
     </Menu>
   );

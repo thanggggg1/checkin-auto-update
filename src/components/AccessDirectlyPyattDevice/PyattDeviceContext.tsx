@@ -48,7 +48,7 @@ const PyattDeviceContext = (() => {
     } = useAsyncEffect(async () => {
       if (isGettingRecordRef.current) return;
 //setSyncTime
-      syncDevices([{ ...device, syncTime: moment().valueOf() }]);
+//       syncDevices([{ ...device, syncTime: moment().valueOf() }]);
 
 
       setRealtimeStatus(PyattRealtimeStatus.CONNECTING);

@@ -44,6 +44,7 @@ const SettingButton = memo(function SettingButton() {
   const lastAutoPushLogsMoment = useMemo(() => moment(lastAutoPushLogsTime ? lastAutoPushLogsTime : undefined), [
     lastAutoPushLogsTime
   ]);
+
   // const willAutoPushAtMoment = useMemo(
   //   () => moment() > lastAutoPushLogsMoment ? moment().clone().add(autoPushLogsMinutes, "minutes") : lastAutoPushLogsMoment.clone().add(autoPushLogsMinutes, "minutes"),
   //   [lastAutoPushLogsMoment, autoPushLogsMinutes]
@@ -58,12 +59,12 @@ const SettingButton = memo(function SettingButton() {
     const { name, value } = event.currentTarget;
 
     if (name === "autoSyncMinutes") {
-      // if (Number(value) % 15 !== 0) return;
+      if (Number(value) % 15 !== 0) return;
       return setAutoSyncLogsMinutes(Number(value));
     }
 
     if (name === "autoPushMinutes") {
-      // if (Number(value) % 15 !== 0) return;
+      if (Number(value) % 15 !== 0) return;
       return setAutoPushLogsMinutes(Number(value));
     }
 
@@ -103,7 +104,7 @@ const SettingButton = memo(function SettingButton() {
           type={"number"}
           addonAfter={t("minutes")}
           placeholder={"Ex: 15, 0 means disabled"}
-          step={5}
+          step={15}
           min={0}
           max={4320} // 72 hours, 3 days
           onChange={onChange}
@@ -125,7 +126,7 @@ const SettingButton = memo(function SettingButton() {
           type={"number"}
           addonAfter={t("minutes")}
           placeholder={"Ex: 15, 0 means disabled"}
-          step={5}
+          step={15}
           min={0}
           max={4320} // 72 hours, 3 days
           onChange={onChange}
