@@ -218,7 +218,6 @@ class Pyatt {
       }
     });
     f.stderr?.on("data", (data: Buffer) => {
-      console.log("stderr", data.toString());
       onError?.(new Error(data.toString()));
     });
     f.on("exit", (data: number) => {
@@ -248,7 +247,6 @@ class Pyatt {
           params.onStarted?.();
           isRunStarted = true;
         }
-        console.log('data from pyatt ', data)
         const str = data.toString();
 
         if (!hasSize) {

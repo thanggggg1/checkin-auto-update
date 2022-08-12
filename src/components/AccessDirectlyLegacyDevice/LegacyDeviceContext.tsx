@@ -1,5 +1,5 @@
 import constate from "constate";
-import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod,syncDevices } from "../../store/devices";
+import { deleteDevices, Device, DeviceSyncMethod, syncDevices, useDeviceSyncMethod } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
@@ -10,7 +10,7 @@ import ZK from "../../packages/js_zklib/ZK";
 import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
 import _ from "lodash";
-import { deleteDeviceById } from "../../store/devices/actions";
+import { Alert } from "antd";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -104,109 +104,123 @@ const LegacyDeviceContext = (() => {
       { loading: isGettingAttendances },
       syncAttendances
     ] = useAsyncFn(async () => {
-      if (connectionState !== ConnectionState.CONNECTED) {
-        events.emit(Events.SYNC_DONE);
-        return;
-      }
+      try {
+        if (connectionState !== ConnectionState.CONNECTED) {
+          events.emit(Events.SYNC_DONE);
+          return;
+        }
 
-      const currentYear = new Date().getFullYear();
+        const currentYear = new Date().getFullYear();
 
-      setSyncPercent(0);
+        setSyncPercent(0);
 
-      if (!canSendRequest) {
-        console.log("canSendRequest events.emit(Events.SYNC_DONE); ", canSendRequest);
-        await require("bluebird").delay(400);
-        // when sync done thi goi vao day de chuyen sang client tiep theo
-        events.emit(Events.SYNC_DONE);
-        throw new Error("Socket is not connected");
-      }
+        if (!canSendRequest) {
+          console.log("canSendRequest events.emit(Events.SYNC_DONE); ", canSendRequest);
+          await require("bluebird").delay(400);
+          // when sync done thi goi vao day de chuyen sang client tiep theo
+          events.emit(Events.SYNC_DONE);
+          throw new Error("Socket is not connected");
+        }
 
-      setSyncPercent(0.01);
+        setSyncPercent(0.01);
 
-      await disableDevice();
+        await disableDevice();
 
-      setSyncPercent(0.02);
+        setSyncPercent(0.02);
 
-      if (syncMethod === DeviceSyncMethod.LEGACY) {
-        try {
-          await connection.freeData();
-          const attendances = await connection.getAttendance(
-            (current: number, total: number) => {
-              const percent = Math.floor((current / total) * 10000) / 100;
-              setSyncPercent(percent);
-            }
-          );
-
-          setSyncPercent(0);
-
-          await enableDevice();
-
-          const records = attendances
-            .map((attendance: any) => {
-              const mm = moment(attendance.timestamp);
-              if (mm.get("year") < currentYear - 1) {
-                return false;
+        if (syncMethod === DeviceSyncMethod.LEGACY) {
+          try {
+            await connection.freeData();
+            const attendances = await connection.getAttendance(
+              (current: number, total: number) => {
+                const percent = Math.floor((current / total) * 10000) / 100;
+                setSyncPercent(percent);
               }
-              const id = `${attendance.id}_${mm.valueOf()}`;
+            );
 
-              if (isRecordExists(id)) return false;
+            setSyncPercent(0);
 
-              return {
-                timestamp: mm.valueOf(),
-                timeFormatted: mm.format("HH:mm:ss"),
-                dateFormatted: mm.format("DD/MM/YYYY"),
-                deviceIp: device.ip,
-                uid: attendance.id,
-                deviceName:device.ip,
-                id
-              };
-            })
-            .filter(Boolean) as AttendanceRecord[];
-          console.log('time',records[records.length-1].timestamp)
+            await enableDevice();
 
-          // syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:records[records.length-1].timestamp }]);
+            const records = attendances
+              .map((attendance: any) => {
+                const mm = moment(attendance.timestamp);
+                if (mm.get("year") < currentYear - 1) {
+                  return false;
+                }
+                const id = `${attendance.id}_${mm.valueOf()}`;
 
-          syncAttendanceRecords(records);
-          // when sync done thi goi vao day de chuyen sang client tiep theo
-          await require("bluebird").delay(400);
-          events.emit(Events.SYNC_DONE);
+                if (isRecordExists(id)) return false;
 
-          return records;
-        } catch (e) {
-          await enableDevice();
-          // when sync done thi goi vao day de chuyen sang client tiep theo
-          await require("bluebird").delay(400);
-          events.emit(Events.SYNC_DONE);
-          return [];
+                return {
+                  timestamp: mm.valueOf(),
+                  timeFormatted: mm.format("HH:mm:ss"),
+                  dateFormatted: mm.format("DD/MM/YYYY"),
+                  deviceIp: device.ip,
+                  uid: attendance.id,
+                  deviceName: device.ip,
+                  id
+                };
+              })
+              .filter(Boolean) as AttendanceRecord[];
+            console.log("time", records[records.length - 1].timestamp);
+
+            // syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:records[records.length-1].timestamp }]);
+
+            syncAttendanceRecords(records);
+            // when sync done thi goi vao day de chuyen sang client tiep theo
+            await require("bluebird").delay(400);
+            events.emit(Events.SYNC_DONE);
+
+            return records;
+          } catch (e) {
+            await enableDevice();
+            // when sync done thi goi vao day de chuyen sang client tiep theo
+            await require("bluebird").delay(400);
+            events.emit(Events.SYNC_DONE);
+            return [];
+          }
         }
-      }
 
-      // Large dataset method
-      const attendances = await connection.zklib.getAttendances(
-        (current: number, total: number) => {
-          const percent = Math.floor((current / total) * 10000) / 100;
-          setSyncPercent(percent);
+
+        setTimeout(() => {
+          enableDevice().then();
+          setSyncPercent(0);
+          events.emit(Events.SYNC_DONE);
+        }, 5 * 60 * 1000);
+
+        // Large dataset method
+        const attendances = await connection.zklib.getAttendances(
+          (current: number, total: number) => {
+            const percent = Math.floor((current / total) * 10000) / 100;
+            setSyncPercent(percent);
+          }
+        );
+
+        setSyncPercent(0);
+
+        await enableDevice();
+
+        if (!attendances?.data) {
+          events.emit(Events.SYNC_DONE);
+          return attendances;
         }
-      );
 
-      setSyncPercent(0);
-
-      await enableDevice();
-      attendances.data &&
-      syncAttendanceRecords(
-        // filter exists & map at the same time (filter exists for performance)
-        attendances.data.reduce<AttendanceRecord[]>((filtered:AttendanceRecord[], raw:any) => {
+        let result = [];
+        for (let i = 0; i < attendances.data.length; i++) {
+          const raw = attendances.data[i];
           const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
           const mm = moment(raw.recordTime);
 
           if (mm.get("year") < currentYear - 1) {
-            return filtered;
+            continue;
           }
 
-          if (isRecordExists(id)) return filtered;
+          if (isRecordExists(id)) {
+            continue;
+          }
 
-
-          filtered.push({
+          result.push({
             uid: Number(raw.deviceUserId),
             timestamp: mm.valueOf(),
             id,
@@ -214,18 +228,20 @@ const LegacyDeviceContext = (() => {
             // @ts-ignore
             deviceIp: device.ip,
             // @ts-ignore
-            deviceName:device.ip,
+            deviceName: device.ip,
             timeFormatted: mm.format("HH:mm:ss")
           });
+        } // end of list data
+        syncAttendanceRecords(result);
+        syncDevices([{ ...device, lastSync: attendances.data[attendances.data?.length - 1].recordTime.valueOf() }]);
+        // when sync done thi goi vao day de chuyen sang client tiep theo
+        events.emit(Events.SYNC_DONE);
+        return attendances;
+      } catch (e) {
+        alert("Có lỗi xảy ra khi đồng bộ dữ liệu" + e.toString());
+        return undefined
+      }
 
-          return filtered;
-        }, [])
-      )
-      &&       syncDevices([{ ...device, lastSync:attendances.data[attendances.data?.length-1].recordTime.valueOf() }]);
-
-      // when sync done thi goi vao day de chuyen sang client tiep theo
-      events.emit(Events.SYNC_DONE);
-      return attendances;
     }, [
       connection,
       canSendRequest,
@@ -259,7 +275,7 @@ const LegacyDeviceContext = (() => {
             // @ts-ignore
             deviceIp: device.ip,
             // @ts-ignore
-            deviceName:device.ip,
+            deviceName: device.ip,
             timeFormatted: mm.format("HH:mm:ss")
           };
 
@@ -363,4 +379,4 @@ const LegacyDeviceContext = (() => {
     use
   };
 })();
-export default LegacyDeviceContext
+export default LegacyDeviceContext;
