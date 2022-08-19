@@ -10,7 +10,7 @@ import ZK from "../../packages/js_zklib/ZK";
 import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
 import _ from "lodash";
-import { Alert } from "antd";
+import { getStore } from "../../store/storeAccess";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -165,7 +165,6 @@ const LegacyDeviceContext = (() => {
               .filter(Boolean) as AttendanceRecord[];
             console.log("time", records[records.length - 1].timestamp);
 
-            // syncDevices([{ ...device, syncTime: moment().valueOf(),lastSync:records[records.length-1].timestamp }]);
 
             syncAttendanceRecords(records);
             // when sync done thi goi vao day de chuyen sang client tiep theo
@@ -183,6 +182,8 @@ const LegacyDeviceContext = (() => {
         }
 
 
+
+        // large data
         setTimeout(() => {
           enableDevice().then();
           setSyncPercent(0);
@@ -207,6 +208,10 @@ const LegacyDeviceContext = (() => {
         }
 
         let result = [];
+        let lastSyncTime = 0;
+
+        const _recordsStore = getStore()?.getState()?.records || {};
+
         for (let i = 0; i < attendances.data.length; i++) {
           const raw = attendances.data[i];
           const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
@@ -215,8 +220,11 @@ const LegacyDeviceContext = (() => {
           if (mm.get("year") < currentYear - 1) {
             continue;
           }
+          if (raw?.recordTime) {
+            lastSyncTime = raw.recordTime.valueOf();
+          }
 
-          if (isRecordExists(id)) {
+          if (_recordsStore[id]) {
             continue;
           }
 
@@ -233,13 +241,15 @@ const LegacyDeviceContext = (() => {
           });
         } // end of list data
         syncAttendanceRecords(result);
-        syncDevices([{ ...device, lastSync: attendances.data[attendances.data?.length - 1].recordTime.valueOf() }]);
+        if (lastSyncTime > 0) {
+          syncDevices([{ ...device, lastSync: lastSyncTime }]);
+        }
         // when sync done thi goi vao day de chuyen sang client tiep theo
         events.emit(Events.SYNC_DONE);
         return attendances;
       } catch (e) {
-        alert("Có lỗi xảy ra khi đồng bộ dữ liệu" + e.toString());
-        return undefined
+        alert("Có lỗi xảy ra khi đồng bộ dữ liệu " + e.toString());
+        return undefined;
       }
 
     }, [

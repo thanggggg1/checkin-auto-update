@@ -1,11 +1,11 @@
-const Bluebird = require('bluebird');
+const Bluebird = require("bluebird");
 
-const dgram = require('dgram');
-const net = require('net');
+const dgram = require("dgram");
+const net = require("net");
 
-const mixin = require('./mixin');
-const attParserLegacy = require('./att_parser_legacy');
-const attParserV660 = require('./att_parser_v6.60');
+const mixin = require("./mixin");
+const attParserLegacy = require("./att_parser_legacy");
+const attParserV660 = require("./att_parser_v6.60");
 const {
   defaultTo,
   createHeader,
@@ -18,32 +18,32 @@ const {
   checkNotEventTCP,
   checkNotEventUDP,
   exportErrorMessage,
-  createChkSum,
-} = require('./utils');
-const {Commands, ConnectionTypes, REQUEST_DATA} = require('./constants');
-const {decode} = require('./timestamp_parser');
+  createChkSum
+} = require("./utils");
+const { Commands, ConnectionTypes, REQUEST_DATA } = require("./constants");
+const { decode } = require("./timestamp_parser");
 
 const REQUEST_TIMEOUT = 10 * 60 * 1000; //10 minutes
 
 /**
-  @typedef {object} Options
-  @property {string} ip - Zk device ipAddress
-  @property {?number} [port] - Zk device port
-  @property {number} inport - Socket port to bind to
-  @property {?number} [timeout] - Zk device port
-  @property {?string} [attendanceParser] - Zk device port
-  @property {?string} [connectionType] - Connection type UDP/TCP
+ @typedef {object} Options
+ @property {string} ip - Zk device ipAddress
+ @property {?number} [port] - Zk device port
+ @property {number} inport - Socket port to bind to
+ @property {?number} [timeout] - Zk device port
+ @property {?string} [attendanceParser] - Zk device port
+ @property {?string} [connectionType] - Connection type UDP/TCP
  */
 
 /**
-  @property {string} ip - Zk device ipAddress
-  @property {number} [port] - Zk device port
-  @property {number} inport - Socket port to bind to
-  @property {number} [timeout] - Zk device port
-  @property {string} [attendanceParser] - Zk device port
-  @property {string} [connectionType] - Connection type UDP/TCP
-  @property {('message' | 'data')} DATA_EVENT
-  @property {dgram.Socket | net.Socket} socket
+ @property {string} ip - Zk device ipAddress
+ @property {number} [port] - Zk device port
+ @property {number} inport - Socket port to bind to
+ @property {number} [timeout] - Zk device port
+ @property {string} [attendanceParser] - Zk device port
+ @property {string} [connectionType] - Connection type UDP/TCP
+ @property {('message' | 'data')} DATA_EVENT
+ @property {dgram.Socket | net.Socket} socket
  */
 class ZKLib {
   /**
@@ -59,30 +59,30 @@ class ZKLib {
     this.attendanceParser = defaultTo(options.attendanceParser, attParserLegacy.name);
     this.connectionType = defaultTo(options.connectionType, ConnectionTypes.TCP);
 
-    this.DATA_EVENT = this.connectionType === ConnectionTypes.UDP ? 'message' : 'data';
+    this.DATA_EVENT = this.connectionType === ConnectionTypes.UDP ? "message" : "data";
 
     this.socket = null;
   }
 
   validateOptions(options) {
     if (!options) {
-      throw new Error('Options required');
+      throw new Error("Options required");
     }
 
     if (!options.ip) {
-      throw new Error('IP option required');
+      throw new Error("IP option required");
     }
 
     if (!options.inport) {
-      throw new Error('Inport option required');
+      throw new Error("Inport option required");
     }
 
     if (options.attendanceParser && ![attParserLegacy.name, attParserV660.name].includes(options.attendanceParser)) {
-      throw new Error('Attendance parser option unknown');
+      throw new Error("Attendance parser option unknown");
     }
 
     if (options.connectionType && ![ConnectionTypes.UDP, ConnectionTypes.TCP].includes(options.connectionType)) {
-      throw new Error('Connection type option unknown');
+      throw new Error("Connection type option unknown");
     }
   }
 
@@ -118,9 +118,9 @@ class ZKLib {
           this.session_id = reply.readUInt16LE(4);
         }
 
-        cb && cb(checkValid(reply) ? null : new Error('Invalid request'), reply);
+        cb && cb(checkValid(reply) ? null : new Error("Invalid request"), reply);
       } else {
-        cb && cb(new Error('Invalid length reply'));
+        cb && cb(new Error("Invalid length reply"));
       }
     };
 
@@ -151,15 +151,15 @@ class ZKLib {
    * @param {(error?: Error) => void} [cb]
    */
   createUdpSocket(port, cb) {
-    const socket = dgram.createSocket('udp4');
+    const socket = dgram.createSocket("udp4");
 
-    socket.on('error', (err) => {
+    socket.on("error", (err) => {
       socket.close();
 
       cb(err);
     });
 
-    socket.once('listening', () => {
+    socket.once("listening", () => {
       cb();
     });
 
@@ -175,14 +175,14 @@ class ZKLib {
   createTcpSocket(cb) {
     const socket = new net.Socket();
 
-    socket.on('error', (err) => {
+    socket.on("error", (err) => {
       socket.end();
 
       cb(err);
     });
 
-    socket.once('connect', () => {
-      console.log('connected');
+    socket.once("connect", () => {
+      console.log("connected");
       cb();
     });
 
@@ -192,7 +192,7 @@ class ZKLib {
 
     socket.connect({
       port: this.port,
-      host: this.ip,
+      host: this.ip
     });
 
     return socket;
@@ -238,7 +238,7 @@ class ZKLib {
 
       if (this.timeout) {
         sendTimeoutId = setTimeout(() => {
-          cb && cb(new Error('Timeout error'));
+          cb && cb(new Error("Timeout error"));
         }, this.timeout);
       }
     });
@@ -254,16 +254,16 @@ class ZKLib {
    */
   writeTcpSocket(socket, msg, offset, length, cb) {
     socket.once(this.DATA_EVENT, () => {
-      socket.removeListener('timeout', handleOnTimeout);
+      socket.removeListener("timeout", handleOnTimeout);
 
       cb();
     });
 
     const handleOnTimeout = () => {
-      cb && cb(new Error('Timeout error'));
+      cb && cb(new Error("Timeout error"));
     };
 
-    socket.once('timeout', handleOnTimeout);
+    socket.once("timeout", handleOnTimeout);
 
     socket.write(msg, null, (err) => {
       if (err) {
@@ -274,7 +274,7 @@ class ZKLib {
   }
 
   closeSocket() {
-    console.log('close socket');
+    console.log("close socket");
     if (this.connectionType === ConnectionTypes.UDP) {
       this.closeUdpSocket(this.socket);
     } else {
@@ -287,8 +287,8 @@ class ZKLib {
    * @param {dgram.Socket} socket
    */
   closeUdpSocket(socket) {
-    socket.removeAllListeners('message');
-    socket.removeAllListeners('error');
+    socket.removeAllListeners("message");
+    socket.removeAllListeners("error");
     socket.close();
   }
 
@@ -297,13 +297,13 @@ class ZKLib {
    * @param {net.Socket} socket
    */
   closeTcpSocket(socket) {
-    socket.removeAllListeners('data');
-    socket.removeAllListeners('error');
+    socket.removeAllListeners("data");
+    socket.removeAllListeners("error");
     socket.end();
   }
 
   freeData(cb) {
-    this.executeCmd(Commands.FREE_DATA, '', cb);
+    this.executeCmd(Commands.FREE_DATA, "", cb);
   }
 
   freeData2 = Bluebird.promisify(this.freeData);
@@ -350,7 +350,7 @@ class ZKLib {
           }, 1000);
         } else {
           timer = setTimeout(() => {
-            reject(new Error('TIMEOUT_ON_RECEIVING_REQUEST_DATA'));
+            reject(new Error("TIMEOUT_ON_RECEIVING_REQUEST_DATA"));
           }, REQUEST_TIMEOUT);
 
           const packetLength = data.readUIntLE(4, 2);
@@ -364,14 +364,14 @@ class ZKLib {
 
       this.socket.write(msg, null, (err) => {
         if (err) {
-          this.socket.removeListener('data', handleOnData);
+          this.socket.removeListener("data", handleOnData);
           console.log(`[TCP][ERROR_WRTING_REQUEST_DATA] ${err.toString()}`);
           return reject(err);
         }
 
         timer = setTimeout(() => {
-          this.socket.removeListener('data', handleOnData);
-          return reject(new Error('TIMEOUT_IN_RECEIVING_RESPONSE_AFTER_REQUESTING_DATA'));
+          this.socket.removeListener("data", handleOnData);
+          return reject(new Error("TIMEOUT_IN_RECEIVING_RESPONSE_AFTER_REQUESTING_DATA"));
         }, 30000);
       });
     });
@@ -400,10 +400,10 @@ class ZKLib {
       }
 
       const header =
-        this.connectionType === 'tcp' ? decodeTCPHeader(reply.subarray(0, 16)) : decodeUDPHeader(reply.subarray(0, 16));
+        this.connectionType === "tcp" ? decodeTCPHeader(reply.subarray(0, 16)) : decodeUDPHeader(reply.subarray(0, 16));
       switch (header.commandId) {
         case Commands.DATA: {
-          return resolve({data: reply.subarray(16), mode: 8});
+          return resolve({ data: reply.subarray(16), mode: 8 });
         }
         case Commands.ACK_OK:
         case Commands.PREPARE_DATA: {
@@ -423,7 +423,7 @@ class ZKLib {
           let realTotalBuffer = Buffer.from([]);
 
           let timer = setTimeout(() => {
-            internalCallback(replyData, new Error('TIMEOUT WHEN RECEIVING PACKET'));
+            internalCallback(replyData, new Error("TIMEOUT WHEN RECEIVING PACKET"));
           }, REQUEST_TIMEOUT);
 
           const internalCallback = (replyData, err = null) => {
@@ -431,7 +431,7 @@ class ZKLib {
             timer && clearTimeout(timer);
 
             if (err) return reject(err);
-            return resolve({data: replyData, size});
+            return resolve({ data: replyData, size });
           };
 
           const handleOnData = (reply) => {
@@ -474,11 +474,11 @@ class ZKLib {
             }
           };
 
-          this.socket.once('close', () => {
-            internalCallback(replyData, new Error('Socket is disconnected unexpectedly'));
+          this.socket.once("close", () => {
+            internalCallback(replyData, new Error("Socket is disconnected unexpectedly"));
           });
 
-          this.socket.on('data', handleOnData);
+          this.socket.on("data", handleOnData);
 
           if (counter === numberChunks) {
             this.sendChunkRequest(numberChunks * MAX_CHUNK, remain);
@@ -490,13 +490,14 @@ class ZKLib {
           break;
         }
         default: {
-          reject(new Error('ERROR_IN_UNHANDLE_CMD ' + exportErrorMessage(header.commandId)));
+          reject(new Error("ERROR_IN_UNHANDLE_CMD " + exportErrorMessage(header.commandId)));
         }
       }
     });
   }
 
-  async getAttendances(callbackInProcess = () => {}) {
+  async getAttendances(callbackInProcess = () => {
+  }) {
     await this.freeData2();
     await this.disableDevice2();
     const data = await this.readWithBuffer(REQUEST_DATA.GET_ATTENDANCE_LOGS, callbackInProcess);
@@ -513,22 +514,23 @@ class ZKLib {
       }
 
       // if recordTime > 5 years with current time
-      if (record.recordTime.valueOf() > now + 5 * 365 * 12 * 60 * 60 * 1000) {
+      if (record?.recordTime && record.recordTime.valueOf() > now + 5 * 365 * 12 * 60 * 60 * 1000) {
         recordData = recordData.subarray(RECORD_PACKET_SIZE);
         continue;
       }
 
       // if recordTime < 5 years with current time
-      if (record.recordTime.valueOf() < now - 5 * 365 * 12 * 60 * 60 * 1000) {
+      if (record?.recordTime && record.recordTime.valueOf() < now - 5 * 365 * 12 * 60 * 60 * 1000) {
         recordData = recordData.subarray(RECORD_PACKET_SIZE);
         continue;
       }
-
-      records.push({...record, ip: this.ip});
+      if (record?.recordTime) {
+        records.push({ ...record, ip: this.ip });
+      }
       recordData = recordData.subarray(RECORD_PACKET_SIZE);
     }
 
-    return {data: records, err: data.err, max: Math.round((data.size - 4) / RECORD_PACKET_SIZE)};
+    return { data: records, err: data.err, max: Math.round((data.size - 4) / RECORD_PACKET_SIZE) };
   }
 }
 
@@ -538,21 +540,21 @@ const decodeRecordData40 = (recordData) => {
     deviceUserId: parseInt(
       recordData
         .slice(2, 2 + 9)
-        .toString('ascii')
-        .split('\0')
+        .toString("ascii")
+        .split("\0")
         .shift()
     ),
-    recordTime: decode(recordData.readUInt32LE(27)),
+    recordTime: decode(recordData.readUInt32LE(27))
   };
 };
 
-mixin(ZKLib, require('./zkconnect'));
-mixin(ZKLib, require('./zkserial'));
-mixin(ZKLib, require('./zkversion'));
-mixin(ZKLib, require('./zktime'));
-mixin(ZKLib, require('./zkattendance'));
-mixin(ZKLib, require('./zkuser'));
-mixin(ZKLib, require('./zkmon'));
-mixin(ZKLib, require('./zkdevice'));
+mixin(ZKLib, require("./zkconnect"));
+mixin(ZKLib, require("./zkserial"));
+mixin(ZKLib, require("./zkversion"));
+mixin(ZKLib, require("./zktime"));
+mixin(ZKLib, require("./zkattendance"));
+mixin(ZKLib, require("./zkuser"));
+mixin(ZKLib, require("./zkmon"));
+mixin(ZKLib, require("./zkdevice"));
 
 module.exports = ZKLib;
