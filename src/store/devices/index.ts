@@ -48,7 +48,7 @@ export const {
   query: {}
 });
 
-const devicesSelector = (state: any) => state.devices.byKey;
+const devicesSelector = (state: any) => state.devices.byKey || {};
 
 export const useDevicesRecord = (): Record<string, Device> => {
   return useSelector(devicesSelector);

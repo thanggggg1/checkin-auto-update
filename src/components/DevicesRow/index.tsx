@@ -98,7 +98,7 @@ const DevicesRow = memo(function DevicesRow() {
         {ZkBioSystem.domain && <ZkBioSecurityDevice device={ZkBioSystem}/>}
         {BioStarSystem.domain && <BioStarDevice device={BioStarSystem}/>}
         {
-          Object.values(devices).map((device) => {
+          Object.values(devices || {}).map((device) => {
             if (device.syncMethod === DeviceSyncMethod.PY) {
               return <PyattDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
             }

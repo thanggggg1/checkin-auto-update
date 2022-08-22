@@ -40,7 +40,7 @@ export const recordsSelector = (state: any) =>
   state.records as Record<string, AttendanceRecord>;
 
 export const recordsArrSelector = createSelector(recordsSelector, (res) =>
-  Object.values(res)
+  Object.values(res || {})
 );
 export const getAllRecordsArr = () => recordsArrSelector(getStore().getState());
 

@@ -22,7 +22,7 @@ const useAutoFetchCheckinCodes = () => {
   const devices = useDevicesRecord();
 
   const runFetchAllDevice = async () => {
-    const _devices = Object.values(devices);
+    const _devices = devices && typeof devices === "object" ?  Object.values(devices) : [];
     for (let i = 0; i < _devices.length; i++) {
       const device = _devices[i];
       if (!device.clientPassword || !device.clientToken) {

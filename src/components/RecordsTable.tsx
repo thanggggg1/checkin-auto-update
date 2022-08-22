@@ -44,14 +44,14 @@ const RecordsTable = memo(function RecordsTable() {
         title: t("checkin_code"),
         key: "checkin-code",
         dataIndex: "uid",
-        filters: Object.values(uids).map((uid) => ({ text: uid, value: uid })),
+        filters: Object.values(uids || {}).map((uid) => ({ text: uid, value: uid })),
         onFilter: (value: string | number, record: any) => record.uid == value,
       },
       {
         title: t("device"),
         key: "device",
         dataIndex: "device",
-        filters: Object.values(ips).map((ip) => ({ text: ip, value: ip })),
+        filters: Object.values(ips || {}).map((ip) => ({ text: ip, value: ip })),
         onFilter: (value: string | number, record: any) =>
           record.device == value,
       },

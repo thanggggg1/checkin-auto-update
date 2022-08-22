@@ -199,7 +199,7 @@ const Fetch = {
       }>("@checkin/v1/client/mass_sync", {
         client_token: token.token,
         client_password: token.password,
-        logs: JSON.stringify(Object.values(logs))
+        logs: JSON.stringify(Object.values(logs || {}))
       });
 
       data.data.errors.forEach(
