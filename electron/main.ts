@@ -66,7 +66,6 @@ function createWindow() {
     mainWindow.openDevTools();
   } else {
     mainWindow.setMenu(null);
-    mainWindow.openDevTools();
     mainWindow.loadURL(
       url.format({
         pathname: path.join(app.getAppPath(), "./dist/renderer/index.html"),
