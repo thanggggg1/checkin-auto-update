@@ -248,7 +248,7 @@ const LegacyDeviceContext = (() => {
         events.emit(Events.SYNC_DONE);
         return attendances;
       } catch (e) {
-        alert("Có lỗi xảy ra khi đồng bộ dữ liệu " + e.toString());
+        console.log("Có lỗi xảy ra khi đồng bộ dữ liệu ",e.toString());
         return undefined;
       }
 
