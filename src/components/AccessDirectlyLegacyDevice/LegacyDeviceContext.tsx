@@ -181,8 +181,6 @@ const LegacyDeviceContext = (() => {
           }
         }
 
-
-
         // large data
         setTimeout(() => {
           enableDevice().then();
@@ -223,11 +221,9 @@ const LegacyDeviceContext = (() => {
           if (raw?.recordTime) {
             lastSyncTime = raw.recordTime.valueOf();
           }
-
           if (_recordsStore[id]) {
             continue;
           }
-
           result.push({
             uid: Number(raw.deviceUserId),
             timestamp: mm.valueOf(),
@@ -239,7 +235,7 @@ const LegacyDeviceContext = (() => {
             deviceName: device.ip,
             timeFormatted: mm.format("HH:mm:ss")
           });
-        } // end of list data
+        } // end of list data;
         syncAttendanceRecords(result);
         if (lastSyncTime > 0) {
           syncDevices([{ ...device, lastSync: lastSyncTime }]);
