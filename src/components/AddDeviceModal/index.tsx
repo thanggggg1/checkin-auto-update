@@ -251,6 +251,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
               disabled={!!ZkBioSystem.domain && props.mode != "zk_teco"}
               value={"zk_teco"}>Zk Bio Security/Zk Bio Access</Select.Option>
             <Select.Option value={"bio_star"}>Bio Star</Select.Option>
+            <Select.Option value={"hik_vision"}>HIK Vision</Select.Option>
           </SelectDropDown>
         </span>
       </span>
@@ -287,7 +288,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
       }
 
       {
-        (mode === "zk_teco" || mode == "bio_star") &&
+        (mode === "zk_teco" || mode == "bio_star" || mode == "hik_vision") &&
         <>
           <br/>
           <br/>
