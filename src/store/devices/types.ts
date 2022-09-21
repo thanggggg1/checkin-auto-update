@@ -4,6 +4,12 @@ export enum FormatDateSearch {
   end = "YYYY-MM-DD 23:59:59"
 }
 
+export enum FormatDateSearchHikVision {
+  start = "YYYY-MM-DD[T]00:00:00+07:00",
+  normal = "YYYY-MM-DD[T]HH:mm:ss+07:00",
+  end = "YYYY-MM-DD[T]23:59:59+07:00"
+}
+//2022-09-15T00:00:00+07:00
 export const MaxEvenEachRequest = 501;
 
 export interface RawUserInterface {

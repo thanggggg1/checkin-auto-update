@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Row } from "antd";
 import AddDeviceModal from "../AddDeviceModal";
 import { DeviceSyncMethod, useDevicesRecord } from "../../store/devices";
@@ -12,6 +12,8 @@ import LegacyDevice from "../AccessDirectlyLegacyDevice";
 import BioStarDevice from "../AccessBioStarDevice";
 import ZkBioSecurityDevice from "../AccessZkBioSecurityDevice";
 import { useSettingBioStar } from "../AccessBioStarDevice/settingBioStarSystem";
+import { requestEventHikVision } from "../../store/devices/functions";
+import HikDevice from "../AccessHikVisionDevice";
 
 
 const DevicesRow = memo(function DevicesRow() {
@@ -92,6 +94,7 @@ const DevicesRow = memo(function DevicesRow() {
   }, []);
   console.log("turn sync ip", turnSyncIP);
 
+
   return (
     <>
       <Wrapper>
@@ -104,6 +107,9 @@ const DevicesRow = memo(function DevicesRow() {
             }
             if (device.syncMethod === DeviceSyncMethod.LARGE_DATASET || device.syncMethod === DeviceSyncMethod.LEGACY) {
               return <LegacyDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
+            }
+            if (device.username !== '') {
+              return <HikDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
             }
           })
         }

@@ -8,6 +8,8 @@ from bcrypt import re
 import requests
 from urllib.parse import unquote
 import urllib3
+from requests.auth import HTTPDigestAuth
+
 
 urllib3.disable_warnings()
 parser = argparse.ArgumentParser(description='ZK Basic Reading Tests')
@@ -19,6 +21,11 @@ parser.add_argument('-p', '--params',
                     type=str,
                     help='{\"pageSize\":\"1\"}', default='\{\}')
 
+parser.add_argument('-a', '--auth',
+                    type=str,
+                    help='{\"username\":\"admin\", \"password\": \"123456\"}', default='\{\}')
+
+
 args = parser.parse_args()
 
 if args.queries:
@@ -28,10 +35,12 @@ if args.queries:
         method = _paramsJson['method'] if _paramsJson.get('method') else 'get'
         params = _paramsJson['params'] if _paramsJson.get('params') else {}
         headers = _paramsJson['headers'] if _paramsJson.get('headers') else {}
+        auth = _paramsJson['auth'] if _paramsJson.get('auth') else False
 
         session = requests.Session()
+
         if method == 'get':
-            res = session.get(url, params=params, headers=headers, verify=False)
+            res = session.get(url, params=params, headers=headers, verify=False, auth=HTTPDigestAuth(auth.get('username') or '', auth.get('password') or ''))
             print(json.dumps({"header": res.headers.__dict__,
                             "status": str(res.status_code),
                             "params": str(params),

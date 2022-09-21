@@ -5,7 +5,7 @@ import { setSettingZkBioSystem } from "../../components/AccessZkBioSecurityDevic
 import axios from "axios";
 import { FormatDateSearch, MaxEvenEachRequest, RawEvent, RawUserInterface } from "./types";
 import dayjs from "dayjs";
-import { Device, syncDevices } from "../../store/devices";
+import { Device } from "../../store/devices";
 
 
 const https = require("https");
@@ -204,17 +204,67 @@ export const requestLoginDeviceZkBio = async ({
       device && setSettingZkBioSystem({
         ...device, token: data?.header._store["set-cookie"][1].split(";")[0].split("=")[1],
         status: "Online"
-      })
+      });
     } else {
-      device && setSettingZkBioSystem({...device,status:'Offline'});
+      device && setSettingZkBioSystem({ ...device, status: "Offline" });
     }
     return data;
   } catch (e) {
-    device && setSettingZkBioSystem({...device,status:'Offline'});
+    device && setSettingZkBioSystem({ ...device, status: "Offline" });
     console.log("e ", e.response);
     if (e?.response?.status === 401) {
       return 401;
     }
     return [];
+  }
+};
+
+
+//HIK Vision
+interface EventLogHikVision {
+  ip: string,
+  port?: number
+  startTime: string //2022-09-15T00:00:00+07:00
+  endTime: string //2022-09-15T00:00:00+07:00
+  username: string
+  password: string
+}
+
+export const requestEventHikVision = async ({
+                                              ip,
+                                              port,
+                                              startTime,
+                                              endTime, username, password
+                                            }: EventLogHikVision) => {
+  try {
+    const data: any = await new Requests().fetch({
+      paramStr: JSON.stringify({
+        "url": `http://${ip}:${port}/ISAPI/AccessControl/AcsEvent?format=json`,
+        "method": "post",
+        "params": {
+          "AcsEventCond": {
+            "searchID": "4b3c58a7-b80d-4647-9586-9efc3dbe5597",
+            "searchResultPosition": 0,
+            "maxResults": 30,
+            "major": 0,
+            "minor": 0,
+            "startTime": `${encodeURI(startTime)}`,
+            "endTime": `${encodeURI(endTime)}`
+          }
+        },
+        "auth":{
+          "username":username,
+          "password":password
+        }
+      })
+    });
+    console.log("fetch ", data);
+    return data?.response;
+  } catch (e) {
+    console.log("e ", e.response);
+    if (e?.response?.status === 401) {
+      return 401;
+    }
+    return "";
   }
 };

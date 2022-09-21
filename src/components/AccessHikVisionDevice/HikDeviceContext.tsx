@@ -1,231 +1,200 @@
 import constate from "constate";
-import { deleteDevices, Device,syncDevices } from "../../store/devices";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Pyatt, { PyattRecord } from "../../Services/Pyatt";
+import { Device, syncDevices,deleteDevices } from "../../store/devices";
+import { useCallback, useEffect, useState } from "react";
 import useLatest from "react-use/lib/useLatest";
-import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
-import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
+import {
+  AttendanceRecord,
+  filterRecords,
+  getAllRecordsArr,
+  isRecordExists,
+  syncAttendanceRecords
+} from "../../store/records";
 import Fetch from "../../utils/Fetch";
-import { Modal } from "antd";
-import useAutoAlertError from "../../hooks/useAutoAlertError";
-import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
 import { Events, events } from "../../utils/events";
 import moment from "moment";
+import { FormatDateSearch, FormatDateSearchHikVision, MaxEvenEachRequest } from "../../store/devices/types";
+import { getSyncing } from "../../store/settings/autoPush";
+import { timeSleep } from "../../utils/sleep";
+import { requestEventHikVision } from "../../store/devices/functions";
+import { getDeviceById } from "../../store/devices/actions";
 
-export enum PyattRealtimeStatus {
-  DISCONNECTED,
-  CONNECTING,
-  PREPARING,
-  CONNECTED,
-}
 
 const HikDeviceContext = (() => {
   const [Provider, use] = constate(({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
-    const [realtimeStatus, setRealtimeStatus] = useState(
-      PyattRealtimeStatus.DISCONNECTED
-    );
+
     const [syncPercent, setSyncPercent] = useState("");
     const latestSyncPercent = useLatest(syncPercent);
-    const latestRealtimeStatus = useLatest(realtimeStatus);
 
-    const isGettingRecordRef = useRef(false);
+    /**
+     * SYNC ATTENDANCES
+     */
 
-    const instance = useMemo(() => {
-      // @ts-ignore
-      const output = new Pyatt(device.ip, device.port, device.password);
+    const [
+      { loading: isGettingAttendances },
+      syncAttendances
+    ] = useAsyncFn(async () => {
 
-      if (device.connection === "udp") output.isUdp = true;
-
-      return output;
-    }, [device.ip, device.port, device.password, device.connection]);
-
-    // start realtime status automatically
-    const {
-      error: startRealtimeError,
-      call: startRealtime,
-      value: closeLiveCapture,
-    } = useAsyncEffect(async () => {
-      if (isGettingRecordRef.current) return;
-//setSyncTime
-//       syncDevices([{ ...device, syncTime: moment().valueOf() }]);
+      let newDevice = { ...device };
+      let canSync = true;
 
 
-      setRealtimeStatus(PyattRealtimeStatus.CONNECTING);
+        // if (!newDevice.sessionId) {
+        //   continue;
+        // }
+        const _device = getDeviceById(newDevice.ip);
+      let lastSync = _device.lastSync
+        ? moment(_device.lastSync).format(FormatDateSearchHikVision.normal)
+        : moment().subtract(1, "months").format(FormatDateSearchHikVision.start);
+        // const syncing = getSyncing();
 
-      return instance.liveCapture(
-        (error:Error) => {
-          if (isGettingRecordRef.current) return;
+        // if (syncing === "2" || syncing === "0") {
+        //   await timeSleep(5);
+        //   continue;
+        // }
 
-          Modal.error({ content: error.message });
-          setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
-        },
-        (record:PyattRecord) => {
-          // @ts-ignore
-          const log = Pyatt.pyattRecordToAttendance(record, device.ip);
+        // @ts-ignore
+        setSyncPercent(0);
+      console.log('lastSync',moment(lastSync).format(FormatDateSearchHikVision.normal));
+        let data = await requestEventHikVision({
+          ip:_device.ip,
+          port:_device.port,
+          username:_device.username,
+          password:_device.password,
+          startTime:lastSync,
+          endTime:moment().format(FormatDateSearchHikVision.end)
+        });
+      //2022-09-15T00:00:00+07:00
 
-          if (log.uid == 0) return;
+      let rows = JSON.parse(data || "{AcsEvent: {InfoList:[]}}").AcsEvent.InfoList;
+      // if (rows === 401) {
+        //   const res = await requestLoginDevice({
+        //     domain: newDevice.domain,
+        //     username: newDevice.username,
+        //     password: newDevice.password
+        //   });
+        //   if (res.error) {
+        //     Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
+        //     return;
+        //   } else {
+        //     newDevice = { ...newDevice, sessionId: res.sessionId };
+        //     syncDevices([newDevice]);
+        //     rows = await requestEventLog({
+        //       sessionId: newDevice.sessionId,
+        //       from: lastSync,
+        //       domain: newDevice.domain
+        //     });
+        //   }
+        // }
+        // if (typeof rows === "number") {
+        //   Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
+        //   return;
+        // }
+        const result: AttendanceRecord[] = [];
 
-          syncAttendanceRecords([log]);
-          Fetch.realtimePush(log);
-        },
-        () => {
-          setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
-        },
-        (anyData:string) => {
-          console.log("anyData", device.ip, anyData);
-
-          if (latestRealtimeStatus.current !== PyattRealtimeStatus.CONNECTED) {
-            setRealtimeStatus(PyattRealtimeStatus.PREPARING);
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row) {
+            continue;
           }
+          const mm = moment(row.time);
 
-          if (
-            anyData.includes("--- Live Capture! (press ctrl+C to break) ---")
-          ) {
-            setRealtimeStatus(PyattRealtimeStatus.CONNECTED);
+          // if (isRecordExists(row.id) || !row?.user_id?.user_id) {
+          //   continue;
+          // }
+
+          // if (doors?.length && row?.device_id?.id) {
+          //   if ((doors || []).indexOf(row?.device_id?.id) === -1) {
+          //     continue;
+          //   }
+          // }
+          if(row.employeeNoString){
+            result.push({
+              timestamp: mm.valueOf(),
+              timeFormatted: mm.format("HH:mm:ss"),
+              dateFormatted: mm.format("DD/MM/YYYY"),
+              deviceName: newDevice.name,
+              deviceIp: newDevice.ip,
+              //@ts-ignore
+              uid: row.employeeNoString,
+              id: `${row.serialNo}`
+            });
           }
         }
-      );
-    }, [instance]);
 
-    useAutoAlertError(convertPyzkErrorToMessage(startRealtimeError));
+        if (rows && rows.length) {
+          console.log('sync vao day');
+          syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].time).valueOf() }]);
+        }
 
+        if (result.length) {
+          syncAttendanceRecords(result);
+          const _currentDevice = getDeviceById(newDevice.ip);
+          if (!_currentDevice) {
+            canSync = false;
+            events.emit(Events.SYNC_DONE);
+            return;
+          }
+          await timeSleep(3);
+          try {
+            await Fetch.massPushSplitByChunks(
+              filterRecords(result, {
+                onlyNotPushed: true,
+                onlyInEmployeeCheckinCodes: true,
+                startTime: result[0].timestamp,
+                endTime: result[result.length - 1].timestamp
+              })
+            );
+          } catch (e) {
+
+          }
+          await timeSleep(3);
+        } else {
+          console.log("come here when result = 0");
+          await timeSleep(3);
+          console.log("vao dayyyyyy");
+        }
+        if (rows?.length < MaxEvenEachRequest) {
+          canSync = false;
+          events.emit(Events.SYNC_DONE);
+        }
+
+      return [];
+    }, [
+      device
+    ]);
     useEffect(() => {
-      return closeLiveCapture;
-    }, [closeLiveCapture]);
-
-    // auto start realtime if disconnected
-    useEffect(() => {
-      if (realtimeStatus !== PyattRealtimeStatus.DISCONNECTED) return;
-
-      const timeout = setTimeout(startRealtime, device.timeout || 30000);
+      if (isGettingAttendances) {
+        return;
+      }
+      const _t = setInterval(() => {
+        console.log("effect sync attendance");
+        syncAttendances().then();
+      }, 1000 * 10);
 
       return () => {
-        return clearTimeout(timeout);
+        console.log('test vong lap');
+          _t && clearInterval(_t);
+
       };
-    }, [realtimeStatus, startRealtime, device.timeout]);
-
-    const [, syncAttendances] = useAsyncFn(async () => {
-      await new Promise(resolve => {
-        setTimeout(() => {
-          resolve(true)
-        }, 1000)
-      });
-      if (realtimeStatus !== PyattRealtimeStatus.CONNECTED) {
-        events.emit(Events.SYNC_DONE);
-        return
-      }
-      try {
-        setSyncPercent("Starting");
-        isGettingRecordRef.current = true;
-        const data = await instance.getRecords({
-          onStarted: () => setSyncPercent("Preparing"),
-          onRecords: (records:PyattRecord[]) => {
-            syncAttendanceRecords(
-              records
-                .map((record) =>
-                  // @ts-ignore
-                  Pyatt.pyattRecordToAttendance(record, device.ip)
-                )
-                .filter((r) => r.uid != 0)
-            );
-          },
-          onPercent: (total:number, current:number) => {
-            console.log("total", total, current);
-            setSyncPercent(`${current}/${total}`);
-          },
-        });
-
-        console.log("got it all");
-        syncDevices([{...device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
-
-        isGettingRecordRef.current = false;
-
-        syncAttendanceRecords(
-          data.records
-            // @ts-ignore
-            .map((record:PyattRecord) => Pyatt.pyattRecordToAttendance(record, device.ip))
-            .filter((r:AttendanceRecord) => r.uid != 0)
-        );
-
-        setSyncPercent("Done");
-        if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
-          startRealtime();
-
-        await require("bluebird").delay(2000);
-        setSyncPercent("");
-
-        // when sync done thi goi vao day de chuyen sang client tiep theo
-        events.emit(Events.SYNC_DONE);
-      } catch (e) {
-        console.log("sync error", e);
-
-        if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
-          startRealtime();
-        Modal.error({ content: convertPyzkErrorToMessage(e) });
-        isGettingRecordRef.current = false;
-        setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
-
-        // when sync done thi goi vao day de chuyen sang client tiep theo
-        events.emit(Events.SYNC_DONE);
-      }
-    }, [instance, realtimeStatus, startRealtime]);
+    }, [syncTurn]);
 
     const deleteDevice = useCallback(() => {
-      // @ts-ignore
       deleteDevices([device.ip]);
     }, [device.ip]);
 
-    useEffect(() => {
-      if (syncTurn && !latestSyncPercent.current) {
-        syncAttendances();
-        return
-      }
-    }, [syncTurn]);
-
-    useEffect(() => {
-      if (realtimeStatus === PyattRealtimeStatus.CONNECTED) {
-        setTimeout(() => {
-          if (isGettingRecordRef.current) {
-            return
-          }
-          syncAttendances().then();
-        }, 1500)
-      }
-    }, [realtimeStatus])
-
-    useEffect(() => {
-      const ping = require("ping");
-
-      const interval = setInterval(() => {
-        ping.promise
-          .probe(device.ip, {
-            timeout: 3,
-          })
-          .then(({ alive }: { alive: boolean }) => {
-            if (!alive) setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
-            if (!alive) setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
-          });
-      }, 10000);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }, [device.ip, device.port]);
 
     return {
       device,
-      realtimeStatus,
-      syncAttendances,
       syncPercent,
-      deleteDevice,
-      startRealtime,
+      syncAttendances,
+      deleteDevice
     };
   });
 
   return {
     Provider,
-    use,
+    use
   };
 })();
 

@@ -24,7 +24,7 @@ const defaultValue: Device = {
   username: "", //"admin",
   status: "Online",
   token: "",
-  syncMethod: DeviceSyncMethod.PY,
+  syncMethod: '',
   connection: "tcp",
   ip: ""
 };

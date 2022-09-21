@@ -10,12 +10,10 @@ import HikDeviceContext from "./HikDeviceContext";
 
 const ExtraOverlay = (props: any) => {
   const {
-    realtimeStatus,
     syncAttendances,
     syncPercent,
     device,
     deleteDevice,
-    startRealtime,
   } = HikDeviceContext.use();
 
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
@@ -31,7 +29,7 @@ const ExtraOverlay = (props: any) => {
 
   return (
     <Menu {...props}>
-      <Menu.Item onClick={startRealtime}>
+      <Menu.Item >
         <span>{t("reconnect")}</span>
       </Menu.Item>
       <Menu.Item
@@ -66,17 +64,7 @@ const Extra = () => {
   );
 };
 
-const Status = () => {
-  const { realtimeStatus } = HikDeviceContext.use();
-  return (
-    <InfoRow>
-      {t("status") + ": "}
-      {((status) => {
-        return  <TextStatusDisconnected>{t('disconnected')}</TextStatusDisconnected>
-      })(realtimeStatus)}
-    </InfoRow>
-  );
-};
+
 
 const SyncTag = () => {
   useLanguage();
@@ -92,7 +80,7 @@ const SyncTag = () => {
   );
 };
 
-const HikDevice = memo(function PyattDevice({ device, syncTurn }: { device: Device, syncTurn: boolean }) {
+const HikDevice = memo(function HikDevice({ device, syncTurn }: { device: Device, syncTurn: boolean }) {
   return (
     <HikDeviceContext.Provider device={device} syncTurn={syncTurn}>
       <Wrapper title={device.name} size={"small"} extra={<Extra />}>
@@ -106,7 +94,6 @@ const HikDevice = memo(function PyattDevice({ device, syncTurn }: { device: Devi
             }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
           }
         </InfoRow>
-        <Status />
         <TagsWrapper>
           <SyncTag />
         </TagsWrapper>
