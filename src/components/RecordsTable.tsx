@@ -32,19 +32,25 @@ const RecordsTable = memo(function RecordsTable() {
   }, []);
 
   useEffect(() => {
+    console.log('mounted',new Date());
     const _interval = setInterval(() => {
+      console.log('run interval',new Date());
       const _data = getStore().getState().records;
       const _records: AttendanceRecord[] = Object.values(_data || {});
-      if (_records.length !== records.length) {
-        setRecords(_records);
-        return
+      setRecords(oldRecords => {
+      if(oldRecords.length !== _records.length){
+        return _records;
       }
+       else {
+        return oldRecords
+      }
+      });
     }, 10 * 1000);
-
     return () => {
+      console.log('unmount interval',new Date());
       _interval && clearInterval(_interval)
     }
-  }, [records]);
+  }, []);
 
   const { dataSource, uids, ips } = useMemo(() => {
     const uids: Record<string | number, string | number> = {};
@@ -54,7 +60,7 @@ const RecordsTable = memo(function RecordsTable() {
     for (let i = 0; i < records.length; i++){
       const record = records[i];
       if (record.timestamp > currentTime.valueOf()
-        && record.timestamp <= nextTime.valueOf()) {
+        && record.timestamp <= nextTime.add(1,'days').valueOf()) {
         uids[record.uid] = record.uid;
         ips[record.deviceIp] = record.deviceIp;
 
@@ -117,6 +123,9 @@ const RecordsTable = memo(function RecordsTable() {
     const tooEarly = dates[1] && dates[1].diff(current, 'months') > 6;
     return !!tooEarly || !!tooLate;
   };
+  console.log('record',records.length);
+  console.log('data',dataSource.length);
+
   return <div>
     <div style={{
       marginTop: 16,
