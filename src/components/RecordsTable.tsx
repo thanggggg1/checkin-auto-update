@@ -45,7 +45,6 @@ const RecordsTable = memo(function RecordsTable() {
       });
     }, 10 * 1000);
     return () => {
-      console.log('unmount interval',new Date());
       _interval && clearInterval(_interval)
     }
   }, []);
@@ -121,8 +120,7 @@ const RecordsTable = memo(function RecordsTable() {
     const tooEarly = dates[1] && dates[1].diff(current, 'months') > 6;
     return !!tooEarly || !!tooLate;
   };
-  console.log('record',records.length);
-  console.log('data',dataSource.length);
+
 
   return <div>
     <div style={{

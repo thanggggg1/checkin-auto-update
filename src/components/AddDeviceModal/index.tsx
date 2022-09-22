@@ -26,7 +26,7 @@ const defaultValue: Device = {
   token: "",
   syncMethod: '',
   connection: "tcp",
-  ip: ""
+  ip: "",
 };
 
 
@@ -219,6 +219,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
     setValueSelect(value);
   }, [valueSelect]);
   // @ts-ignore
+  console.log('device',device);
   return (
     <Modal
       title={props.device ? t("edit_device") : t("add_device")}
@@ -429,7 +430,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {
-        ZkBioSystem.startSync && props.mode == "zk_teco"
+        (ZkBioSystem.startSync && props.mode == "zk_teco") || (device.startSync && props.mode == 'hik_vision')
           ? <>
             <br/>
             <br/>

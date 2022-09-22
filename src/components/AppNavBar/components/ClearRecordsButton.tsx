@@ -10,7 +10,7 @@ const ClearRecordsButton = memo(function ClearRecordsButton() {
   useLanguage();
   const [{ loading }, clearAttendanceRecordsConfirm] = useAsyncFn(async () => {
     clearAttendanceRecords();
-    await timeSleep(1);
+    await timeSleep(5);
     return;
   }, []);
 

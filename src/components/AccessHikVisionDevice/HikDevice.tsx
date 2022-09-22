@@ -40,15 +40,6 @@ const ExtraOverlay = (props: any) => {
 
   return (
     <Menu {...props}>
-      <Menu.Item >
-        <span>{t("reconnect")}</span>
-      </Menu.Item>
-      <Menu.Item
-
-        onClick={syncAttendances}
-      >
-        <span>{t("sync_attendances")}</span>
-      </Menu.Item>
 
       <Menu.Item onClick={showEditDevice}>
         <span>{t("edit_device")}</span>
@@ -122,9 +113,6 @@ const HikDevice = memo(function HikDevice({ device, syncTurn }: { device: Device
             </InfoRow>
             : null
         }
-        <TagsWrapper>
-          <SyncTag />
-        </TagsWrapper>
       </Wrapper>
     </HikDeviceContext.Provider>
   );
