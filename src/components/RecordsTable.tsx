@@ -32,9 +32,7 @@ const RecordsTable = memo(function RecordsTable() {
   }, []);
 
   useEffect(() => {
-    console.log('mounted',new Date());
     const _interval = setInterval(() => {
-      console.log('run interval',new Date());
       const _data = getStore().getState().records;
       const _records: AttendanceRecord[] = Object.values(_data || {});
       setRecords(oldRecords => {
