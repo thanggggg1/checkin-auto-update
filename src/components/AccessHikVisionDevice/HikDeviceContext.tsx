@@ -34,13 +34,9 @@ const HikDeviceContext = (() => {
     ] = useAsyncFn(async () => {
 
       let newDevice = { ...device };
-      // if (!newDevice.startSync) {
-      //   syncDevices({ ...newDevice, startSync: moment().subtract(6, "months").valueOf() });
-      // }
+
       let canSync = true;
-      // if (!newDevice.sessionId) {
-      //   continue;
-      // }
+
 
       const _device = getDeviceById(newDevice.ip);
 
@@ -70,11 +66,6 @@ const HikDeviceContext = (() => {
 
       let rows = JSON.parse(data || "{AcsEvent: {InfoList:[]}}").AcsEvent.InfoList;
       // if (rows === 401) {
-      //   const res = await requestLoginDevice({
-      //     domain: newDevice.domain,
-      //     username: newDevice.username,
-      //     password: newDevice.password
-      //   });
       //   if (res.error) {
       //     Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
       //     return;

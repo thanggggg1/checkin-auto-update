@@ -12,6 +12,8 @@ app.setLoginItemSettings({
 });
 
 let isQuiting = false;
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=3072')
+
 const gotTheLock = app.requestSingleInstanceLock();
 
 app.on('before-quit', function () {
