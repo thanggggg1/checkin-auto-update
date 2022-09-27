@@ -12,6 +12,8 @@ import { getSyncing } from "../../store/settings/autoPush";
 import { timeSleep } from "../../utils/sleep";
 import { requestEventHikVision } from "../../store/devices/functions";
 import { getDeviceById } from "../../store/devices/actions";
+import { xmlToJson } from "../../utils/xml2json";
+import { getStore } from "../../store/storeAccess";
 
 
 const HikDeviceContext = (() => {
@@ -21,8 +23,9 @@ const HikDeviceContext = (() => {
     const latestSyncPercent = useLatest(syncPercent);
 
     let _newDevice = {...device}
-    if (!_newDevice.startSync && _newDevice.username) {
-      syncDevices([{ ..._newDevice, startSync: moment().subtract(1, "months").valueOf() }]);
+    let __device = getDeviceById(_newDevice.ip)
+    if (!__device.startSync && __device.username) {
+      syncDevices([{ ...__device, startSync: moment().subtract(1, "months").valueOf() }]);
     }
     /**
      * SYNC ATTENDANCES
@@ -38,7 +41,7 @@ const HikDeviceContext = (() => {
       let canSync = true;
 
 
-      const _device = getDeviceById(newDevice.ip);
+      let _device = getDeviceById(newDevice.ip);
 
       let lastSync = _device.lastSync
         ? moment(_device.lastSync).format(FormatDateSearchHikVision.normal)
@@ -63,6 +66,16 @@ const HikDeviceContext = (() => {
         endTime: moment().format(FormatDateSearchHikVision.end)
       });
       //2022-09-15T00:00:00+07:00
+
+      let _checkXMLdata = new DOMParser().parseFromString(data, 'text/xml')
+
+      // @ts-ignore
+      if(xmlToJson(_checkXMLdata).userCheck.statusString === 'Unauthorized'){
+        console.log('set offline');
+        syncDevices([{ ..._device, status: 'Offline'}]);
+        await timeSleep(15);
+      }
+
 
       let rows = JSON.parse(data || "{AcsEvent: {InfoList:[]}}").AcsEvent.InfoList;
       // if (rows === 401) {
@@ -115,9 +128,10 @@ const HikDeviceContext = (() => {
         }
       }
 
+      _device=getDeviceById(newDevice.ip)
       if (rows && rows.length) {
         console.log("sync vao day");
-        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].time).valueOf() }]);
+        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].time).valueOf() ,status:'Online'}]);
       }
 
       if (result.length) {

@@ -106,6 +106,11 @@ const HikDevice = memo(function HikDevice({ device, syncTurn }: { device: Device
             }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
           }
         </InfoRow>
+        <InfoRow>{t("status")}:
+          {(() => {
+            if (device?.status === "Online") return <TextStatusConnected>{t('online')}</TextStatusConnected>
+            return <TextStatusDisconnected>{t("offline")}</TextStatusDisconnected>
+          })()}</InfoRow>
         {
           syncing === "1"
             ? <InfoRow>

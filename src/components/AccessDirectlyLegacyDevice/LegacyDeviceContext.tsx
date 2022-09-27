@@ -11,6 +11,7 @@ import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
 import _ from "lodash";
 import { getStore } from "../../store/storeAccess";
+import { getDeviceById } from "../../store/devices/actions";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -237,9 +238,10 @@ const LegacyDeviceContext = (() => {
           });
         } // end of list data;
         syncAttendanceRecords(result);
-        if (lastSyncTime > 0) {
-          syncDevices([{ ...device, lastSync: lastSyncTime }]);
-        }
+        let _device = getDeviceById(device.ip)
+        // if (lastSyncTime > 0) {
+        //   syncDevices([{ ..._device, lastSync: lastSyncTime }]);
+        // }
         // when sync done thi goi vao day de chuyen sang client tiep theo
         events.emit(Events.SYNC_DONE);
         return attendances;

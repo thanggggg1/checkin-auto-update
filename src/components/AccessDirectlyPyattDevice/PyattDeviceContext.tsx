@@ -12,6 +12,7 @@ import useAutoAlertError from "../../hooks/useAutoAlertError";
 import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
 import { Events, events } from "../../utils/events";
 import moment from "moment";
+import { getDeviceById } from "../../store/devices/actions";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -137,7 +138,8 @@ const PyattDeviceContext = (() => {
         });
 
         console.log("got it all");
-        syncDevices([{...device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
+        // let _device = getDeviceById(device.ip)
+        // syncDevices([{..._device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
 
         isGettingRecordRef.current = false;
 

@@ -5,7 +5,6 @@ import os from "os";
 
 let mainWindow: Electron.BrowserWindow | null;
 let tray = null;
-
 app.setLoginItemSettings({
   openAsHidden: true,
   path: app.getPath('exe')

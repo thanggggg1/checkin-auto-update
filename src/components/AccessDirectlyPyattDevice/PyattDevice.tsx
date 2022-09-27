@@ -102,15 +102,15 @@ const PyattDevice = memo(function PyattDevice({ device, syncTurn }: { device: De
     <PyattDeviceContext.Provider device={device} syncTurn={syncTurn}>
       <Wrapper title={device.name} size={"small"} extra={<Extra />}>
         <InfoRow>IP: {device.ip}</InfoRow>
-        <InfoRow>
-          {t("newest_eventLog")}:
-          {
-            device?.lastSync ? <div style={{
-              fontWeight: "bold",
-              paddingLeft: 8
-            }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
-          }
-        </InfoRow>
+        {/*<InfoRow>*/}
+        {/*  {t("newest_eventLog")}:*/}
+        {/*  {*/}
+        {/*    device?.lastSync ? <div style={{*/}
+        {/*      fontWeight: "bold",*/}
+        {/*      paddingLeft: 8*/}
+        {/*    }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null*/}
+        {/*  }*/}
+        {/*</InfoRow>*/}
         <Status />
         <TagsWrapper>
           <SyncTag />

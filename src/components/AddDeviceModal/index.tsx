@@ -24,9 +24,9 @@ const defaultValue: Device = {
   username: "", //"admin",
   status: "Online",
   token: "",
-  syncMethod: '',
+  syncMethod: "",
   connection: "tcp",
-  ip: "",
+  ip: ""
 };
 
 
@@ -128,6 +128,8 @@ const AddDeviceModal = memo(function AddDeviceModal(
       ||
       //Check BioStar
       (mode === "bio_star" && (!device.domain || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword))
+      ||
+      (mode === "hik_vision" && (!device.ip || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword))
     ) {
       return Modal.error({
         title: t("please_enter_all_required_fields"),
@@ -218,8 +220,9 @@ const AddDeviceModal = memo(function AddDeviceModal(
   const handleChangeSelect = useCallback((value) => {
     setValueSelect(value);
   }, [valueSelect]);
+
+
   // @ts-ignore
-  console.log('device',device);
   return (
     <Modal
       title={props.device ? t("edit_device") : t("add_device")}
@@ -430,7 +433,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         </>
       }
       {
-        (ZkBioSystem.startSync && props.mode == "zk_teco") || (device.startSync && props.mode == 'hik_vision')
+        (ZkBioSystem.startSync && props.mode == "zk_teco") || (device.startSync && props.mode == "hik_vision")
           ? <>
             <br/>
             <br/>

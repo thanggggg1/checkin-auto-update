@@ -3208,6 +3208,11 @@ electron-builder@^22.8.0:
     update-notifier "^4.1.0"
     yargs "^15.3.1"
 
+electron-db@^0.15.7:
+  version "0.15.7"
+  resolved "https://registry.yarnpkg.com/electron-db/-/electron-db-0.15.7.tgz#e6868661c6eeef6e7bab3bae5fd380d72bcfd24b"
+  integrity sha512-9EwGaSFjuyHBI2d6jTeSrzspLR/HJaWlvG3YgYSj+Ai2HvG7RNB49k6x9rJ/Hi72RWVL8hkSfjQSVZeZu/Rjxw==
+
 electron-publish@22.8.0:
   version "22.8.0"
   resolved "https://registry.yarnpkg.com/electron-publish/-/electron-publish-22.8.0.tgz#7f410fe043abc5d3d896c4ee9eea7a43ea352c7d"
@@ -4902,6 +4907,11 @@ loglevel@^1.6.8:
   version "1.6.8"
   resolved "https://registry.yarnpkg.com/loglevel/-/loglevel-1.6.8.tgz#8a25fb75d092230ecd4457270d80b54e28011171"
   integrity sha512-bsU7+gc9AJ2SqpzxwU3+1fedl8zAntbtC5XYlt3s2j1hJcn2PsXSmgN8TaLG/J1/2mod4+cE/3vNL70/c1RNCA==
+
+lokijs@^1.5.12:
+  version "1.5.12"
+  resolved "https://registry.yarnpkg.com/lokijs/-/lokijs-1.5.12.tgz#cb55b37009bdf09ee7952a6adddd555b893653a0"
+  integrity sha512-Q5ALD6JiS6xAUWCwX3taQmgwxyveCtIIuL08+ml0nHwT3k0S/GIFJN+Hd38b1qYIMaE5X++iqsqWVksz7SYW+Q==
 
 loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.4.0:
   version "1.4.0"

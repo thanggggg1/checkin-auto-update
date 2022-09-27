@@ -12,7 +12,6 @@ import  { Moment } from 'moment';
 const { RangePicker } = DatePicker;
 type RangeValue = [Moment | null, Moment | null] | null;
 
-
 const RecordsTable = memo(function RecordsTable() {
   const lang = useLanguage();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);

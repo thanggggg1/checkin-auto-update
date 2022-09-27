@@ -6,7 +6,6 @@ import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
 
-
 const AppNavBar = memo(function AppNavBar() {
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
