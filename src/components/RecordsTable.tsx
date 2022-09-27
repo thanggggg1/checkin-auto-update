@@ -120,6 +120,7 @@ const RecordsTable = memo(function RecordsTable() {
     return !!tooEarly || !!tooLate;
   };
 
+  console.log('data',dataSource);
 
   return <div>
     <div style={{

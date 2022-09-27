@@ -14,6 +14,7 @@ import { requestEventHikVision } from "../../store/devices/functions";
 import { getDeviceById } from "../../store/devices/actions";
 import { xmlToJson } from "../../utils/xml2json";
 import { getStore } from "../../store/storeAccess";
+import { isXML } from "../../utils/isXML";
 
 
 const HikDeviceContext = (() => {
@@ -66,15 +67,16 @@ const HikDeviceContext = (() => {
         endTime: moment().format(FormatDateSearchHikVision.end)
       });
       //2022-09-15T00:00:00+07:00
+      let __check = isXML(data)
+      console.log('checj',__check);
 
-      let _checkXMLdata = new DOMParser().parseFromString(data, 'text/xml')
-
-      // @ts-ignore
-      if(xmlToJson(_checkXMLdata).userCheck.statusString === 'Unauthorized'){
-        console.log('set offline');
-        syncDevices([{ ..._device, status: 'Offline'}]);
-        await timeSleep(15);
-      }
+      // let _checkXMLdata = new DOMParser().parseFromString(data, 'text/xml')
+      //
+      // // @ts-ignore
+      // if(xmlToJson(_checkXMLdata).userCheck.statusString === 'Unauthorized'){
+      //   console.log('set offline');
+      //   syncDevices([{ ..._device, status: 'Offline'}]);
+      // }
 
 
       let rows = JSON.parse(data || "{AcsEvent: {InfoList:[]}}").AcsEvent.InfoList;
@@ -96,6 +98,7 @@ const HikDeviceContext = (() => {
       //   Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
       //   return;
       // }
+      console.log('datata',rows);
       const result: AttendanceRecord[] = [];
 
       for (let i = 0; i < rows.length; i++) {
