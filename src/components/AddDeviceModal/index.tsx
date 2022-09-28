@@ -214,6 +214,9 @@ const AddDeviceModal = memo(function AddDeviceModal(
     if (mode !== "zk_teco" && mode !== "bio_star") {
       syncDevices([{ ...device, status: "Online" }]);
     }
+    if(mode == 'hik_vision'){
+      syncDevices([{...device,status:'Online',syncMethod:''}])
+    }
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);
 

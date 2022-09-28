@@ -143,12 +143,10 @@ const RecordsTable = memo(function RecordsTable() {
           marginLeft: 12
         }}
         onChange={(values: any) => {
-          console.log('values ', values);
           setCurrentTime(values[0])
           setNextTime(values[1])
         }}
         onCalendarChange={val => setDates(val)}
-
       />
     </div>
     <Table columns={columns} dataSource={dataSource} />
