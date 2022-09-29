@@ -13,7 +13,9 @@ import { hex_md5 } from "../../utils/hex_md5";
 import { setSettingMode } from "../../store/settings/settingMode";
 import { setSettingZkBioSystem, useSettingZkBioSystem } from "../AccessZkBioSecurityDevice/settingZkBioSystem";
 import { setSettingBioStar } from "../AccessBioStarDevice/settingBioStarSystem";
-import { requestLoginDeviceBioStar } from "../../store/devices/functions";
+import { getTimeZoneHik, requestLoginDeviceBioStar } from "../../store/devices/functions";
+import { setSyncing } from "../../store/settings/autoPush";
+import { convertXmlToJson } from "../../utils/xml2json";
 
 const defaultValue: Device = {
   clientPassword: "", //"123456",
@@ -24,7 +26,7 @@ const defaultValue: Device = {
   username: "", //"admin",
   status: "Online",
   token: "",
-  syncMethod: DeviceSyncMethod.PY,
+  syncMethod: DeviceSyncMethod.LARGE_DATASET,
   connection: "tcp",
   ip: ""
 };
@@ -210,12 +212,29 @@ const AddDeviceModal = memo(function AddDeviceModal(
         return;
       }
       setSettingBioStar({ ...device, status: "Online" });
+      setSyncing("1");
+
     }
     if (mode !== "zk_teco" && mode !== "bio_star") {
       syncDevices([{ ...device, status: "Online" }]);
     }
-    if(mode == 'hik_vision'){
-      syncDevices([{...device,status:'Online',syncMethod:''}])
+    if (mode == "hik_vision") {
+      const res = await getTimeZoneHik({
+        ip: device.ip,
+        port: device.port,
+        username: device.username,
+        password: device.password
+      });
+      if (convertXmlToJson(res).statusString) {
+        Modal.error({
+          title: `${t("unable_login")}`,
+          content: `${t("error_domain")}`
+        });
+        return;
+      }
+      syncDevices([{ ...device, syncMethod:""}]);
+      setSyncing("1");
+
     }
     props.onClose();
   }, [device, validateTokenPassword, props.onClose]);

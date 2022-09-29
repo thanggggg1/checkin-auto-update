@@ -228,13 +228,15 @@ interface EventLogHikVision {
   endTime: string //2022-09-15T00:00:00+07:00
   username: string
   password: string
+  timeZone:string
 }
 
 export const requestEventHikVision = async ({
                                               ip,
                                               port,
                                               startTime,
-                                              endTime, username, password
+                                              endTime, username, password,
+  timeZone
                                             }: EventLogHikVision) => {
   try {
     const data: any = await new Requests().fetch({
@@ -245,20 +247,46 @@ export const requestEventHikVision = async ({
           "AcsEventCond": {
             "searchID": "4b3c58a7-b80d-4647-9586-9efc3dbe5597",
             "searchResultPosition": 0,
-            "maxResults": 30,
+            "maxResults": 500,
             "major": 0,
             "minor": 0,
-            "startTime": `${encodeURI(startTime)}`,
-            "endTime": `${encodeURI(endTime)}`
+            "startTime": `${encodeURI(startTime)}+${timeZone}`,
+            "endTime": `${encodeURI(endTime)}+${timeZone}`
           }
         },
-        "auth":{
-          "username":username,
-          "password":password
+        "auth": {
+          "username": username,
+          "password": password
         }
       })
     });
     console.log("fetch ", data);
+    return data?.response;
+  } catch (e) {
+    console.log("e ", e.response);
+    if (e?.response?.status === 401) {
+      return 401;
+    }
+    return "";
+  }
+};
+
+export const getTimeZoneHik = async ({
+                                       ip,
+                                       port,
+                                       username, password
+                                     }: {ip:string,port?:number,username:string,password:string}) => {
+  try {
+    const data: any = await new Requests().fetch({
+      paramStr: JSON.stringify({
+        "url": `http://${ip}:${port}/ISAPI/System/time`,
+        "method": "get",
+        "auth": {
+          "username": username,
+          "password": password
+        }
+      })
+    });
     return data?.response;
   } catch (e) {
     console.log("e ", e.response);

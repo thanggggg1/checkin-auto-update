@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from "react";
 import { styled } from "../../global";
-import { Card, Tag, Dropdown, Button, Menu, Modal } from "antd";
+import { Button, Card, Dropdown, Menu, Modal } from "antd";
 import { Device } from "../../store/devices";
 import { t, useLanguage } from "../../store/settings/languages";
 import AddDeviceModal from "../AddDeviceModal";
@@ -10,13 +10,11 @@ import HikDeviceContext from "./HikDeviceContext";
 import { setSyncing, useSyncing } from "../../store/settings/autoPush";
 
 const ExtraOverlay = (props: any) => {
-  const {
-    syncAttendances,
-    syncPercent,
-    device,
-    deleteDevice,
-  } = HikDeviceContext.use();
   useLanguage();
+  const {
+    device,
+    deleteDevice
+  } = HikDeviceContext.use();
 
   const [isEditDeviceVisible, showEditDevice, hideEditDevice] = useBoolean();
 
@@ -41,17 +39,20 @@ const ExtraOverlay = (props: any) => {
   return (
     <Menu {...props}>
 
-      <Menu.Item onClick={showEditDevice}>
+      <Menu.Item onClick={() => {
+        setSyncing("2");
+        showEditDevice();
+      }}>
         <span>{t("edit_device")}</span>
       </Menu.Item>
       <AddDeviceModal
         onClose={hideEditDevice}
         visible={isEditDeviceVisible}
         device={device}
-        mode={'hik_vision'}
+        mode={"hik_vision"}
       />
       <Menu.Item onClick={onClickSync}>
-        <span>{syncing === "1" ? t('stop_syncing') : syncing === "2" ? t('start_syncing') : t("sync")}</span>
+        <span>{syncing === "1" ? t("stop_syncing") : syncing === "2" ? t("start_syncing") : t("sync")}</span>
       </Menu.Item>
 
       <Menu.Item onClick={onClickDeleteDevice}>
@@ -65,28 +66,11 @@ const ExtraOverlay = (props: any) => {
 
 const Extra = () => {
   return (
-    <Dropdown overlay={<ExtraOverlay />} placement={"bottomLeft"} arrow>
+    <Dropdown overlay={<ExtraOverlay/>} placement={"bottomLeft"} arrow>
       <Button>...</Button>
     </Dropdown>
   );
 };
-
-
-
-const SyncTag = () => {
-  useLanguage();
-
-  const { syncPercent, syncAttendances } = HikDeviceContext.use();
-
-  if (!syncPercent) return null;
-
-  return (
-    <Tag onClick={syncAttendances}>
-      {t("sync")}: {syncPercent}
-    </Tag>
-  );
-};
-
 
 
 const HikDevice = memo(function HikDevice({ device, syncTurn }: { device: Device, syncTurn: boolean }) {
@@ -95,7 +79,7 @@ const HikDevice = memo(function HikDevice({ device, syncTurn }: { device: Device
 
   return (
     <HikDeviceContext.Provider device={device} syncTurn={syncTurn}>
-      <Wrapper title={device.name} size={"small"} extra={<Extra />}>
+      <Wrapper title={device.name} size={"small"} extra={<Extra/>}>
         <InfoRow>IP: {device.ip}</InfoRow>
         <InfoRow>
           {t("newest_eventLog")}:
@@ -106,11 +90,6 @@ const HikDevice = memo(function HikDevice({ device, syncTurn }: { device: Device
             }}>{" "}{moment(device.lastSync).format("DD-MM-YYYY HH:mm")}</div> : null
           }
         </InfoRow>
-        <InfoRow>{t("status")}:
-          {(() => {
-            if (device?.status === "Online") return <TextStatusConnected>{t('online')}</TextStatusConnected>
-            return <TextStatusDisconnected>{t("offline")}</TextStatusDisconnected>
-          })()}</InfoRow>
         {
           syncing === "1"
             ? <InfoRow>
@@ -151,11 +130,11 @@ export const TextStatusDisconnected = styled.div`
 font-weight: bold;
 padding-left: 8px;
 color: red;
-`
+`;
 export const TextStatusConnecting = styled(TextStatusDisconnected)`
 color:#2d87bb;
-`
+`;
 export const TextStatusConnected = styled(TextStatusDisconnected)`
 color: #64ef64;
 
-`
+`;

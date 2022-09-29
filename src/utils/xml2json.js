@@ -1,65 +1,66 @@
 /**
- * Changes XML to JSON
- * Modified version from here: http://davidwalsh.name/convert-xml-json
- * @param {string} xml XML DOM tree
+ * Originally from http://davidwalsh.name/convert-xml-json
+ * This is a version that provides a JSON object without the attributes and places textNodes as values
+ * rather than an object with the textNode in it.
+ * 27/11/2012
+ * Ben Chidgey
+ *
+ * @param xml
+ * @return {*}
  */
 export function xmlToJson(xml) {
+
   // Create the return object
   var obj = {};
 
-  if (xml.nodeType == 1) {
-    // element
-    // do attributes
-    if (xml.attributes.length > 0) {
-      obj["@attributes"] = {};
-      for (var j = 0; j < xml.attributes.length; j++) {
-        var attribute = xml.attributes.item(j);
-        obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
-      }
-    }
-  } else if (xml.nodeType == 3) {
-    // text
+  // text node
+  if (4 === xml.nodeType) {
     obj = xml.nodeValue;
   }
 
-  // do children
-  // If all text nodes inside, get concatenated text from them.
-  var textNodes = [].slice.call(xml.childNodes).filter(function(node) {
-    return node.nodeType === 3;
-  });
-  if (xml.hasChildNodes() && xml.childNodes.length === textNodes.length) {
-    obj = [].slice.call(xml.childNodes).reduce(function(text, node) {
-      return text + node.nodeValue;
-    }, "");
-  } else if (xml.hasChildNodes()) {
+  if (xml.hasChildNodes()) {
     for (var i = 0; i < xml.childNodes.length; i++) {
-      var item = xml.childNodes.item(i);
-      var nodeName = item.nodeName;
-      if (typeof obj[nodeName] == "undefined") {
-        obj[nodeName] = xmlToJson(item);
-      } else {
-        if (typeof obj[nodeName].push == "undefined") {
-          var old = obj[nodeName];
-          obj[nodeName] = [];
-          obj[nodeName].push(old);
+      var TEXT_NODE_TYPE_NAME = '#text',
+        item = xml.childNodes.item(i),
+        nodeName = item.nodeName,
+        content;
+
+      if (TEXT_NODE_TYPE_NAME === nodeName) {
+        //single textNode or next sibling has a different name
+        if ((null === xml.nextSibling) || (xml.localName !== xml.nextSibling.localName)) {
+          content = xml.textContent;
+
+          //we have a sibling with the same name
+        } else if (xml.localName === xml.nextSibling.localName) {
+          //if it is the first node of its parents childNodes, send it back as an array
+          content = (xml.parentElement.childNodes[0] === xml) ? [xml.textContent] : xml.textContent;
         }
-        obj[nodeName].push(xmlToJson(item));
+        return content;
+      } else {
+        if ('undefined' === typeof(obj[nodeName])) {
+          obj[nodeName] = xmlToJson(item);
+        } else {
+          if ('undefined' === typeof(obj[nodeName].length)) {
+            var old = obj[nodeName];
+            obj[nodeName] = [];
+            obj[nodeName].push(old);
+          }
+
+          obj[nodeName].push(xmlToJson(item));
+        }
       }
     }
   }
   return obj;
 }
 
-/*
-Usage:
-1. If you have an XML file URL:
-const response = await fetch('file_url');
-const xmlString = await response.text();
-var XmlNode = new DOMParser().parseFromString(xmlString, 'text/xml');
-xmlToJson(XmlNode);
-2. If you have an XML as string:
-var XmlNode = new DOMParser().parseFromString(yourXmlString, 'text/xml');
-xmlToJson(XmlNode);
-3. If you have the XML as a DOM Node:
-xmlToJson(YourXmlNode);
-*/
+export
+function convertXmlToJson(xmlString) {
+  const jsonData = {};
+  for (const result of xmlString.matchAll(/(?:<(\w*)(?:\s[^>]*)*>)((?:(?!<\1).)*)(?:<\/\1>)|<(\w*)(?:\s*)*\/>/gm)) {
+    const key = result[1] || result[3];
+    const value = result[2] && convertXmlToJson(result[2]); //recusrion
+    jsonData[key] = ((value && Object.keys(value).length) ? value : result[2]) || null;
+  }
+  return jsonData;
+}

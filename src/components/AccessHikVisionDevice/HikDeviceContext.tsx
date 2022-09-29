@@ -10,21 +10,26 @@ import moment from "moment";
 import { FormatDateSearchHikVision, MaxEvenEachRequest } from "../../store/devices/types";
 import { getSyncing } from "../../store/settings/autoPush";
 import { timeSleep } from "../../utils/sleep";
-import { requestEventHikVision } from "../../store/devices/functions";
+import { getTimeZoneHik, requestEventHikVision } from "../../store/devices/functions";
 import { getDeviceById } from "../../store/devices/actions";
-import { xmlToJson } from "../../utils/xml2json";
-import { getStore } from "../../store/storeAccess";
 import { isXML } from "../../utils/isXML";
+import { convertXmlToJson } from "../../utils/xml2json";
+export function getStringBetween(str:string, start:string, end:string) {
+  const result = str.match(new RegExp(start + "(.*)" + end));
+
+  // @ts-ignore
+  return result[1];
+}
 
 
 const HikDeviceContext = (() => {
-  const [Provider, use] = constate(({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
+  const [Provider, use] = constate( ({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
 
     const [syncPercent, setSyncPercent] = useState("");
     const latestSyncPercent = useLatest(syncPercent);
 
-    let _newDevice = {...device}
-    let __device = getDeviceById(_newDevice.ip)
+    let _newDevice = { ...device };
+    let __device = getDeviceById(_newDevice.ip);
     if (!__device.startSync && __device.username) {
       syncDevices([{ ...__device, startSync: moment().subtract(1, "months").valueOf() }]);
     }
@@ -39,7 +44,6 @@ const HikDeviceContext = (() => {
 
       let newDevice = { ...device };
 
-      let canSync = true;
 
 
       let _device = getDeviceById(newDevice.ip);
@@ -50,11 +54,22 @@ const HikDeviceContext = (() => {
       const syncing = getSyncing();
 
       if (syncing === "2" || syncing === "0") {
-        console.log("sync", syncing);
         await timeSleep(5);
         return;
       }
-
+      let timeZone='7:00';
+      let timeHik = await getTimeZoneHik({
+        ip:_device.ip,
+        port:_device.port,
+        username:_device.username,
+        password:_device.password
+      })
+     // @ts-ignore
+      if (convertXmlToJson(timeHik).timeZone){
+       // @ts-ignore
+        let stringTimeZone = convertXmlToJson(timeHik).timeZone
+        timeZone = getStringBetween(stringTimeZone,'-',':00')
+     }
       // @ts-ignore
       setSyncPercent(0);
       console.log("lastSync", moment(lastSync).format(FormatDateSearchHikVision.normal));
@@ -64,41 +79,14 @@ const HikDeviceContext = (() => {
         username: _device.username,
         password: _device.password,
         startTime: lastSync,
-        endTime: moment().format(FormatDateSearchHikVision.end)
+        endTime: moment().format(FormatDateSearchHikVision.end),
+        timeZone:timeZone
       });
       //2022-09-15T00:00:00+07:00
-      let __check = isXML(data)
-      console.log('checj',__check);
-
-      // let _checkXMLdata = new DOMParser().parseFromString(data, 'text/xml')
-      //
-      // // @ts-ignore
-      // if(xmlToJson(_checkXMLdata).userCheck.statusString === 'Unauthorized'){
-      //   console.log('set offline');
-      //   syncDevices([{ ..._device, status: 'Offline'}]);
-      // }
-
 
       let rows = JSON.parse(data || "{AcsEvent: {InfoList:[]}}").AcsEvent.InfoList;
-      // if (rows === 401) {
-      //   if (res.error) {
-      //     Modal.error({ title: "Đăng nhập vào máy " + device.name + " không thành công!!!" });
-      //     return;
-      //   } else {
-      //     newDevice = { ...newDevice, sessionId: res.sessionId };
-      //     syncDevices([newDevice]);
-      //     rows = await requestEventLog({
-      //       sessionId: newDevice.sessionId,
-      //       from: lastSync,
-      //       domain: newDevice.domain
-      //     });
-      //   }
-      // }
-      // if (typeof rows === "number") {
-      //   Modal.error({ title: "Đăng nhập vào máy " + newDevice.name + " không thành công!!!" });
-      //   return;
-      // }
-      console.log('datata',rows);
+
+      console.log("datata", rows);
       const result: AttendanceRecord[] = [];
 
       for (let i = 0; i < rows.length; i++) {
@@ -112,11 +100,7 @@ const HikDeviceContext = (() => {
         //   continue;
         // }
 
-        // if (doors?.length && row?.device_id?.id) {
-        //   if ((doors || []).indexOf(row?.device_id?.id) === -1) {
-        //     continue;
-        //   }
-        // }
+
         if (row.employeeNoString) {
           result.push({
             timestamp: mm.valueOf(),
@@ -131,17 +115,16 @@ const HikDeviceContext = (() => {
         }
       }
 
-      _device=getDeviceById(newDevice.ip)
+      _device = getDeviceById(newDevice.ip);
       if (rows && rows.length) {
         console.log("sync vao day");
-        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].time).valueOf() ,status:'Online'}]);
+        syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].time).valueOf() }]);
       }
 
       if (result.length) {
         syncAttendanceRecords(result);
         const _currentDevice = getDeviceById(newDevice.ip);
         if (!_currentDevice) {
-          canSync = false;
           events.emit(Events.SYNC_DONE);
           return;
         }
@@ -160,12 +143,9 @@ const HikDeviceContext = (() => {
         }
         await timeSleep(3);
       } else {
-        console.log("come here when result = 0");
         await timeSleep(3);
-        console.log("vao dayyyyyy");
       }
       if (rows?.length < MaxEvenEachRequest) {
-        canSync = false;
         events.emit(Events.SYNC_DONE);
       }
 
@@ -183,7 +163,6 @@ const HikDeviceContext = (() => {
       }, 1000 * 15);
 
       return () => {
-        console.log("test vong lap");
         _t && clearInterval(_t);
 
       };

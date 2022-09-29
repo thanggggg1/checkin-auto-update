@@ -26,6 +26,7 @@ export interface Device {
   lastSync?: number
   syncing?: boolean
   doors?: string // BR-ACS-1F-02, BR-ACS-1F-09...
+  timeZone?:string
   status: "Online" | "Offline"
 
 
