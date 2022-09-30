@@ -122,6 +122,7 @@ const PyattDeviceContext = (() => {
         const data = await instance.getRecords({
           onStarted: () => setSyncPercent("Preparing"),
           onRecords: (records:PyattRecord[]) => {
+            console.log(' records ', records);
             syncAttendanceRecords(
               records
                 .map((record) =>
@@ -142,7 +143,7 @@ const PyattDeviceContext = (() => {
         // syncDevices([{..._device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
 
         isGettingRecordRef.current = false;
-
+        console.log('data ', data.records);
         syncAttendanceRecords(
           data.records
             // @ts-ignore
