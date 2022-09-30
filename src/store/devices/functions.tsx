@@ -228,7 +228,6 @@ interface EventLogHikVision {
   endTime: string //2022-09-15T00:00:00+07:00
   username: string
   password: string
-  timeZone:string
 }
 
 export const requestEventHikVision = async ({
@@ -236,7 +235,7 @@ export const requestEventHikVision = async ({
                                               port,
                                               startTime,
                                               endTime, username, password,
-  timeZone
+
                                             }: EventLogHikVision) => {
   try {
     const data: any = await new Requests().fetch({
@@ -250,8 +249,8 @@ export const requestEventHikVision = async ({
             "maxResults": 500,
             "major": 0,
             "minor": 0,
-            "startTime": `${encodeURI(startTime)}+${timeZone}`,
-            "endTime": `${encodeURI(endTime)}+${timeZone}`
+            "startTime": `${encodeURI(startTime)}+07:00`,
+            "endTime": `${encodeURI(endTime)}+07:00`
           }
         },
         "auth": {
@@ -272,10 +271,10 @@ export const requestEventHikVision = async ({
 };
 
 export const getTimeZoneHik = async ({
-                                       ip,
-                                       port,
-                                       username, password
-                                     }: {ip:string,port?:number,username:string,password:string}) => {
+                                                      ip,
+                                                      port,
+                                                      username, password
+                                                    }: {ip:string,port?:number,username:string,password:string}) => {
   try {
     const data: any = await new Requests().fetch({
       paramStr: JSON.stringify({
@@ -296,3 +295,4 @@ export const getTimeZoneHik = async ({
     return "";
   }
 };
+

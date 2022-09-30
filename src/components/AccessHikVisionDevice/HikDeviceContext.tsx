@@ -57,19 +57,7 @@ const HikDeviceContext = (() => {
         await timeSleep(5);
         return;
       }
-      let timeZone='7:00';
-      let timeHik = await getTimeZoneHik({
-        ip:_device.ip,
-        port:_device.port,
-        username:_device.username,
-        password:_device.password
-      })
-     // @ts-ignore
-      if (convertXmlToJson(timeHik).timeZone){
-       // @ts-ignore
-        let stringTimeZone = convertXmlToJson(timeHik).timeZone
-        timeZone = getStringBetween(stringTimeZone,'-',':00')
-     }
+
       // @ts-ignore
       setSyncPercent(0);
       console.log("lastSync", moment(lastSync).format(FormatDateSearchHikVision.normal));
@@ -80,7 +68,6 @@ const HikDeviceContext = (() => {
         password: _device.password,
         startTime: lastSync,
         endTime: moment().format(FormatDateSearchHikVision.end),
-        timeZone:timeZone
       });
       //2022-09-15T00:00:00+07:00
 
@@ -158,8 +145,9 @@ const HikDeviceContext = (() => {
         return;
       }
       const _t = setInterval(() => {
+        let syncing = getSyncing()
         console.log("effect sync attendance");
-        syncAttendances().then();
+        if(syncing === "1") syncAttendances().then()
       }, 1000 * 15);
 
       return () => {

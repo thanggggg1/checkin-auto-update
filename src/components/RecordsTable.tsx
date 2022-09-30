@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { DatePicker, Table } from "antd";
+import type { RangePickerProps } from 'antd/es/date-picker';
 import { AttendanceRecord } from "../store/records";
 import { t, useLanguage } from "../store/settings/languages";
 import moment from "moment";
@@ -9,10 +10,11 @@ import  { Moment } from 'moment';
 // const selector = (state: any): Record<string, AttendanceRecord> =>
 //   state.records;
 
-const { RangePicker } = DatePicker;
 type RangeValue = [Moment | null, Moment | null] | null;
+const { RangePicker } = DatePicker;
 
 const RecordsTable = memo(function RecordsTable() {
+
   const lang = useLanguage();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [currentTime, setCurrentTime] = useState(moment().subtract(30, "days"));
@@ -55,11 +57,8 @@ const RecordsTable = memo(function RecordsTable() {
 
     for (let i = 0; i < records.length; i++){
       const record = records[i];
-      if (record.timestamp > currentTime.valueOf()
-        && record.timestamp <= nextTime.add(1,'days').valueOf()) {
         uids[record.uid] = record.uid;
         ips[record.deviceIp] = record.deviceIp;
-
         results.push({
           key: record.id,
           uid: record.uid,
@@ -68,7 +67,6 @@ const RecordsTable = memo(function RecordsTable() {
           date: record.dateFormatted,
           timestamp: record.timestamp,
         })
-      }
     }
     return {
       uids,
@@ -134,16 +132,16 @@ const RecordsTable = memo(function RecordsTable() {
     }}>
       Dữ liệu trong khoảng:
       <RangePicker
-        defaultValue={[currentTime, nextTime]}
+        value={[currentTime, nextTime]}
         disabledDate={disabledDate}
         style={{
           padding: 8,
           borderRadius: 4,
           marginLeft: 12
         }}
-        onChange={(values: any) => {
-          setCurrentTime(values[0])
-          setNextTime(values[1])
+        onChange={(dates,dateStrings) => {
+          setCurrentTime(dates[0])
+          setNextTime(dates[1])
         }}
         onCalendarChange={val => setDates(val)}
       />

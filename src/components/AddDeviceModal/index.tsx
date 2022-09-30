@@ -13,7 +13,7 @@ import { hex_md5 } from "../../utils/hex_md5";
 import { setSettingMode } from "../../store/settings/settingMode";
 import { setSettingZkBioSystem, useSettingZkBioSystem } from "../AccessZkBioSecurityDevice/settingZkBioSystem";
 import { setSettingBioStar } from "../AccessBioStarDevice/settingBioStarSystem";
-import { getTimeZoneHik, requestLoginDeviceBioStar } from "../../store/devices/functions";
+import { getTimeZoneHik, requestLoginDeviceBioStar, setTimeZone } from "../../store/devices/functions";
 import { setSyncing } from "../../store/settings/autoPush";
 import { convertXmlToJson } from "../../utils/xml2json";
 
@@ -123,15 +123,15 @@ const AddDeviceModal = memo(function AddDeviceModal(
     // Check condition to add device
     //Check ZkBioSecurity
     if (
-      (mode === "zk_teco" && (!device.domain || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword))
+      (mode === "zk_teco" && (!device.domain || (!device.username) || (!device.password) || !device.clientToken || !device.clientPassword || !device.port))
       ||
       //Check Multi MCC
-      (mode === "multi_mcc" && (!device.ip || !device.name || !device.port || !device.clientToken || !device.clientPassword))
+      (mode === "multi_mcc" && (!device.ip || !device.name || !device.port || !device.clientToken || !device.clientPassword || !device.port))
       ||
       //Check BioStar
-      (mode === "bio_star" && (!device.domain || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword))
+      (mode === "bio_star" && (!device.domain || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword || !device.port))
       ||
-      (mode === "hik_vision" && (!device.ip || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword))
+      (mode === "hik_vision" && (!device.ip || !device.name || !device.username || !device.password || !device.clientToken || !device.clientPassword || !device.port))
     ) {
       return Modal.error({
         title: t("please_enter_all_required_fields"),
@@ -464,7 +464,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
               <DatePicker
                 showTime={{ format: "DD/MM/YYYY HH:mm" }}
                 format="DD/MM/YYYY HH:mm:ss"
-                onOk={(value: any) => {
+                onOk={(value,dateString) => {
                   onLastSyncChange(value.unix() * 1000);
                 }}
                 placeholder={""}
