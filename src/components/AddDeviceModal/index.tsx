@@ -225,7 +225,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         username: device.username,
         password: device.password
       });
-      if (convertXmlToJson(res).statusString) {
+      if (convertXmlToJson(res).statusString) { // check admin - password
         Modal.error({
           title: `${t("unable_login")}`,
           content: `${t("error_domain")}`

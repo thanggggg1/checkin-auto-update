@@ -244,13 +244,13 @@ export const requestEventHikVision = async ({
         "method": "post",
         "params": {
           "AcsEventCond": {
-            "searchID": "4b3c58a7-b80d-4647-9586-9efc3dbe5597",
+            "searchID": "4b3c58a7-b80d-4647-9586-9efc3d597",
             "searchResultPosition": 0,
             "maxResults": 500,
             "major": 0,
             "minor": 0,
-            "startTime": `${encodeURI(startTime)}+07:00`,
-            "endTime": `${encodeURI(endTime)}+07:00`
+            "startTime": `${encodeURI(startTime)}`,
+            "endTime": `${encodeURI(endTime)}`
           }
         },
         "auth": {

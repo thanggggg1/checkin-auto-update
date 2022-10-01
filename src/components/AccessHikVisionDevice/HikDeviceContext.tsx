@@ -10,20 +10,12 @@ import moment from "moment";
 import { FormatDateSearchHikVision, MaxEvenEachRequest } from "../../store/devices/types";
 import { getSyncing } from "../../store/settings/autoPush";
 import { timeSleep } from "../../utils/sleep";
-import { getTimeZoneHik, requestEventHikVision } from "../../store/devices/functions";
+import { requestEventHikVision } from "../../store/devices/functions";
 import { getDeviceById } from "../../store/devices/actions";
-import { isXML } from "../../utils/isXML";
-import { convertXmlToJson } from "../../utils/xml2json";
-export function getStringBetween(str:string, start:string, end:string) {
-  const result = str.match(new RegExp(start + "(.*)" + end));
-
-  // @ts-ignore
-  return result[1];
-}
 
 
 const HikDeviceContext = (() => {
-  const [Provider, use] = constate( ({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
+  const [Provider, use] = constate(({ device, syncTurn }: { device: Device, syncTurn: boolean }) => {
 
     const [syncPercent, setSyncPercent] = useState("");
     const latestSyncPercent = useLatest(syncPercent);
@@ -43,9 +35,6 @@ const HikDeviceContext = (() => {
     ] = useAsyncFn(async () => {
 
       let newDevice = { ...device };
-
-
-
       let _device = getDeviceById(newDevice.ip);
 
       let lastSync = _device.lastSync
@@ -60,20 +49,18 @@ const HikDeviceContext = (() => {
 
       // @ts-ignore
       setSyncPercent(0);
-      console.log("lastSync", moment(lastSync).format(FormatDateSearchHikVision.normal));
       let data = await requestEventHikVision({
         ip: _device.ip,
         port: _device.port,
         username: _device.username,
         password: _device.password,
         startTime: lastSync,
-        endTime: moment().format(FormatDateSearchHikVision.end),
+        endTime: moment().format(FormatDateSearchHikVision.end)
       });
       //2022-09-15T00:00:00+07:00
 
       let rows = JSON.parse(data || "{AcsEvent: {InfoList:[]}}").AcsEvent.InfoList;
 
-      console.log("datata", rows);
       const result: AttendanceRecord[] = [];
 
       for (let i = 0; i < rows.length; i++) {
@@ -145,21 +132,19 @@ const HikDeviceContext = (() => {
         return;
       }
       const _t = setInterval(() => {
-        let syncing = getSyncing()
+        let syncing = getSyncing();
         console.log("effect sync attendance");
-        if(syncing === "1") syncAttendances().then()
+        if (syncing === "1") syncAttendances().then();
       }, 1000 * 15);
 
       return () => {
         _t && clearInterval(_t);
-
       };
     }, []);
 
     const deleteDevice = useCallback(() => {
       deleteDevices([device.ip]);
     }, [device.ip]);
-
 
     return {
       device,
