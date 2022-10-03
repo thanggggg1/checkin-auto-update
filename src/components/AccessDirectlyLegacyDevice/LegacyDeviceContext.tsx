@@ -111,7 +111,7 @@ const LegacyDeviceContext = (() => {
           return;
         }
 
-        const currentYear = new Date().getFullYear();
+        const now = moment();
 
         setSyncPercent(0);
 
@@ -146,7 +146,7 @@ const LegacyDeviceContext = (() => {
             const records = attendances
               .map((attendance: any) => {
                 const mm = moment(attendance.timestamp);
-                if (mm.get("year") < currentYear - 1) {
+                if (mm.diff(now, 'days') > 90) {
                   return false;
                 }
                 const id = `${attendance.id}_${mm.valueOf()}`;
@@ -216,7 +216,7 @@ const LegacyDeviceContext = (() => {
           const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
           const mm = moment(raw.recordTime);
 
-          if (mm.get("year") < currentYear - 1) {
+          if (mm.diff(now, 'days') > 90) {
             continue;
           }
           if (raw?.recordTime) {

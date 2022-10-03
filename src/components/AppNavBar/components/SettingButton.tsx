@@ -152,7 +152,7 @@ const SettingButton = memo(function SettingButton() {
             en: "Prevent sync logs time ranges"
           })}
           type={"text"}
-          placeholder={"Ex: 8:20-9:40, 17:25-17:35"}
+          placeholder={"Ex: 08:20-09:40, 17:25-17:35"}
           step={30}
           min={30}
           max={4320} // 72 hours, 3 days

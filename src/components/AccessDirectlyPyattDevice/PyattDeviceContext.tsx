@@ -1,5 +1,5 @@
 import constate from "constate";
-import { deleteDevices, Device,syncDevices } from "../../store/devices";
+import { deleteDevices, Device } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Pyatt, { PyattRecord } from "../../Services/Pyatt";
 import useLatest from "react-use/lib/useLatest";
@@ -11,8 +11,6 @@ import { Modal } from "antd";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
 import { Events, events } from "../../utils/events";
-import moment from "moment";
-import { getDeviceById } from "../../store/devices/actions";
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,

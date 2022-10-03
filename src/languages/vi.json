@@ -86,7 +86,7 @@
   "logout_confirm_title": "Bạn có chắc chắn muốn đăng xuất",
   "logout_confirm_desc": "Bạn sẽ không thể đẩy dữ liệu chấm công lên Base HRM",
   "edit_device": "Chỉnh sửa thiết bị",
-  "heartbeat_rate": "Nhịp tim",
+  "heartbeat_rate": "Heart beat",
   "heartbeat_rate_desc": "Tần suất tự kiểm tra giữa Checkin Station và máy chấm công xem có còn đang kết nối hay không. Nếu là máy chấm công đời cũ, hoặc máy yếu, nên chọn thời gian lớn hơn.",
   "auto_reconnect": "Tự kết nối lại",
   "auto_reconnect_desc": "Tần suất mà Checkin Station tự kết nối lại với máy chấm công nếu bị mất kết nối. Nếu máy chấm công đời cũ, hoặc yếu, nên chọn thời gian lớn hơn.",

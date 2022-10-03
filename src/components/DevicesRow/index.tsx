@@ -43,8 +43,6 @@ const DevicesRow = memo(function DevicesRow() {
 
   useEffect(() => {
     // handle chuc nang sync khi ng dung nhan vao chu syncAll
-    console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
-
     const handler = () => {
       if (turnSyncIP) {
         return;
@@ -63,8 +61,6 @@ const DevicesRow = memo(function DevicesRow() {
 
   useEffect(() => {
     // handle TH khi ma sync xong 1 cai thi can next sang cai tiep theo
-    console.log("turnSyncIP && syncing ", turnSyncIP, syncing);
-
     const handler = () => {
       const _devices = Object.values(devices || {});
       const currentIndex = _devices.findIndex(item => item.ip === turnSyncIP);
@@ -92,8 +88,6 @@ const DevicesRow = memo(function DevicesRow() {
       closeModal: () => setAddDeviceModalVisible(false)
     };
   }, []);
-  console.log("turn sync ip", turnSyncIP);
-
 
   return (
     <>
