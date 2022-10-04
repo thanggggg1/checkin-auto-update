@@ -58,7 +58,7 @@ const RecordsTable = memo(function RecordsTable() {
     for (let i = 0; i < records.length; i++){
       const record = records[i];
       if (record.timestamp > dateRange[0].valueOf()
-        && record.timestamp <= dateRange[1].valueOf()) {
+        && record.timestamp <= dateRange[1].set({hour: 23, minute: 59}).valueOf()) {
         uids[record.uid] = record.uid;
         ips[record.deviceIp] = record.deviceIp;
 
