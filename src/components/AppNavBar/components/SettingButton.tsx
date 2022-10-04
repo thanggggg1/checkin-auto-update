@@ -161,8 +161,8 @@ const SettingButton = memo(function SettingButton() {
         />
         <span>
           {t("__", {
-            vi: "Định dạng: \"HH:mm-HH:mm, HH:mm-HH:mm\", ví dụ: 8:20-9:40, 17:25-17:35",
-            en: "Format: \"HH:mm-HH:mm, HH:mm-HH:mm\", example: 8:20-9:40, 17:25-17:35"
+            vi: "Định dạng: \"HH:mm-HH:mm, HH:mm-HH:mm\", ví dụ: 08:20-09:40, 17:25-17:35",
+            en: "Format: \"HH:mm-HH:mm, HH:mm-HH:mm\", example: 08:20-09:40, 17:25-17:35"
           })}
         </span>
         <br/>

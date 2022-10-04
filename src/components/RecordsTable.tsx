@@ -17,8 +17,7 @@ const RecordsTable = memo(function RecordsTable() {
 
   const lang = useLanguage();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [currentTime, setCurrentTime] = useState(moment().subtract(30, "days"));
-  const [nextTime, setNextTime] = useState(moment());
+  const [dateRange, setDateRange] = useState([moment().subtract(30, "days"), moment()]);
   const [dates, setDates] = useState<RangeValue>(null);
 
 
@@ -51,14 +50,18 @@ const RecordsTable = memo(function RecordsTable() {
   }, []);
 
   const { dataSource, uids, ips } = useMemo(() => {
+
     const uids: Record<string | number, string | number> = {};
     const ips: Record<string, string> = {};
     let results = [];
 
     for (let i = 0; i < records.length; i++){
       const record = records[i];
+      if (record.timestamp > dateRange[0].valueOf()
+        && record.timestamp <= dateRange[1].valueOf()) {
         uids[record.uid] = record.uid;
         ips[record.deviceIp] = record.deviceIp;
+
         results.push({
           key: record.id,
           uid: record.uid,
@@ -67,13 +70,15 @@ const RecordsTable = memo(function RecordsTable() {
           date: record.dateFormatted,
           timestamp: record.timestamp,
         })
+      }
     }
+
     return {
       uids,
       ips,
       dataSource: results,
     };
-  }, [records?.length, currentTime.unix(), nextTime.unix()]);
+  }, [records?.length, dateRange[0].unix(), dateRange[1].unix()]);
 
   const columns = useMemo(() => {
     return [
@@ -132,7 +137,7 @@ const RecordsTable = memo(function RecordsTable() {
     }}>
       Dữ liệu trong khoảng:
       <RangePicker
-        value={[currentTime, nextTime]}
+        value={dateRange}
         disabledDate={disabledDate}
         style={{
           padding: 8,
@@ -140,8 +145,7 @@ const RecordsTable = memo(function RecordsTable() {
           marginLeft: 12
         }}
         onChange={(dates,dateStrings) => {
-          setCurrentTime(dates[0])
-          setNextTime(dates[1])
+          setDateRange(dates);
         }}
         onCalendarChange={val => setDates(val)}
       />
