@@ -107,3 +107,9 @@ app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 app.allowRendererProcessReuse = true;
 
 
+// handle error
+
+process.on('uncaughtException', function (err) {
+  console.log('uncaughtException ', err);
+  window.location.reload()
+});
