@@ -216,7 +216,7 @@ const LegacyDeviceContext = (() => {
           const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
           const mm = moment(raw.recordTime);
 
-          if (mm.diff(now, 'days') > 90) {
+          if (now.diff(mm, 'days') > 90) {
             continue;
           }
           if (raw?.recordTime) {
@@ -237,8 +237,10 @@ const LegacyDeviceContext = (() => {
             timeFormatted: mm.format("HH:mm:ss")
           });
         } // end of list data;
+
+        console.log('result ', result);
         syncAttendanceRecords(result);
-        let _device = getDeviceById(device.ip)
+        // let _device = getDeviceById(device.ip)
         // if (lastSyncTime > 0) {
         //   syncDevices([{ ..._device, lastSync: lastSyncTime }]);
         // }
@@ -357,13 +359,13 @@ const LegacyDeviceContext = (() => {
       };
     }, [connectionState, connect, device.autoReconnect]);
 
-    useEffect(() => {
-      if (canSendRequest) {
-        setTimeout(() => {
-          syncAttendances().then();
-        }, 1500);
-      }
-    }, [canSendRequest]);
+    // useEffect(() => {
+    //   if (canSendRequest) {
+    //     setTimeout(() => {
+    //       syncAttendances().then();
+    //     }, 1500);
+    //   }
+    // }, [canSendRequest]);
 
     const deleteDevice = useCallback(() => {
       // @ts-ignore

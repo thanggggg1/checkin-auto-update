@@ -90,7 +90,9 @@ export const AutoTasks = memo(function AutoTasks() {
           await Fetch.massPushSplitByChunks(
             filterRecords(getAllRecordsArr(), {
               onlyNotPushed: true,
-              onlyInEmployeeCheckinCodes: true
+              onlyInEmployeeCheckinCodes: true,
+              startTime: moment().subtract(2, "months").valueOf(),
+              endTime: moment().valueOf()
             })
           );
         } catch (e) {

@@ -11,6 +11,8 @@ import { Modal } from "antd";
 import useAutoAlertError from "../../hooks/useAutoAlertError";
 import convertPyzkErrorToMessage from "../../utils/convertPyzkErrorToMessage";
 import { Events, events } from "../../utils/events";
+import moment from 'moment';
+
 
 export enum PyattRealtimeStatus {
   DISCONNECTED,
@@ -120,19 +122,27 @@ const PyattDeviceContext = (() => {
         const data = await instance.getRecords({
           onStarted: () => setSyncPercent("Preparing"),
           onRecords: (records:PyattRecord[]) => {
-            console.log(' records ', records);
-            syncAttendanceRecords(
-              records
-                .map((record) =>
-                  // @ts-ignore
-                  Pyatt.pyattRecordToAttendance(record, device.ip)
-                )
-                .filter((r) => r.uid != 0)
-            );
+            let _records = [];
+            const now = moment();
+            for (let i = 0; i < records.length; i++) {
+              const record = records[i];
+              const time = require("moment")(record.time, "YYYY-MM-DD HH:mm:ss");
+              if (now.diff(time, 'days') <= 90) {
+                _records.push({
+                  id: `${record.user_id}_${time.valueOf()}`,
+                  dateFormatted: time.format("DD/MM/YYYY"),
+                  timeFormatted: time.format("HH:mm:ss"),
+                  timestamp: time.valueOf(),
+                  uid: Number(record.user_id),
+                  deviceIp: device.ip,
+                  deviceName: device.ip
+                })
+              }
+              }
+            syncAttendanceRecords(_records);
           },
           onPercent: (total:number, current:number) => {
-            console.log("total", total, current);
-            setSyncPercent(`${current}/${total}`);
+            setSyncPercent(`${Number(current || 0)/Number(total || 1)}%`);
           },
         });
 
@@ -141,13 +151,13 @@ const PyattDeviceContext = (() => {
         // syncDevices([{..._device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
 
         isGettingRecordRef.current = false;
-        console.log('data ', data.records);
-        syncAttendanceRecords(
-          data.records
-            // @ts-ignore
-            .map((record:PyattRecord) => Pyatt.pyattRecordToAttendance(record, device.ip))
-            .filter((r:AttendanceRecord) => r.uid != 0)
-        );
+        // console.log('data ', data.records);
+        // syncAttendanceRecords(
+        //   data.records
+        //     // @ts-ignore
+        //     .map((record:PyattRecord) => Pyatt.pyattRecordToAttendance(record, device.ip))
+        //     .filter((r:AttendanceRecord) => r.uid != 0)
+        // );
 
         setSyncPercent("Done");
         if (latestRealtimeStatus.current === PyattRealtimeStatus.DISCONNECTED)
@@ -184,16 +194,16 @@ const PyattDeviceContext = (() => {
       }
     }, [syncTurn]);
 
-    useEffect(() => {
-      if (realtimeStatus === PyattRealtimeStatus.CONNECTED) {
-        setTimeout(() => {
-          if (isGettingRecordRef.current) {
-            return
-          }
-          syncAttendances().then();
-        }, 1500)
-      }
-    }, [realtimeStatus])
+    // useEffect(() => {
+    //   if (realtimeStatus === PyattRealtimeStatus.CONNECTED) {
+    //     setTimeout(() => {
+    //       if (isGettingRecordRef.current) {
+    //         return
+    //       }
+    //       syncAttendances().then();
+    //     }, 1500)
+    //   }
+    // }, [realtimeStatus])
 
     useEffect(() => {
       const ping = require("ping");
