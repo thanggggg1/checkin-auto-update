@@ -86,12 +86,11 @@ export const AutoTasks = memo(function AutoTasks() {
           return;
         }
         try {
-          console.log("fire autoPush");
           await Fetch.massPushSplitByChunks(
             filterRecords(getAllRecordsArr(), {
               onlyNotPushed: true,
               onlyInEmployeeCheckinCodes: true,
-              startTime: moment().subtract(2, "months").valueOf(),
+              startTime: moment().startOf("month").valueOf(),
               endTime: moment().valueOf()
             })
           );

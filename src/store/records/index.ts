@@ -47,7 +47,7 @@ export const getAllRecordsArr = () => recordsArrSelector(getStore().getState());
 export const clearAttendanceRecords = () =>
   getStore().dispatch(actions.clearAll());
 
-export const filterRecords = (
+export const  filterRecords = (
   records: AttendanceRecord[],
   options?: {
     startTime?: number;

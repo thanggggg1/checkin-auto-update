@@ -1,6 +1,5 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
-import { DatePicker, Table } from "antd";
-import type { RangePickerProps } from 'antd/es/date-picker';
+import React, { memo, SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { DatePicker, Input, Table, Button } from "antd";
 import { AttendanceRecord } from "../store/records";
 import { t, useLanguage } from "../store/settings/languages";
 import moment from "moment";
@@ -17,12 +16,17 @@ const RecordsTable = memo(function RecordsTable() {
 
   const lang = useLanguage();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [dateRange, setDateRange] = useState([moment().subtract(30, "days"), moment()]);
-  const [dates, setDates] = useState<RangeValue>(null);
 
+  const [params, setParams] = useState({
+    dateRange: [moment().startOf("month"), moment().endOf("month")],
+    searchCode: ''
+  });
 
-  // const records = useSelector(selector) || {};
-  // const recordsThrottled = useThrottle(records, 3000);
+  const [tempData, setTempData] = useState({
+    dateRange: [moment().startOf("month"), moment().endOf("month")],
+    searchCode: ''
+  });
+
 
   useEffect(() => {
     // run after 2s because store not mounted data
@@ -36,29 +40,32 @@ const RecordsTable = memo(function RecordsTable() {
       const _data = getStore().getState().records;
       const _records: AttendanceRecord[] = Object.values(_data || {});
       setRecords(oldRecords => {
-      if(oldRecords.length !== _records.length){
-        return _records;
-      }
-       else {
-        return oldRecords
-      }
+        if(oldRecords.length !== _records.length){
+          return _records;
+        }
+         else {
+          return oldRecords
+        }
       });
-    }, 10 * 1000);
+    }, 15 * 1000);
     return () => {
       _interval && clearInterval(_interval)
     }
-  }, []);
+  }, [params]);
 
   const { dataSource, uids, ips } = useMemo(() => {
-
     const uids: Record<string | number, string | number> = {};
     const ips: Record<string, string> = {};
     let results = [];
+    const _start = params.dateRange[0].valueOf();
+    const _end = params.dateRange[1].set({hour: 23, minute: 59}).valueOf();
 
     for (let i = 0; i < records.length; i++){
       const record = records[i];
-      if (record.timestamp > dateRange[0].valueOf()
-        && record.timestamp <= dateRange[1].set({hour: 23, minute: 59}).valueOf()) {
+      if (record.timestamp > _start && record.timestamp <= _end) {
+        if (params.searchCode && record.uid.toString() !== params.searchCode) {
+          continue
+        }
         uids[record.uid] = record.uid;
         ips[record.deviceIp] = record.deviceIp;
 
@@ -78,7 +85,7 @@ const RecordsTable = memo(function RecordsTable() {
       ips,
       dataSource: results,
     };
-  }, [records?.length, dateRange[0].unix(), dateRange[1].unix()]);
+  }, [records?.length, params]);
 
   const columns = useMemo(() => {
     return [
@@ -86,8 +93,8 @@ const RecordsTable = memo(function RecordsTable() {
         title: t("checkin_code"),
         key: "checkin-code",
         dataIndex: "uid",
-        filters: Object.values(uids ||{}).map((uid) => ({ text: uid, value: uid })),
-        onFilter: (value: string | number, record: any) => record.uid == value,
+        // filters: Object.values(uids ||{}).map((uid) => ({ text: uid, value: uid })),
+        // onFilter: (value: string | number, record: any) => record.uid == value,
       },
       {
         title: t("device"),
@@ -114,44 +121,95 @@ const RecordsTable = memo(function RecordsTable() {
     ];
   }, [lang, ips, uids]);
 
-  const disabledDate = (current: Moment) => {
-    if (!dates) {
-      return false;
+  const onDateChange = (vals:any) => {
+    setTempData({
+      ...tempData,
+      dateRange: vals
+    })
+  };
+
+  const onChange = useCallback((event: SyntheticEvent<HTMLInputElement>) => {
+    const { name, value } = event.currentTarget;
+    event.persist();
+    if (name === 'searchCode') {
+      setTempData({
+        ...tempData,
+        searchCode: value
+      })
     }
-    const tooLate = dates[0] && current.diff(dates[0], 'months') > 6;
-    const tooEarly = dates[1] && dates[1].diff(current, 'months') > 6;
+  }, [tempData]);
+
+  const onSearch = () => {
+    setParams({...tempData})
+  };
+
+  const disabledDate = (current: Moment) => {
+    const tooLate = tempData.dateRange[0] && current.diff(tempData.dateRange[0], 'months') > 3;
+    const tooEarly = tempData.dateRange[1] && tempData.dateRange[1].diff(current, 'months') > 3;
     return !!tooEarly || !!tooLate;
   };
 
-
-  return <div>
-    <div style={{
-      marginTop: 16,
-      marginBottom: 16,
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      paddingRight: 20,
-      fontSize: 16
-    }}>
-      Dữ liệu trong khoảng:
-      <RangePicker
-        value={dateRange}
-        disabledDate={disabledDate}
-        style={{
-          padding: 8,
-          borderRadius: 4,
-          marginLeft: 12
+  return (
+    <div>
+      <div style={{
+        marginTop: 16,
+        marginBottom: 16,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingRight: 20,
+        fontSize: 16
+      }}>
+        <Input
+          name={"searchCode"}
+          type={"text"}
+          placeholder={"Mã chấm công"}
+          onChange={onChange}
+          value={tempData.searchCode}
+          style={{
+            padding: 8,
+            borderRadius: 4,
+            marginLeft: 12,
+            width: 160
+          }}
+        />
+        <RangePicker
+          showTime={{ format: "DD/MM/YYYY" }}
+          format="DD/MM/YYYY"
+          value={tempData.dateRange}
+          style={{
+            padding: 8,
+            borderRadius: 4,
+            marginLeft: 12
+          }}
+          disabledDate={disabledDate}
+          onOk={onDateChange}
+        />
+        <div
+          className={'filterItem'}
+          style={{
+            width: 80,
+            padding: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 4,
+            marginLeft: 12,
+            fontSize: 16,
+            color: '#fff',
+            backgroundColor: '#007AFF',
+            textAlign: 'center',
+            cursor: "pointer"
         }}
-        onChange={(dates,dateStrings) => {
-          setDateRange(dates);
-        }}
-        onCalendarChange={val => setDates(val)}
-      />
+        onClick={onSearch}
+        >
+          Lọc
+        </div>
+      </div>
+      <Table columns={columns} dataSource={dataSource} />
     </div>
-    <Table columns={columns} dataSource={dataSource} />
-  </div>;
+  );
 });
 
 export default RecordsTable;
