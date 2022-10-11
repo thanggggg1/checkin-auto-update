@@ -12,9 +12,11 @@ import {
 } from "../store/settings/autoPush";
 import { Events, events } from "../utils/events";
 import Fetch from "../utils/Fetch";
-import { filterRecords, getAllRecordsArr } from "../store/records";
+import { AttendanceRecord, filterRecords, getAllRecordsArr } from "../store/records";
 import moment from "moment";
 import { useDevicesRecord } from "../store/devices";
+import { getStore } from "../store/storeAccess";
+import { RawAttendance } from "../packages/js_zklib/ZK";
 
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 
@@ -54,7 +56,7 @@ const useAutoFetchCheckinCodes = () => {
 };
 
 export const AutoTasks = memo(function AutoTasks() {
-  const autoSyncLogsMinutes =  useAutoSyncLogsMinutes();
+  const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
 
   useEffect(() => {
@@ -80,15 +82,17 @@ export const AutoTasks = memo(function AutoTasks() {
       // }
       (async () => {
         // start auto push
-        // const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-        // if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
-        //   setLastAutoPushLogsTime(Date.now());
-        //   return;
-        // }
+        const lastAutoPushLogsTime = getLastAutoPushLogsTime();
+        if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
+          setLastAutoPushLogsTime(Date.now());
+          return;
+        }
+
+
         try {
-          console.log('auto push here ', new Date());
+          const allLogs: AttendanceRecord[] = Object.values(getStore()?.getState()?.records || {})
           await Fetch.massPushSplitByChunks(
-            filterRecords(getAllRecordsArr(), {
+            filterRecords(allLogs, {
               onlyNotPushed: true,
               onlyInEmployeeCheckinCodes: true,
               startTime: moment().startOf("month").valueOf(),
@@ -99,7 +103,7 @@ export const AutoTasks = memo(function AutoTasks() {
 
         } finally {
           // save last auto push
-          setLastAutoPushLogsTime(moment().valueOf());
+          setLastAutoPushLogsTime(Date.now());
         }
       })();
     }, minutesToMs(autoPushLogsMinutes));
@@ -120,14 +124,14 @@ export const AutoTasks = memo(function AutoTasks() {
       const nowMm = moment();
       const now = nowMm.valueOf();
 
-      if (!autoSyncLogsMinutes) return;
-      //
-      // const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
-      // if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
-      //   // save last auto sync
-      //   setLastAutoSyncLogsTime(now);
-      //   return;
-      // }
+      if (autoSyncLogsMinutes === 0) return;
+
+      const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
+      if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
+        // save last auto sync
+        setLastAutoSyncLogsTime(now);
+        return;
+      }
       // if on prevent auto sync, cancel
       const shouldCancel = (() => {
         try {
@@ -161,7 +165,7 @@ export const AutoTasks = memo(function AutoTasks() {
       }
 
       // start auto sync
-      console.log("fire autoSync ", new Date());
+      console.log("fire autoSync");
       events.emit(Events.MASS_SYNC);
 
       // save last auto sync
