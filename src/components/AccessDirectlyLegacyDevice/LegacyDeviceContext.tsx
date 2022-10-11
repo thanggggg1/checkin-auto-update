@@ -1,9 +1,9 @@
 import constate from "constate";
-import { deleteDevices, Device, DeviceSyncMethod, syncDevices, useDeviceSyncMethod } from "../../store/devices";
+import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod } from "../../store/devices";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
-import { AttendanceRecord, isRecordExists, syncAttendanceRecords } from "../../store/records";
+import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
 import { Events, events } from "../../utils/events";
 import ZK from "../../packages/js_zklib/ZK";
@@ -11,7 +11,6 @@ import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
 import _ from "lodash";
 import { getStore } from "../../store/storeAccess";
-import { getDeviceById } from "../../store/devices/actions";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -142,30 +141,29 @@ const LegacyDeviceContext = (() => {
             setSyncPercent(0);
 
             await enableDevice();
+            const storeRecords = getStore().getState().records || {};
+            let records = [];
 
-            const records = attendances
-              .map((attendance: any) => {
-                const mm = moment(attendance.timestamp);
-                if (mm.diff(now, 'days') > 90) {
-                  return false;
-                }
-                const id = `${attendance.id}_${mm.valueOf()}`;
-
-                if (isRecordExists(id)) return false;
-
-                return {
-                  timestamp: mm.valueOf(),
-                  timeFormatted: mm.format("HH:mm:ss"),
-                  dateFormatted: mm.format("DD/MM/YYYY"),
-                  deviceIp: device.ip,
-                  uid: attendance.id,
-                  deviceName: device.ip,
-                  id
-                };
-              })
-              .filter(Boolean) as AttendanceRecord[];
-            console.log("time", records[records.length - 1].timestamp);
-
+            for (let i = 0; i < attendances.length; i++) {
+              const attendance = attendances[i];
+              const mm = moment(attendance.timestamp);
+              if (now.diff(mm, "days") > 90) {
+                continue;
+              }
+              const id = `${attendance.id}_${mm.valueOf()}`;
+              if (storeRecords[id]) {
+                continue;
+              }
+              records.push({
+                timestamp: mm.valueOf(),
+                timeFormatted: mm.format("HH:mm:ss"),
+                dateFormatted: mm.format("DD/MM/YYYY"),
+                deviceIp: device.ip,
+                uid: attendance.id,
+                deviceName: device.ip,
+                id
+              });
+            }
 
             syncAttendanceRecords(records);
             // when sync done thi goi vao day de chuyen sang client tiep theo
@@ -207,7 +205,6 @@ const LegacyDeviceContext = (() => {
         }
 
         let result = [];
-        let lastSyncTime = 0;
 
         const _recordsStore = getStore()?.getState()?.records || {};
 
@@ -216,11 +213,8 @@ const LegacyDeviceContext = (() => {
           const id = `${raw.deviceUserId}_${raw.recordTime.valueOf()}`;
           const mm = moment(raw.recordTime);
 
-          if (now.diff(mm, 'days') > 90) {
+          if (now.diff(mm, "days") > 90) {
             continue;
-          }
-          if (raw?.recordTime) {
-            lastSyncTime = raw.recordTime.valueOf();
           }
           if (_recordsStore[id]) {
             continue;
@@ -238,7 +232,7 @@ const LegacyDeviceContext = (() => {
           });
         } // end of list data;
 
-        console.log('result ', result);
+        console.log("result ", result);
         syncAttendanceRecords(result);
         // let _device = getDeviceById(device.ip)
         // if (lastSyncTime > 0) {
@@ -248,7 +242,7 @@ const LegacyDeviceContext = (() => {
         events.emit(Events.SYNC_DONE);
         return attendances;
       } catch (e) {
-        console.log("Có lỗi xảy ra khi đồng bộ dữ liệu ",e.toString());
+        console.log("Có lỗi xảy ra khi đồng bộ dữ liệu ", e.toString());
         return undefined;
       }
 

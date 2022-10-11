@@ -54,7 +54,7 @@ const useAutoFetchCheckinCodes = () => {
 };
 
 export const AutoTasks = memo(function AutoTasks() {
-  const autoSyncLogsMinutes = useAutoSyncLogsMinutes();
+  const autoSyncLogsMinutes =  useAutoSyncLogsMinutes();
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
 
   useEffect(() => {
@@ -80,12 +80,13 @@ export const AutoTasks = memo(function AutoTasks() {
       // }
       (async () => {
         // start auto push
-        const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-        if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
-          setLastAutoPushLogsTime(Date.now());
-          return;
-        }
+        // const lastAutoPushLogsTime = getLastAutoPushLogsTime();
+        // if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
+        //   setLastAutoPushLogsTime(Date.now());
+        //   return;
+        // }
         try {
+          console.log('auto push here ', new Date());
           await Fetch.massPushSplitByChunks(
             filterRecords(getAllRecordsArr(), {
               onlyNotPushed: true,
@@ -98,7 +99,7 @@ export const AutoTasks = memo(function AutoTasks() {
 
         } finally {
           // save last auto push
-          setLastAutoPushLogsTime(Date.now());
+          setLastAutoPushLogsTime(moment().valueOf());
         }
       })();
     }, minutesToMs(autoPushLogsMinutes));
@@ -119,14 +120,14 @@ export const AutoTasks = memo(function AutoTasks() {
       const nowMm = moment();
       const now = nowMm.valueOf();
 
-      if (autoSyncLogsMinutes === 0) return;
-
-      const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
-      if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
-        // save last auto sync
-        setLastAutoSyncLogsTime(now);
-        return;
-      }
+      if (!autoSyncLogsMinutes) return;
+      //
+      // const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
+      // if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
+      //   // save last auto sync
+      //   setLastAutoSyncLogsTime(now);
+      //   return;
+      // }
       // if on prevent auto sync, cancel
       const shouldCancel = (() => {
         try {
@@ -160,7 +161,7 @@ export const AutoTasks = memo(function AutoTasks() {
       }
 
       // start auto sync
-      console.log("fire autoSync");
+      console.log("fire autoSync ", new Date());
       events.emit(Events.MASS_SYNC);
 
       // save last auto sync
