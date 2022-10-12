@@ -1,5 +1,4 @@
 module.exports = (parentClass, mixinClass) => {
-  console.log('mixinClass ', mixinClass);
   const methods = Object.getOwnPropertyNames(mixinClass.prototype);
 
   for (let i = 0; i < methods.length; i++) {

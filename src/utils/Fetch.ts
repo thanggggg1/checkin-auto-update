@@ -112,7 +112,7 @@ const Fetch = {
 
   realtimePush: async function(record: AttendanceRecord) {
     // const token = getToken();
-    console.log("realtimePush ", record);
+
     const device = getDeviceById(record.deviceIp);
 
     if (!device || !device.clientToken) throw new Error("INVALID TOKEN");
@@ -245,8 +245,6 @@ const Fetch = {
     const listIps = Object.keys(objectRecord);
     for (let i = 0; i < listIps.length; i++) {
       const deviceIp = listIps[i];
-
-      console.log("ip", deviceIp);
       const storeDevice = getDeviceById(deviceIp);
       const ZkBioSystem = getSettingZkBioSystem();
       const BioStarSystem = getSettingBioStar();

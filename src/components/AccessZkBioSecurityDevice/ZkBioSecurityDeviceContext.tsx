@@ -73,8 +73,6 @@ const ZkBioSecurityContext = (() => {
           continue;
         }
 
-        console.log("LAST SYNCC", lastSync);
-
         _device = getSettingZkBioSystem();
 
 
@@ -100,7 +98,6 @@ const ZkBioSecurityContext = (() => {
         }
         let rows = JSON.parse(data || "{rows: []}").rows;
 
-        console.log("length", rows.length);
 
         const result: AttendanceRecord[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -127,7 +124,6 @@ const ZkBioSecurityContext = (() => {
         setSettingZkBioSystem({ ..._device, syncTime: moment().valueOf() });
 
         if (result.length) {
-          console.log("time last sync", moment(result[result.length - 1].timestamp).format(FormatDateSearch.normal));
 
           syncAttendanceRecords(result);
           const __device = getSettingZkBioSystem();

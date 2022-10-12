@@ -77,7 +77,6 @@ const LegacyDeviceContext = (() => {
       if (!canSendRequest) {
         throw new Error("Socket is not connected");
       }
-      console.log("disable device ", connection);
 
       await connection.disableDevice();
     }, [canSendRequest, connection]);
@@ -115,7 +114,6 @@ const LegacyDeviceContext = (() => {
         setSyncPercent(0);
 
         if (!canSendRequest) {
-          console.log("canSendRequest events.emit(Events.SYNC_DONE); ", canSendRequest);
           await require("bluebird").delay(400);
           // when sync done thi goi vao day de chuyen sang client tiep theo
           events.emit(Events.SYNC_DONE);
@@ -232,7 +230,7 @@ const LegacyDeviceContext = (() => {
           });
         } // end of list data;
 
-        console.log("result ", result);
+
         syncAttendanceRecords(result);
         // let _device = getDeviceById(device.ip)
         // if (lastSyncTime > 0) {
@@ -267,7 +265,7 @@ const LegacyDeviceContext = (() => {
 
       return connection.startMon({
         start: (err) => {
-          console.log("start mon err", err);
+          console.log("connect to device");
         },
         onatt: (ret) => {
           const mm = moment(ret.time);
@@ -313,8 +311,6 @@ const LegacyDeviceContext = (() => {
 
         try {
           const serial = await connection.serialNumber();
-
-          console.log("serial", serial);
         } catch (e) {
           console.log("get serial error", e);
           setConnectionState(ConnectionState.DISCONNECTED);

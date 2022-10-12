@@ -66,12 +66,10 @@ const DevicesRow = memo(function DevicesRow() {
       const currentIndex = _devices.findIndex(item => item.ip === turnSyncIP);
       if (currentIndex > -1 && currentIndex < _devices.length) {
         if (currentIndex + 1 === _devices.length) {
-          console.log("vao abc3");
           setTurnSyncIP("");
         } else {
           if (_devices[currentIndex + 1]) {
             setTurnSyncIP(_devices[currentIndex + 1].ip);
-            console.log("vao abc4");
           }
         }
       }
@@ -103,7 +101,7 @@ const DevicesRow = memo(function DevicesRow() {
               return <LegacyDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
             }
             if (device.username !== '') {
-              return <HikDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip}/>;
+              return <HikDevice device={device} syncTurn={device.ip === turnSyncIP} key={device.ip || device.domain}/>;
             }
           })
         }

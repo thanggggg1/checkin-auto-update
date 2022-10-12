@@ -74,7 +74,6 @@ const PyattDeviceContext = (() => {
           setRealtimeStatus(PyattRealtimeStatus.DISCONNECTED);
         },
         (anyData:string) => {
-          console.log("anyData", device.ip, anyData);
 
           if (latestRealtimeStatus.current !== PyattRealtimeStatus.CONNECTED) {
             setRealtimeStatus(PyattRealtimeStatus.PREPARING);
@@ -146,7 +145,6 @@ const PyattDeviceContext = (() => {
           },
         });
 
-        console.log("got it all");
         // let _device = getDeviceById(device.ip)
         // syncDevices([{..._device,lastSync:moment(data.records[data.records.length-1].time).valueOf()}])
 

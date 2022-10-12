@@ -2,6 +2,8 @@ import { app, BrowserWindow, nativeImage, Menu, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import os from "os";
+import { Alert } from "antd";
+const log = require('electron-log');
 
 let mainWindow: Electron.BrowserWindow | null;
 let tray = null;
@@ -66,7 +68,8 @@ function createWindow() {
     mainWindow.loadURL(`http://localhost:4000`);
     mainWindow.openDevTools();
   } else {
-    mainWindow.setMenu(null);
+    // mainWindow.setMenu(null);
+    // mainWindow.openDevTools();
     mainWindow.loadURL(
       url.format({
         pathname: path.join(app.getAppPath(), "./dist/renderer/index.html"),
@@ -111,5 +114,10 @@ app.allowRendererProcessReuse = true;
 
 process.on('uncaughtException', function (err) {
   console.log('uncaughtException ', err);
-  window.location.reload()
+  log.error('Uncaught Exception ' + err.message);
+});
+
+app.on("renderer-process-crashed", event => {
+  log.error("renderer-process-crashed " + event);
+  app.relaunch()
 });

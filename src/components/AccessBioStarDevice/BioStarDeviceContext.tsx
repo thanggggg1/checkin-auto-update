@@ -56,7 +56,6 @@ const BioStarDeviceContext = (() => {
           lastSync = _a;
         }
         const syncing = getSyncing();
-        console.log("syncing in canSync ", syncing);
         if (syncing === "2" || syncing === "0") {
           await timeSleep(5);
           continue;

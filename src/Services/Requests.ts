@@ -48,7 +48,7 @@ class Requests {
     }
   ) => {
     return await new Promise((resolve, reject) => {
-      console.log('params ', params.paramStr.replace(/"/g, "\\\""));
+
       let result = "";
       this.runScript(["--queries " + params.paramStr.replace(/"/g, "\\\"")], (data) => {
         const str = data;

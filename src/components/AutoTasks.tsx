@@ -17,6 +17,8 @@ import moment from "moment";
 import { useDevicesRecord } from "../store/devices";
 import { getStore } from "../store/storeAccess";
 import { RawAttendance } from "../packages/js_zklib/ZK";
+import log from 'electron-log';
+import { timeSleep } from "../utils/sleep";
 
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 
@@ -82,15 +84,17 @@ export const AutoTasks = memo(function AutoTasks() {
       // }
       (async () => {
         // start auto push
-        const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-        if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
-          setLastAutoPushLogsTime(Date.now());
-          return;
-        }
+        // const lastAutoPushLogsTime = getLastAutoPushLogsTime();
+        // if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
+        //   setLastAutoPushLogsTime(Date.now());
+        //   return;
+        // }
 
 
         try {
-          const allLogs: AttendanceRecord[] = Object.values(getStore()?.getState()?.records || {})
+          const allLogs: AttendanceRecord[] = Object.values(getStore()?.getState()?.records || {});
+          log.info("Auto push data ");
+          await timeSleep(30);
           await Fetch.massPushSplitByChunks(
             filterRecords(allLogs, {
               onlyNotPushed: true,
@@ -126,12 +130,12 @@ export const AutoTasks = memo(function AutoTasks() {
 
       if (autoSyncLogsMinutes === 0) return;
 
-      const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
-      if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
-        // save last auto sync
-        setLastAutoSyncLogsTime(now);
-        return;
-      }
+      // const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
+      // if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
+      //   // save last auto sync
+      //   setLastAutoSyncLogsTime(now);
+      //   return;
+      // }
       // if on prevent auto sync, cancel
       const shouldCancel = (() => {
         try {
@@ -144,7 +148,7 @@ export const AutoTasks = memo(function AutoTasks() {
           for (const range of timeRanges) {
             const [start, end] = range.split("-");
             if (!start || !end) {
-              console.log("start or end time not correct formatted");
+
               return true;
             }
             if (nowMm.isBetween(moment(start, "HH:mm"), moment(end, "HH:mm"))) {
@@ -163,6 +167,7 @@ export const AutoTasks = memo(function AutoTasks() {
         setLastAutoSyncLogsTime(now);
         return;
       }
+      log.info("Auto sync data ");
 
       // start auto sync
       console.log("fire autoSync");

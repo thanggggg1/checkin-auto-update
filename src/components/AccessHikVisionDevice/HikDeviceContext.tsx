@@ -21,8 +21,8 @@ const HikDeviceContext = (() => {
     const latestSyncPercent = useLatest(syncPercent);
 
     let _newDevice = { ...device };
-    let __device = getDeviceById(_newDevice.ip);
-    if (!__device.startSync && __device.username) {
+    let __device = getDeviceById(_newDevice?.ip  || _newDevice?.domain);
+    if (!__device?.startSync && __device?.username) {
       syncDevices([{ ...__device, startSync: moment().subtract(1, "months").valueOf() }]);
     }
     /**
@@ -35,9 +35,9 @@ const HikDeviceContext = (() => {
     ] = useAsyncFn(async () => {
 
       let newDevice = { ...device };
-      let _device = getDeviceById(newDevice.ip);
+      let _device = getDeviceById(newDevice?.ip || newDevice?.domain);
 
-      let lastSync = _device.lastSync
+      let lastSync = _device?.lastSync
         ? moment(_device.lastSync).format(FormatDateSearchHikVision.normal)
         : moment().subtract(1, "months").format(FormatDateSearchHikVision.start);
       const syncing = getSyncing();
@@ -50,7 +50,7 @@ const HikDeviceContext = (() => {
       // @ts-ignore
       setSyncPercent(0);
       let data = await requestEventHikVision({
-        ip: _device.ip,
+        ip: _device?.ip || _device?.domain,
         port: _device.port,
         username: _device.username,
         password: _device.password,
@@ -91,7 +91,6 @@ const HikDeviceContext = (() => {
 
       _device = getDeviceById(newDevice.ip);
       if (rows && rows.length) {
-        console.log("sync vao day");
         syncDevices([{ ..._device, lastSync: moment(rows[rows.length - 1].time).valueOf() }]);
       }
 
@@ -133,7 +132,7 @@ const HikDeviceContext = (() => {
       }
       const _t = setInterval(() => {
         let syncing = getSyncing();
-        console.log("effect sync attendance");
+
         if (syncing === "1") syncAttendances().then();
       }, 1000 * 15);
 

@@ -110,7 +110,7 @@ const AddDeviceModal = memo(function AddDeviceModal(
         token: device.clientToken,
         sysDomain: "base.vn"
       });
-      console.log("a", a);
+
       return a;
     } catch (e) {
       return null;

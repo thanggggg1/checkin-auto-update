@@ -70,7 +70,7 @@ export const requestEventLogBioStar = async ({
                                                sessionId
                                              }: EventLogParamsBioStar) => {
   try {
-    console.log("from ", from);
+
     const { data }: { data: { EventCollection: { rows: RawEvent[] } } } = await axios({
         method: "post",
         baseURL: domain,
@@ -100,7 +100,7 @@ export const requestEventLogBioStar = async ({
         })
       }
     );
-    console.log("data ", data);
+
     return data?.EventCollection?.rows || [];
   } catch (e) {
     console.log("e ", e.response);
@@ -146,7 +146,6 @@ export const requestEventLogZkBio = async ({
       })
     });
 
-    console.log("fetch ", data);
     return data?.response;
   } catch (e) {
     console.log("e ", e.response);
@@ -259,7 +258,7 @@ export const requestEventHikVision = async ({
         }
       })
     });
-    console.log("fetch ", data);
+
     return data?.response;
   } catch (e) {
     console.log("e ", e.response);

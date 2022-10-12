@@ -221,7 +221,6 @@ class Pyatt {
       onError?.(new Error(data.toString()));
     });
     f.on("exit", (data: number) => {
-      console.log("exit", data);
       onExitOrClose?.(data);
     });
 
