@@ -43,7 +43,8 @@ export const {
   setStore: setDevicesStore,
   sync: syncDevices,
   multiDelete: deleteDevices,
-  reset:resetDevices
+  reset:resetDevices,
+  getKeyByObjs: getDeviceObjs
 } = createDynamicReducer<Device>("devices", "ip", {
   byKey: {},
   query: {}
@@ -55,6 +56,9 @@ export const useDevicesRecord = (): Record<string, Device> => {
   return useSelector(devicesSelector);
 };
 
+export const getAllDevicesObj = () => {
+  return getDeviceObjs()
+}
 
 
 export const useDeviceSyncMethod = (device: Device): DeviceSyncMethod => {

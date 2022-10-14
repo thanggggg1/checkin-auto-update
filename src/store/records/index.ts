@@ -109,7 +109,7 @@ export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
 };
 
 export const getAllRecordsArr = () => {
-  return Object.values(recordStore.getState().records || {});
+  return Object.values(recordStore.getState().records || {}) as AttendanceRecord[];
 };
 
 export const getAllRecordsObj = () => {

@@ -62,35 +62,17 @@ export const AutoTasks = memo(function AutoTasks() {
   const autoPushLogsMinutes = useAutoPushLogsMinutes();
 
   useEffect(() => {
+    let interval: any = undefined;
     if (!autoPushLogsMinutes) {
-      return
+      return () => {
+        interval && clearInterval(interval);
+      }
     }
-    const interval = setInterval(() => {
-      const nowMm = moment();
-      const now = nowMm.valueOf();
+    interval = setInterval(() => {
       /**
        * AUTO PUSH
        */
-      // const nowMm = moment();
-      // const now = nowMm.valueOf();
-      //
-      // if (autoPushLogsMinutes === 0) return;
-      //
-      // const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-      // if (lastAutoPushLogsTime && (now - minutesToMs(lastAutoPushLogsTime) < lastAutoPushLogsTime)){
-      //   // save last auto sync
-      //   setLastAutoSyncLogsTime(now);
-      //   return;
-      // }
       (async () => {
-        // start auto push
-        // const lastAutoPushLogsTime = getLastAutoPushLogsTime();
-        // if (now - minutesToMs(autoPushLogsMinutes) > lastAutoPushLogsTime) {
-        //   setLastAutoPushLogsTime(Date.now());
-        //   return;
-        // }
-
-
         try {
           const allLogs = getAllRecordsArr();
           log.info("Auto push data ");
@@ -99,7 +81,7 @@ export const AutoTasks = memo(function AutoTasks() {
             filterRecords(allLogs, {
               onlyNotPushed: true,
               onlyInEmployeeCheckinCodes: true,
-              startTime: moment().startOf("month").valueOf(),
+              startTime: moment().startOf("week").valueOf(),
               endTime: moment().valueOf()
             })
           );
@@ -118,10 +100,13 @@ export const AutoTasks = memo(function AutoTasks() {
   }, [autoPushLogsMinutes]);
 
   useEffect(() => {
+    let interval: any = undefined;
     if (!autoSyncLogsMinutes) {
-      return
+      return () => {
+        interval && clearInterval(interval);
+      }
     }
-    const interval = setInterval(() => {
+    interval = setInterval(() => {
       /**
        * AUTO SYNC
        */
@@ -130,13 +115,6 @@ export const AutoTasks = memo(function AutoTasks() {
 
       if (autoSyncLogsMinutes === 0) return;
 
-      // const lastAutoSyncLogsTime = getLastAutoSyncLogsTime();
-      // if (lastAutoSyncLogsTime && (now - minutesToMs(autoSyncLogsMinutes) < lastAutoSyncLogsTime)){
-      //   // save last auto sync
-      //   setLastAutoSyncLogsTime(now);
-      //   return;
-      // }
-      // if on prevent auto sync, cancel
       const shouldCancel = (() => {
         try {
           const logGetPreventSyncLogsTimeRanges = getPreventSyncLogsTimeRanges();
@@ -158,7 +136,7 @@ export const AutoTasks = memo(function AutoTasks() {
           }
 
         } catch (e) {
-          console.log("Should cancel timerange error", e);
+          console.log("Should cancel time range error", e);
           return true;
         }
       })();

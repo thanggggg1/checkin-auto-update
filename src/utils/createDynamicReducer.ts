@@ -84,6 +84,10 @@ export const createDynamicReducer = <T extends { [x: string]: any }>(
     return _getStore().getState()[name].query[query] || emptyArray;
   };
 
+  const getKeyByObjs = (): Record<string, T> => {
+    return _getStore().getState()[name] || {};
+  };
+
   const sync = (items: T[]) => {
     return _getStore().dispatch(actions.multiSet(items));
   };
@@ -108,6 +112,7 @@ export const createDynamicReducer = <T extends { [x: string]: any }>(
     useKeysByQuery,
     getByKey,
     getKeysByQuery,
+    getKeyByObjs,
     setStore,
     sync,
     setQueries,

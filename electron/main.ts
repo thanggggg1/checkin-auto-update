@@ -2,7 +2,6 @@ import { app, BrowserWindow, nativeImage, Menu, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import os from "os";
-import { Alert } from "antd";
 const log = require('electron-log');
 
 let mainWindow: Electron.BrowserWindow | null;
@@ -116,6 +115,15 @@ process.on('uncaughtException', function (err) {
   console.log('uncaughtException ', err);
   log.error('Uncaught Exception ' + err.message);
 });
+process.on('uncaughtExceptionMonitor', function (err) {
+  console.log('uncaughtExceptionMonitor ', err);
+  log.error('Uncaught Exception Monitor ' + err.message);
+});
+process.on('unhandledRejection', function (err) {
+  console.log('unhandledRejection ', err);
+  log.error('Uncaught Rejection ' + err);
+});
+
 
 app.on("renderer-process-crashed", event => {
   log.error("renderer-process-crashed " + event);

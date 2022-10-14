@@ -282,8 +282,6 @@ const LegacyDeviceContext = (() => {
           };
 
           Fetch.realtimePush(log);
-
-
           syncAttendanceRecords([log]);
         }
       });

@@ -12,6 +12,7 @@ import AutoTasks from "./components/AutoTasks";
 import { getLanguage, i18next, initI18next } from "./store/settings/languages";
 import { useAsyncFn } from "react-use";
 import './App.css'
+import { HeartBeat } from "./components/HeartBeat";
 initI18next().then();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -37,6 +38,7 @@ const Main = memo(function Main() {
       <DevicesRow/>
       <RecordsTable/>
       <AutoTasks/>
+      <HeartBeat />
     </>
   );
 });

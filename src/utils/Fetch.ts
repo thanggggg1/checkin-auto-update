@@ -132,8 +132,8 @@ const Fetch = {
       // }
       throw e;
     }
-    syncDevices([{ ...device, lastSync: record.timestamp }]);
-    addPushedRecords([record.id]);
+    // syncDevices([{ ...device, lastSync: record.timestamp }]);
+    // addPushedRecords([record.id]);
   },
 
   massPush: async function(records: AttendanceRecord[], token: { token: string, password: string, IP: string }) {
@@ -202,20 +202,20 @@ const Fetch = {
         logs: JSON.stringify(Object.values(logs || {}))
       });
 
-      data.data.errors.forEach(
-        (error: { message: string; user_code: string | number }) => {
-          if (error.message === "INVALID EMPLOYEE") {
-            willBeAddedToPushedRecordsArray.delete(error.user_code);
-          }
-        }
-      );
+      // data.data.errors.forEach(
+      //   (error: { message: string; user_code: string | number }) => {
+      //     if (error.message === "INVALID EMPLOYEE") {
+      //       willBeAddedToPushedRecordsArray.delete(error.user_code);
+      //     }
+      //   }
+      // );
 
       // start add to pushed records
-      let pushRecordIds: string[] = [];
-      willBeAddedToPushedRecordsArray.forEach((set) => {
-        pushRecordIds = [...pushRecordIds, ...Array.from(set)];
-      });
-      addPushedRecords(pushRecordIds);
+      // let pushRecordIds: string[] = [];
+      // willBeAddedToPushedRecordsArray.forEach((set) => {
+      //   pushRecordIds = [...pushRecordIds, ...Array.from(set)];
+      // });
+      // addPushedRecords(pushRecordIds);
     } catch (e) {
       console.log("e ", e);
       if (e.message === "INVALID_CLIENT") {
