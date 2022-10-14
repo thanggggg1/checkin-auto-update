@@ -13,8 +13,17 @@ export const HeartBeat = () => {
     const _l = setInterval(() => {
       log.info("[MEMORY USAGE]");
 
+      if (typeof process === "undefined") {
+        log.info('CANNOT GET PROCESS')
+        window.location.reload();
+        return
+      }
       // get memory usage
-      Object.entries(process.memoryUsage()).map(logBytes)
+      try {
+        Object.entries(process?.memoryUsage()).map(logBytes)
+      } catch (e) {
+        log.error("[ERROR HEART BEAT]")
+      }
 
       const devices = Object.values(getAllDevicesObj());
       devices.map(device => {
