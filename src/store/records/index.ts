@@ -1,7 +1,5 @@
-import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getStore } from "../storeAccess";
-import { getPushedRecordIdSet } from "../pushedRecords";
-import { getAllCheckinCodes } from "../settings/checkinCodes";
+import create from "zustand";
+import { persist } from 'zustand/middleware';
 
 export interface AttendanceRecord {
   id: string;
@@ -13,41 +11,117 @@ export interface AttendanceRecord {
   dateFormatted: string;
 }
 
-const initialState: Record<string, AttendanceRecord> = {};
-const { actions, reducer: recordsReducer } = createSlice({
-  name: "records",
-  initialState,
-  reducers: {
-    addRecords(state, action: PayloadAction<AttendanceRecord[]>) {
-      const newState = { ...state };
-      action.payload.forEach((record) => {
-        newState[record.id] = record;
-      });
+// const initialState: Record<string, AttendanceRecord> = {};
+// const { actions, reducer: recordsReducer } = createSlice({
+//   name: "records",
+//   initialState,
+//   reducers: {
+//     addRecords(state, action: PayloadAction<AttendanceRecord[]>) {
+//       const newState = { ...state };
+//       action.payload.forEach((record) => {
+//         newState[record.id] = record;
+//       });
+//
+//       return newState;
+//     },
+//     clearAll() {
+//       return initialState;
+//     },
+//   },
+// });
+//
+// export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
+//   getStore().dispatch(actions.addRecords(records));
+// };
+//
+// export const recordsSelector = (state: any) =>
+//   state.records as Record<string, AttendanceRecord>;
+//
+// export const recordsArrSelector = createSelector(recordsSelector, (res) =>
+//   Object.values(res || {})
+// );
+// export const getAllRecordsArr = () => recordsArrSelector(getStore().getState());
+//
+// export const clearAttendanceRecords = () =>
+//   getStore().dispatch(actions.clearAll());
+//
+// export const  filterRecords = (
+//   records: AttendanceRecord[],
+//   options?: {
+//     startTime?: number;
+//     endTime?: number;
+//     onlyNotPushed?: boolean;
+//     onlyInEmployeeCheckinCodes?: boolean;
+//   }
+// ) => {
+//   // const pushedIdSet = options?.onlyNotPushed
+//   //   ? getPushedRecordIdSet()
+//   //   : new Set<string>();
+//
+//   const checkinCodes: {[id: string]: number[]} = options?.onlyInEmployeeCheckinCodes
+//     ? getAllCheckinCodes()
+//     : {};
+//
+//   return records.filter((record) => {
+//     // onlyNotPushed
+//     // if (options?.onlyNotPushed && pushedIdSet.has(record.id)) return false;
+//
+//     // startTime
+//     if (options?.startTime && record.timestamp < options.startTime)
+//       return false;
+//
+//     // endTime
+//     if (options?.endTime && record.timestamp > options.endTime) return false;
+//
+//     // checkinCodes
+//     if (
+//       options?.onlyInEmployeeCheckinCodes &&
+//       checkinCodes[record.deviceIp] &&
+//       checkinCodes[record.deviceIp].includes(Number(record.uid))
+//     )
+//       return true;
+//
+//     return true;
+//   });
+// };
+//
+// export const isRecordExists = (recordId: string) =>
+//   !!recordsSelector(getStore().getState())[recordId];
+//
+// export { recordsReducer };
 
-      return newState;
-    },
-    clearAll() {
-      return initialState;
-    },
-  },
-});
+const recordStore = create(persist(() => ({
+  records: {}
+}), {
+  name: "records"
+}));
+
 
 export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
-  getStore().dispatch(actions.addRecords(records));
+  recordStore.setState(state => {
+    const newState = { ...state.records };
+    for (let j = 0; j < records.length; j++) {
+      const record = records[j];
+      newState[record.id] = record;
+    }
+    return newState;
+  });
 };
 
-export const recordsSelector = (state: any) =>
-  state.records as Record<string, AttendanceRecord>;
+export const getAllRecordsArr = () => {
+  return Object.values(recordStore.getState().records || {});
+};
 
-export const recordsArrSelector = createSelector(recordsSelector, (res) =>
-  Object.values(res || {})
-);
-export const getAllRecordsArr = () => recordsArrSelector(getStore().getState());
+export const getAllRecordsObj = () => {
+  return recordStore.getState().records || {};
+};
 
-export const clearAttendanceRecords = () =>
-  getStore().dispatch(actions.clearAll());
+export const clearAttendanceRecords = () => {
+  recordStore.destroy();
+  recordStore.setState({ records: {} });
+};
 
-export const  filterRecords = (
+export const filterRecords = (
   records: AttendanceRecord[],
   options?: {
     startTime?: number;
@@ -56,38 +130,22 @@ export const  filterRecords = (
     onlyInEmployeeCheckinCodes?: boolean;
   }
 ) => {
-  const pushedIdSet = options?.onlyNotPushed
-    ? getPushedRecordIdSet()
-    : new Set<string>();
-
-  const checkinCodes: {[id: string]: number[]} = options?.onlyInEmployeeCheckinCodes
-    ? getAllCheckinCodes()
-    : {};
-
-  return records.filter((record) => {
-    // onlyNotPushed
-    if (options?.onlyNotPushed && pushedIdSet.has(record.id)) return false;
+  let result = [];
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
 
     // startTime
-    if (options?.startTime && record.timestamp < options.startTime)
-      return false;
+    if (options?.startTime && record.timestamp < options.startTime) {
+      continue
+    }
 
     // endTime
-    if (options?.endTime && record.timestamp > options.endTime) return false;
+    if (options?.endTime && record.timestamp > options.endTime) {
+      continue
+    }
 
-    // checkinCodes
-    if (
-      options?.onlyInEmployeeCheckinCodes &&
-      checkinCodes[record.deviceIp] &&
-      checkinCodes[record.deviceIp].includes(Number(record.uid))
-    )
-      return true;
+    result.push(record)
+  }
+  return result
 
-    return true;
-  });
 };
-
-export const isRecordExists = (recordId: string) =>
-  !!recordsSelector(getStore().getState())[recordId];
-
-export { recordsReducer };

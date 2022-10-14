@@ -92,7 +92,7 @@ export const AutoTasks = memo(function AutoTasks() {
 
 
         try {
-          const allLogs: AttendanceRecord[] = Object.values(getStore()?.getState()?.records || {});
+          const allLogs = getAllRecordsArr();
           log.info("Auto push data ");
           await timeSleep(30);
           await Fetch.massPushSplitByChunks(

@@ -1,15 +1,9 @@
 import React, { memo, SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { DatePicker, Input, Table, Button } from "antd";
-import { AttendanceRecord } from "../store/records";
+import { DatePicker, Input, Table } from "antd";
+import { AttendanceRecord, getAllRecordsArr } from "../store/records";
 import { t, useLanguage } from "../store/settings/languages";
-import moment from "moment";
-import { getStore } from "../store/storeAccess";
-import  { Moment } from 'moment';
+import moment, { Moment } from "moment";
 
-// const selector = (state: any): Record<string, AttendanceRecord> =>
-//   state.records;
-
-type RangeValue = [Moment | null, Moment | null] | null;
 const { RangePicker } = DatePicker;
 
 const RecordsTable = memo(function RecordsTable() {
@@ -30,15 +24,13 @@ const RecordsTable = memo(function RecordsTable() {
 
   useEffect(() => {
     // run after 2s because store not mounted data
-    const _data = getStore().getState().records;
-    const _records: AttendanceRecord[] = Object.values(_data || {});
+    const _records = getAllRecordsArr();
     setRecords(_records);
   }, []);
 
   useEffect(() => {
     const _interval = setInterval(() => {
-      const _data = getStore().getState().records;
-      const _records: AttendanceRecord[] = Object.values(_data || {});
+      const _records = getAllRecordsArr();
       setRecords(oldRecords => {
         if(oldRecords.length !== _records.length){
           return _records;
@@ -47,7 +39,7 @@ const RecordsTable = memo(function RecordsTable() {
           return oldRecords
         }
       });
-    }, 15 * 1000);
+    }, 10 * 1000);
     return () => {
       _interval && clearInterval(_interval)
     }

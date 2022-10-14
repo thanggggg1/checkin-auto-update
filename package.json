@@ -76,7 +76,8 @@
     "redux-persist-electron-storage": "^2.1.0",
     "set-interval-async": "1.0.33",
     "spawn-sync": "^2.0.0",
-    "styled-components": "^5.1.1"
+    "styled-components": "^5.1.1",
+    "zustand": "^4.1.2"
   },
   "build": {
     "appId": "vn.base.checkinstation",

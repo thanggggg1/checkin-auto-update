@@ -3,7 +3,7 @@ import { deleteDevices, Device, DeviceSyncMethod, useDeviceSyncMethod } from "..
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useAsyncEffect from "../../utils/useAsyncEffect";
 import useAsyncFn from "react-use/lib/useAsyncFn";
-import { AttendanceRecord, syncAttendanceRecords } from "../../store/records";
+import { AttendanceRecord, getAllRecordsArr, getAllRecordsObj, syncAttendanceRecords } from "../../store/records";
 import Fetch from "../../utils/Fetch";
 import { Events, events } from "../../utils/events";
 import ZK from "../../packages/js_zklib/ZK";
@@ -139,7 +139,7 @@ const LegacyDeviceContext = (() => {
             setSyncPercent(0);
 
             await enableDevice();
-            const storeRecords = getStore().getState().records || {};
+            const storeRecords = getAllRecordsArr();
             let records = [];
 
             for (let i = 0; i < attendances.length; i++) {
@@ -204,7 +204,7 @@ const LegacyDeviceContext = (() => {
 
         let result = [];
 
-        const _recordsStore = getStore()?.getState()?.records || {};
+        const _recordsStore = getAllRecordsObj();
 
         for (let i = 0; i < attendances.data.length; i++) {
           const raw = attendances.data[i];
