@@ -25,12 +25,15 @@ const RecordsTable = memo(function RecordsTable() {
   useEffect(() => {
     // run after 2s because store not mounted data
     const _records = getAllRecordsArr();
+    console.log('bat dau lay data ', _records);
+
     setRecords(_records);
   }, []);
 
   useEffect(() => {
     const _interval = setInterval(() => {
       const _records = getAllRecordsArr();
+      console.log('so sanh data ', _records);
       setRecords(oldRecords => {
         if(oldRecords.length !== _records.length){
           return _records;

@@ -93,18 +93,21 @@ export interface AttendanceRecord {
 const recordStore = create(persist(() => ({
   records: {}
 }), {
-  name: "records"
+  name: 'records'
 }));
 
 
 export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
+  console.log('records ', records);
   recordStore.setState(state => {
-    const newState = { ...state.records };
+    const newRecords = { ...state.records };
     for (let j = 0; j < records.length; j++) {
       const record = records[j];
-      newState[record.id] = record;
+      newRecords[record.id] = record;
     }
-    return newState;
+    return {
+      records: newRecords
+    };
   });
 };
 

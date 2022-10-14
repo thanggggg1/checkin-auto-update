@@ -1,6 +1,6 @@
 {
   "name": "base-checkin-station-desktop",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "license": "MIT",
   "main": "./dist/main.js",
   "description": "Base Checkin Client v3. Manage & Realtime attendance update for checkin.base.vn",
