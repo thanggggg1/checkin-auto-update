@@ -85,7 +85,7 @@ export const createDynamicReducer = <T extends { [x: string]: any }>(
   };
 
   const getKeyByObjs = (): Record<string, T> => {
-    return _getStore().getState()[name] || {};
+    return _getStore().getState()[name]?.byKey || {};
   };
 
   const sync = (items: T[]) => {

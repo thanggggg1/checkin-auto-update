@@ -4,7 +4,7 @@ import { getAllDevicesObj } from "../store/devices";
 const ping = require("ping");
 
 function logBytes(x: any) {
-  console.log(x[0], x[1] / (1000.0*1000), "MB")
+  log.info(x[0], x[1] / (1000.0*1000), "MB")
 }
 
 export const HeartBeat = () => {
