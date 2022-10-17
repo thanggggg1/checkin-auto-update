@@ -5,11 +5,10 @@ import PushButton from "./components/PushButton";
 import ButtonGroup from "antd/lib/button/button-group";
 import SyncButton from "./components/SyncButton";
 import SettingButton from "./components/SettingButton";
-import { getTimeZoneHik, requestEventHikVision } from "../../store/devices/functions";
-import { timeSleep } from "../../utils/sleep";
+
+
 
 const AppNavBar = memo(function AppNavBar() {
-
   return (
     <Wrapper align={"middle"} justify={"space-between"}>
       <AppNameWrapper>

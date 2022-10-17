@@ -1,5 +1,4 @@
 import React, { memo, useEffect, useRef, useState } from "react";
-import "antd/dist/antd.css";
 import { Table } from "antd";
 import ResizeObserver from "rc-resize-observer";
 

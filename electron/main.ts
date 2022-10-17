@@ -16,6 +16,7 @@ let isQuiting = false;
 let eventUsage: any = undefined;
 
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=3072')
+app.disableHardwareAcceleration();
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -111,18 +112,21 @@ function logUsage() {
 // out  of memory
   if (typeof process === "undefined") {
     log.info('CANNOT GET PROCESS');
-    mainWindow?.webContents?.reloadIgnoringCache()
+    app.relaunch();
+    app.quit()
   }
 
   // get memory usage
   try {
     let totalMemory = 0;
+    console.log('usage  ', Object.entries(process?.memoryUsage()));
     Object.entries(process?.memoryUsage()).map(x => {
       logBytes(x);
       totalMemory += x[1]
     });
-    if ((totalMemory / (1000.0*1000)) > 200) { // convert to MB and compare with max 200MB
-      mainWindow?.webContents?.reloadIgnoringCache()
+    if ((totalMemory / (1000.0*1000)) > 1500) { // convert to MB and compare with max 200MB
+      app.relaunch();
+      app.quit()
     }
   } catch (e) {
     log.error("[ERROR HEART BEAT]")
@@ -175,11 +179,11 @@ process.on('SIGTERM', function(err) {
   console.log('sigterm',err)
   log.error('Sigterm',err)
   app.relaunch({args: []});
-  mainWindow?.webContents?.reloadIgnoringCache()
+  app.quit()
 });
 
 app.on("renderer-process-crashed", event => {
   log.error("renderer-process-crashed " + event.currentTarget);
-  app.relaunch();
-  mainWindow?.webContents?.reloadIgnoringCache()
+  app.relaunch(); // call relaunch after exit
+  app.quit();
 });

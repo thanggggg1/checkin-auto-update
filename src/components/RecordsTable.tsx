@@ -8,11 +8,16 @@ import LoginButton from "./AppNavBar/components/LoginButton";
 
 const { RangePicker } = DatePicker;
 
+interface State {
+  dateRange:moment.Moment[],
+  searchCode:string
+}
+
 const RecordsTable = memo(function RecordsTable() {
   const lang = useLanguage();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
 
-  const [params, setParams] = useState({
+  const [params, setParams] = useState<State>({
     dateRange: [moment().startOf("month"), moment().endOf("month")],
     searchCode: ''
   });
@@ -30,13 +35,20 @@ const RecordsTable = memo(function RecordsTable() {
     });
   }, []);
 
-  const onGetData = () => {
-    getAllRecordsArr(params.dateRange[0].format('DD/MM/YYYY'), params.dateRange[1].format('DD/MM/YYYY')).then(_records => {
+  const onGetData = (dataFilter?:State) => {
+    const _params = dataFilter || params
+    getAllRecordsArr(_params.dateRange[0].format('DD/MM/YYYY'), _params.dateRange[1].format('DD/MM/YYYY')).then(_records => {
       setRecords(oldRecords => {
         if(oldRecords.length !== _records.length){
-          return _records;
+          if(_params.searchCode){
+            return _records.filter(item=>item.uid.toString() === _params.searchCode)
+          }
+          return _records
         }
         else {
+          if(_params.searchCode){
+            return _records.filter(item=>item.uid.toString() === _params.searchCode)
+          }
           return oldRecords
         }
       });
@@ -136,10 +148,9 @@ const RecordsTable = memo(function RecordsTable() {
   }, [tempData]);
 
   const onSearch = () => {
-    setParams({...tempData});
-    setTimeout(() => {
-      onGetData();
-    }, 1000)
+    const newParams = {...tempData}
+    setParams(newParams);
+    onGetData(newParams);
   };
 
   const disabledDate = (current: Moment) => {
@@ -148,7 +159,6 @@ const RecordsTable = memo(function RecordsTable() {
     return !!tooEarly || !!tooLate;
   };
 
-  console.log('dataSource = ', dataSource.length);
   return (
     <div>
       <div style={{
