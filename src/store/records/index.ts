@@ -177,6 +177,7 @@ export const syncAttendanceRecords = async (records: AttendanceRecord[]) => {
     const day = days[j];
     await saveLogsByDay(day, result[day])
   }
+  result = {};
   return null
 };
 
@@ -207,7 +208,8 @@ export const getAllRecordsArr = async (startTime?: string, endTime?: string) => 
           ]
         }
       }
-      resolve(result)
+      resolve(result);
+      result = [];
     });
   });
   return data as AttendanceRecord[];
@@ -225,7 +227,8 @@ export const getAllRecordsObj = async () => {
           ...dayLogs
         }
       }
-      resolve(result)
+      resolve(result);
+      result = {};
     });
   });
 
@@ -257,7 +260,7 @@ export const filterRecords = (
     onlyInEmployeeCheckinCodes?: boolean;
   }
 ) => {
-  let result = [];
+  const result = [];
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
 
@@ -274,5 +277,4 @@ export const filterRecords = (
     result.push(record)
   }
   return result
-
 };

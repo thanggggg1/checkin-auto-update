@@ -2,7 +2,6 @@ import { app, BrowserWindow, nativeImage, Menu, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import os from "os";
-import { getAllDevicesObj } from "../src/store/devices";
 const log = require('electron-log');
 const fs = require("fs");
 
@@ -67,6 +66,7 @@ function createWindow() {
         mainWindow?.destroy();
         eventUsage && clearInterval(eventUsage);
         app.quit();
+
     }}
   ]);
 
@@ -111,11 +111,19 @@ function logUsage() {
 // out  of memory
   if (typeof process === "undefined") {
     log.info('CANNOT GET PROCESS');
-    window.location.reload();
+    mainWindow?.webContents?.reloadIgnoringCache()
   }
-// get memory usage
+
+  // get memory usage
   try {
-    Object.entries(process?.memoryUsage()).map(logBytes)
+    let totalMemory = 0;
+    Object.entries(process?.memoryUsage()).map(x => {
+      logBytes(x);
+      totalMemory += x[1]
+    });
+    if ((totalMemory / (1000.0*1000)) > 200) { // convert to MB and compare with max 200MB
+      mainWindow?.webContents?.reloadIgnoringCache()
+    }
   } catch (e) {
     log.error("[ERROR HEART BEAT]")
   }
@@ -140,8 +148,9 @@ if (!gotTheLock) {
 
   // log usage
   eventUsage = setInterval(() => {
+    console.log('vao log usage');
     logUsage();
-  }, 5 * 60 * 1000);
+  }, 1 * 60 * 1000);
 }
 app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 app.allowRendererProcessReuse = true;
