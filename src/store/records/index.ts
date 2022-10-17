@@ -139,7 +139,7 @@ const saveLogsByDay = async (day: string, data: Record<string, AttendanceRecord>
           log.error('[SAVE FILE FAIL] ' + filePath + err.message);
         }
       });
-      return
+      return null
     }
   const oldData = getLogsByDay(day);
   const newData = {
@@ -152,6 +152,7 @@ const saveLogsByDay = async (day: string, data: Record<string, AttendanceRecord>
       log.error('[SAVE FILE FAIL 2] ' + filePath + err.message);
     }
   });
+  return null
 };
 
 export const syncAttendanceRecords = async (records: AttendanceRecord[]) => {
@@ -176,11 +177,10 @@ export const syncAttendanceRecords = async (records: AttendanceRecord[]) => {
     const day = days[j];
     await saveLogsByDay(day, result[day])
   }
+  return null
 };
 
 export const getAllRecordsArr = async (startTime?: string, endTime?: string) => { // DD/MM/YYYY
-
-
   let dates: string[] = [];
   if (startTime && endTime) {
     dates = getDatesBetween(startTime, endTime, "DD/MM/YYYY", "DD-MM-YYYY")
@@ -242,9 +242,10 @@ export const clearAttendanceRecords = () => {
         }
       })
     }
-  })
+  });
   // recordStore.destroy();
   // recordStore.setState({ records: {} });
+  return null
 };
 
 export const filterRecords = (

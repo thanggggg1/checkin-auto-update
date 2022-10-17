@@ -3,11 +3,12 @@ import { DatePicker, Input, Table } from "antd";
 import { AttendanceRecord, getAllRecordsArr } from "../store/records";
 import { t, useLanguage } from "../store/settings/languages";
 import moment, { Moment } from "moment";
+import VirtualTable from "./VirtualTable";
+import LoginButton from "./AppNavBar/components/LoginButton";
 
 const { RangePicker } = DatePicker;
 
 const RecordsTable = memo(function RecordsTable() {
-
   const lang = useLanguage();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
 
@@ -39,7 +40,8 @@ const RecordsTable = memo(function RecordsTable() {
           return oldRecords
         }
       });
-    }) ;
+    });
+    return
   };
 
   useEffect(() => {
@@ -49,7 +51,7 @@ const RecordsTable = memo(function RecordsTable() {
     return () => {
       _interval && clearInterval(_interval)
     }
-  }, []);
+  }, [onGetData]);
 
   const { dataSource, uids, ips } = useMemo(() => {
     const uids: Record<string | number, string | number> = {};
@@ -146,6 +148,7 @@ const RecordsTable = memo(function RecordsTable() {
     return !!tooEarly || !!tooLate;
   };
 
+  console.log('dataSource = ', dataSource.length);
   return (
     <div>
       <div style={{
@@ -204,7 +207,9 @@ const RecordsTable = memo(function RecordsTable() {
           Lọc
         </div>
       </div>
-      <Table columns={columns} dataSource={dataSource} />
+
+          <VirtualTable columns={columns} dataSource={dataSource}    />
+
     </div>
   );
 });

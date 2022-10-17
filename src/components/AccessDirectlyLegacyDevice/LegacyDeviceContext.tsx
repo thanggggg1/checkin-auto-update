@@ -61,6 +61,8 @@ const LegacyDeviceContext = (() => {
         setConnectionState(ConnectionState.DISCONNECTED);
         throw e;
       }
+      return null
+
     }, [connection]);
 
     useAutoMessageError(connectError);
@@ -79,6 +81,7 @@ const LegacyDeviceContext = (() => {
       }
 
       await connection.disableDevice();
+      return null
     }, [canSendRequest, connection]);
 
     useAutoMessageError(disableError);
@@ -92,6 +95,8 @@ const LegacyDeviceContext = (() => {
       }
 
       await connection.enableDevice();
+      return null
+
     }, [connection, canSendRequest]);
 
     useAutoMessageError(enableError);
@@ -104,6 +109,7 @@ const LegacyDeviceContext = (() => {
       syncAttendances
     ] = useAsyncFn(async () => {
       try {
+        let isGetData = false;
         if (connectionState !== ConnectionState.CONNECTED) {
           events.emit(Events.SYNC_DONE);
           return;
@@ -179,10 +185,15 @@ const LegacyDeviceContext = (() => {
         }
 
         // large data
-        setTimeout(() => {
+        let _timeout = setTimeout(() => {
+          if (isGetData) {
+            _timeout && clearTimeout(_timeout);
+            return
+          }
           enableDevice().then();
           setSyncPercent(0);
           events.emit(Events.SYNC_DONE);
+          _timeout && clearTimeout(_timeout)
         }, 5 * 60 * 1000);
 
         // Large dataset method
@@ -196,7 +207,7 @@ const LegacyDeviceContext = (() => {
         setSyncPercent(0);
 
         await enableDevice();
-
+        isGetData = true;
         if (!attendances?.data) {
           events.emit(Events.SYNC_DONE);
           return attendances;

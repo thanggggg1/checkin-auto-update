@@ -166,11 +166,11 @@ process.on('SIGTERM', function(err) {
   console.log('sigterm',err)
   log.error('Sigterm',err)
   app.relaunch({args: []});
-  app.exit(0);
+  mainWindow?.webContents?.reloadIgnoringCache()
 });
 
 app.on("renderer-process-crashed", event => {
   log.error("renderer-process-crashed " + event.currentTarget);
   app.relaunch();
-  mainWindow?.webContents?.reload()
+  mainWindow?.webContents?.reloadIgnoringCache()
 });
