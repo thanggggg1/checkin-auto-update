@@ -20,6 +20,7 @@ import { timeSleep } from "../../utils/sleep";
 import { requestEventLogBioStar, requestLoginDeviceBioStar } from "../../store/devices/functions";
 import _ from "lodash";
 import { clearSettingBioStar, getSettingBioStar, setSettingBioStar } from "./settingBioStarSystem";
+import { getDatesBetween } from "../../utils";
 
 
 const BioStarDeviceContext = (() => {
@@ -127,15 +128,13 @@ const BioStarDeviceContext = (() => {
           }
           setSettingBioStar({ ...newDevice, lastSync: result[result.length - 1].timestamp });
           await timeSleep(3);
+
+          const toDay = moment(result[0].timestamp).clone().startOf("day").format('DD/MM/YYYY');
+
+          const logs = await getAllRecordsArr(toDay, toDay);
+
           try {
-            await Fetch.massPushSplitByChunks(
-              filterRecords(getAllRecordsArr(), {
-                onlyNotPushed: true,
-                onlyInEmployeeCheckinCodes: true,
-                startTime: moment(result[0].timestamp).clone().startOf("day").valueOf(),
-                endTime: moment(result[0].timestamp).clone().endOf("day").valueOf()
-              })
-            );
+            await Fetch.massPushSplitByChunks(logs);
           } catch (e) {
 
           }

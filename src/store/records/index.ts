@@ -1,5 +1,8 @@
 import create from "zustand";
 import { persist } from 'zustand/middleware';
+import fs from 'fs';
+import log from 'electron-log';
+import { getDatesBetween } from "../../utils";
 
 export interface AttendanceRecord {
   id: string;
@@ -97,31 +100,151 @@ const recordStore = create(persist(() => ({
 }));
 
 
-export const syncAttendanceRecords = (records: AttendanceRecord[]) => {
-  console.log('records ', records);
-  recordStore.setState(state => {
-    const newRecords = { ...state.records };
-    for (let j = 0; j < records.length; j++) {
-      const record = records[j];
-      newRecords[record.id] = record;
+const getLogsByDay:any = async (day: string) => { // DD-MM-YYYY
+  const filePath = 'C://checkin-data/' +day + '.txt';
+  if (!fs.existsSync(filePath)) {
+    return {}
+  } else {
+    const data = await new Promise(resolve => {
+      fs.readFile(filePath, 'utf-8', (err, data) => {
+        try {
+          if (err) {
+            log.error("[READ FILE] error " + filePath + ' >>>>> ' + err?.message);
+            console.log("[READ FILE] error " + filePath + ' >>>>> ' + err?.message);
+            resolve({});
+            return
+          }
+          if (data) {
+            resolve(JSON.parse(data));
+            return
+          }
+        } catch (e) {
+          log.error("[READ FILE CATCH] error " + filePath + ' >>>>> ' + err?.message);
+          console.log("[READ FILE CATCH] error " + filePath + ' >>>>> ' + err?.message);
+          resolve({})
+        }
+      })
+    });
+    return data
+  }
+};
+
+
+const saveLogsByDay = async (day: string, data: Record<string, AttendanceRecord>) => {
+    const filePath = 'C://checkin-data/' + day + '.txt';
+    if (!fs.existsSync(filePath)) {
+      fs.writeFile(filePath, JSON.stringify(data), err => {
+        if (err) {
+          console.log('[SAVE FILE FAIL] ' + filePath + err.message);
+          log.error('[SAVE FILE FAIL] ' + filePath + err.message);
+        }
+      });
+      return
     }
-    return {
-      records: newRecords
-    };
+  const oldData = getLogsByDay(day);
+  const newData = {
+    ...data,
+    ...oldData
+  };
+  fs.writeFile(filePath, JSON.stringify(newData), err => {
+    if (err) {
+      console.log('[SAVE FILE FAIL 2] ' + filePath + err.message);
+      log.error('[SAVE FILE FAIL 2] ' + filePath + err.message);
+    }
   });
 };
 
-export const getAllRecordsArr = () => {
-  return Object.values(recordStore.getState().records || {}) as AttendanceRecord[];
+export const syncAttendanceRecords = async (records: AttendanceRecord[]) => {
+  let result: any = {};
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const day = record.dateFormatted.replace(/\//g, '-');
+
+    if (result[day]) {
+      result[day] = {
+        ...result[day],
+        [record.id]: record
+      }
+    } else {
+      result[day] = {
+        [record.id]: record
+      }
+    }
+  }
+  const days = Object.keys(result);
+  for (let j = 0; j < days.length; j++) {
+    const day = days[j];
+    await saveLogsByDay(day, result[day])
+  }
 };
 
-export const getAllRecordsObj = () => {
-  return recordStore.getState().records || {};
+export const getAllRecordsArr = async (startTime?: string, endTime?: string) => { // DD/MM/YYYY
+
+
+  let dates: string[] = [];
+  if (startTime && endTime) {
+    dates = getDatesBetween(startTime, endTime, "DD/MM/YYYY", "DD-MM-YYYY")
+  }
+
+  const data = await new Promise(resolve => {
+    let result: any = [];
+    fs.readdir("C://checkin-data", async (err, files) => {
+      for (let i = 0; i< files.length; i++) {
+        const fileName = files[i].replace('.txt', '');
+        if (dates.length) {
+          if (dates.includes(fileName)) {
+            const dayLogs = await getLogsByDay(fileName);
+            result = [
+              ...result,
+              ...Object.values(dayLogs)
+            ]
+          }
+        } else {
+          const dayLogs = await getLogsByDay(fileName);
+          result = [
+            ...result,
+            ...Object.values(dayLogs)
+          ]
+        }
+      }
+      resolve(result)
+    });
+  });
+  return data as AttendanceRecord[];
+};
+
+export const getAllRecordsObj = async () => {
+  const data = await new Promise(resolve => {
+    let result: any = {};
+    fs.readdir("C://checkin-data", async (err, files) => {
+      for (let i = 0; i< files.length; i++) {
+        const fileName = files[i].replace('.txt', '');
+        const dayLogs = await getLogsByDay(fileName);
+        result = {
+          ...result,
+          ...dayLogs
+        }
+      }
+      resolve(result)
+    });
+  });
+
+  return data as Record<string, AttendanceRecord>
 };
 
 export const clearAttendanceRecords = () => {
-  recordStore.destroy();
-  recordStore.setState({ records: {} });
+  fs.readdir("C://checkin-data", async (err, files) => {
+    for (let i = 0; i< files.length; i++) {
+      const fileName = files[i];
+      fs.unlink('C://checkin-data/' + fileName, err1 => {
+        if (err1) {
+          log.error("[REMOVE FILE] " + err1)
+        }
+      })
+    }
+  })
+  // recordStore.destroy();
+  // recordStore.setState({ records: {} });
 };
 
 export const filterRecords = (

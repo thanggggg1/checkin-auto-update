@@ -64,6 +64,7 @@
     "electron-log": "^4.4.8",
     "electron-store": "^6.0.0",
     "fix-path": "^3.0.0",
+    "fs": "^0.0.1-security",
     "i18next": "^19.7.0",
     "lodash": "^4.17.19",
     "ping": "^0.3.0",

@@ -3,6 +3,7 @@ import * as path from "path";
 import * as url from "url";
 import os from "os";
 const log = require('electron-log');
+const fs = require("fs");
 
 let mainWindow: Electron.BrowserWindow | null;
 let tray = null;
@@ -45,6 +46,14 @@ function createWindow() {
       e.returnValue = false;
     }
   });
+
+  // check save file location exists
+  if (!fs.existsSync('C://checkin-data')) {
+    fs.mkdir('C://checkin-data', () => {
+
+    })
+  }
+
 
   tray = new Tray(path.join(app.getAppPath(), "./dist/assets/AppIcon.ico"));
   var contextMenu = Menu.buildFromTemplate([
@@ -124,6 +133,12 @@ process.on('unhandledRejection', function (err) {
   log.error('Uncaught Rejection ' + err);
 });
 
+process.on('SIGTERM', function(err) {
+  console.log('sigterm',err)
+  log.error('Sigterm',err)
+  app.relaunch({args: []});
+  app.exit(0);
+});
 
 app.on("renderer-process-crashed", event => {
   log.error("renderer-process-crashed " + event);

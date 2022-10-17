@@ -95,7 +95,7 @@ const HikDeviceContext = (() => {
       }
 
       if (result.length) {
-        syncAttendanceRecords(result);
+        await syncAttendanceRecords(result);
         const _currentDevice = getDeviceById(newDevice.ip);
         if (!_currentDevice) {
           events.emit(Events.SYNC_DONE);

@@ -12,7 +12,7 @@ export const HeartBeat = () => {
   useEffect(() => {
     const _l = setInterval(() => {
       log.info("[MEMORY USAGE]");
-// out  of memory
+      // out  of memory
       if (typeof process === "undefined") {
         log.info('CANNOT GET PROCESS');
         window.location.reload();
@@ -33,7 +33,7 @@ export const HeartBeat = () => {
           log.info(`[PING] ${device.ip}: ${alive ? 'alive': 'die'}`)
         })
       })
-    }, 3 * 60 * 1000);
+    }, 5 * 60 * 1000);
 
     return () => {
       _l && clearInterval(_l)

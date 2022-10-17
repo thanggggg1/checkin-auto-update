@@ -24,40 +24,40 @@ const RecordsTable = memo(function RecordsTable() {
 
   useEffect(() => {
     // run after 2s because store not mounted data
-    const _records = getAllRecordsArr();
-    console.log('bat dau lay data ', _records);
-
-    setRecords(_records);
+    getAllRecordsArr(params.dateRange[0].format('DD/MM/YYYY'), params.dateRange[1].format('DD/MM/YYYY')).then(_records => {
+      setRecords(_records);
+    });
   }, []);
 
-  useEffect(() => {
-    const _interval = setInterval(() => {
-      const _records = getAllRecordsArr();
-      console.log('so sanh data ', _records);
+  const onGetData = () => {
+    getAllRecordsArr(params.dateRange[0].format('DD/MM/YYYY'), params.dateRange[1].format('DD/MM/YYYY')).then(_records => {
       setRecords(oldRecords => {
         if(oldRecords.length !== _records.length){
           return _records;
         }
-         else {
+        else {
           return oldRecords
         }
       });
+    }) ;
+  };
+
+  useEffect(() => {
+    const _interval = setInterval(() => {
+      onGetData()
     }, 10 * 1000);
     return () => {
       _interval && clearInterval(_interval)
     }
-  }, [params]);
+  }, []);
 
   const { dataSource, uids, ips } = useMemo(() => {
     const uids: Record<string | number, string | number> = {};
     const ips: Record<string, string> = {};
     let results = [];
-    const _start = params.dateRange[0].valueOf();
-    const _end = params.dateRange[1].set({hour: 23, minute: 59}).valueOf();
 
     for (let i = 0; i < records.length; i++){
       const record = records[i];
-      if (record.timestamp > _start && record.timestamp <= _end) {
         if (params.searchCode && record.uid.toString() !== params.searchCode) {
           continue
         }
@@ -73,7 +73,6 @@ const RecordsTable = memo(function RecordsTable() {
           timestamp: record.timestamp,
         })
       }
-    }
 
     return {
       uids,
@@ -135,7 +134,10 @@ const RecordsTable = memo(function RecordsTable() {
   }, [tempData]);
 
   const onSearch = () => {
-    setParams({...tempData})
+    setParams({...tempData});
+    setTimeout(() => {
+      onGetData();
+    }, 1000)
   };
 
   const disabledDate = (current: Moment) => {

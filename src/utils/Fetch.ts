@@ -3,7 +3,6 @@ import axios, { AxiosPromise, AxiosRequestConfig } from "axios";
 import qs from "querystring";
 import { AttendanceRecord } from "../store/records";
 import moment from "moment";
-import { addPushedRecords } from "../store/pushedRecords";
 import _ from "lodash";
 import { setPushingPercent } from "../store/settings/pushingPercent";
 import { setCheckinCodes } from "../store/settings/checkinCodes";

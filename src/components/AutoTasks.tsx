@@ -74,17 +74,10 @@ export const AutoTasks = memo(function AutoTasks() {
        */
       (async () => {
         try {
-          const allLogs = getAllRecordsArr();
+          const allLogs = await getAllRecordsArr(moment().startOf("week").format('DD/MM/YYYY'), moment().format('DD/MM/YYYY'));
           log.info("Auto push data ");
           await timeSleep(30);
-          await Fetch.massPushSplitByChunks(
-            filterRecords(allLogs, {
-              onlyNotPushed: true,
-              onlyInEmployeeCheckinCodes: true,
-              startTime: moment().startOf("week").valueOf(),
-              endTime: moment().valueOf()
-            })
-          );
+          await Fetch.massPushSplitByChunks(allLogs);
         } catch (e) {
 
         } finally {

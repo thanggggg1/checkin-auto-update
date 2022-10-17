@@ -139,7 +139,7 @@ const LegacyDeviceContext = (() => {
             setSyncPercent(0);
 
             await enableDevice();
-            const storeRecords = getAllRecordsArr();
+            const storeRecords = await getAllRecordsObj();
             let records = [];
 
             for (let i = 0; i < attendances.length; i++) {
@@ -163,7 +163,7 @@ const LegacyDeviceContext = (() => {
               });
             }
 
-            syncAttendanceRecords(records);
+            await syncAttendanceRecords(records);
             // when sync done thi goi vao day de chuyen sang client tiep theo
             await require("bluebird").delay(400);
             events.emit(Events.SYNC_DONE);
@@ -204,7 +204,7 @@ const LegacyDeviceContext = (() => {
 
         let result = [];
 
-        const _recordsStore = getAllRecordsObj();
+        const _recordsStore = await getAllRecordsObj();
 
         for (let i = 0; i < attendances.data.length; i++) {
           const raw = attendances.data[i];
@@ -230,8 +230,7 @@ const LegacyDeviceContext = (() => {
           });
         } // end of list data;
 
-
-        syncAttendanceRecords(result);
+        await syncAttendanceRecords(result);
         // let _device = getDeviceById(device.ip)
         // if (lastSyncTime > 0) {
         //   syncDevices([{ ..._device, lastSync: lastSyncTime }]);

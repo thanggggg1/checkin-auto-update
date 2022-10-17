@@ -26,13 +26,12 @@ const PushButton = memo(function PushButton() {
 
   const [{ loading, error }, onClick] = useAsyncFn(async () => {
     hidePushModal();
+    const logs = await getAllRecordsArr(
+      timeRange[0].clone().startOf("day").format('DD/MM/YYYY'),
+      timeRange[1].clone().endOf("day").format('DD/MM/YYYY')
+      );
     await Fetch.massPushSplitByChunks(
-      filterRecords(getAllRecordsArr(), {
-        onlyNotPushed: true,
-        onlyInEmployeeCheckinCodes: true,
-        startTime: timeRange[0].clone().startOf("day").valueOf(),
-        endTime: timeRange[1].clone().endOf("day").valueOf(),
-      })
+      filterRecords(logs)
     );
   }, [timeRange]);
 
