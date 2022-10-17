@@ -141,7 +141,7 @@ const saveLogsByDay = async (day: string, data: Record<string, AttendanceRecord>
       });
       return null
     }
-  const oldData = getLogsByDay(day);
+  const oldData = await getLogsByDay(day);
   const newData = {
     ...data,
     ...oldData

@@ -18,7 +18,8 @@
     "dist-mac": "electron-builder -m",
     "dist-linux": "electron-builder -l --ia32",
     "dist-windows": "electron-builder -w --ia32",
-    "dist-windows-automatic": "yarn prod:react && yarn prod:electron && yarn dist-windows"
+    "dist-windows-automatic": "yarn prod:react && yarn prod:electron && yarn dist-windows",
+    "build": "yarn prod:react && yarn prod:electron && yarn dist-windows"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",

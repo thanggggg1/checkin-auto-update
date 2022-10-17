@@ -148,7 +148,7 @@ const RecordsTable = memo(function RecordsTable() {
   }, [tempData]);
 
   const onSearch = () => {
-    const newParams = {...tempData}
+    const newParams = {...tempData};
     setParams(newParams);
     onGetData(newParams);
   };
