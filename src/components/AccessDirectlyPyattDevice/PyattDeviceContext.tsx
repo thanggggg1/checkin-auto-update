@@ -141,7 +141,7 @@ const PyattDeviceContext = (() => {
             syncAttendanceRecords(_records);
           },
           onPercent: (total:number, current:number) => {
-            setSyncPercent(`${Number(current || 0)/Number(total || 1)}%`);
+            setSyncPercent(`${(Number(current || 0)/Number(total || 1)) * 100}%`);
           },
         });
 

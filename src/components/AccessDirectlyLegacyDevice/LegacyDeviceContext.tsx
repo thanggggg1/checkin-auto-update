@@ -11,6 +11,7 @@ import useAutoMessageError from "../../hooks/useAutoMessageError";
 import moment from "moment";
 import _ from "lodash";
 import { getStore } from "../../store/storeAccess";
+import { timeSleep } from "../../utils/sleep";
 
 export enum ConnectionState {
   DISCONNECTED = 0,
@@ -111,6 +112,7 @@ const LegacyDeviceContext = (() => {
       try {
         let isGetData = false;
         if (connectionState !== ConnectionState.CONNECTED) {
+          await timeSleep(2);
           events.emit(Events.SYNC_DONE);
           return;
         }
