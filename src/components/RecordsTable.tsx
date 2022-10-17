@@ -18,12 +18,12 @@ const RecordsTable = memo(function RecordsTable() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
 
   const [params, setParams] = useState<State>({
-    dateRange: [moment().startOf("month"), moment().endOf("month")],
+    dateRange: [moment().startOf("isoWeek"), moment().endOf("month")],
     searchCode: ''
   });
 
   const [tempData, setTempData] = useState({
-    dateRange: [moment().startOf("month"), moment().endOf("month")],
+    dateRange: [moment().startOf("isoWeek"), moment().endOf("month")],
     searchCode: ''
   });
 
