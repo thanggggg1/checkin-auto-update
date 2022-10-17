@@ -2,6 +2,7 @@ import { app, BrowserWindow, nativeImage, Menu, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import os from "os";
+import { getAllDevicesObj } from "../src/store/devices";
 const log = require('electron-log');
 const fs = require("fs");
 
@@ -13,6 +14,8 @@ app.setLoginItemSettings({
 });
 
 let isQuiting = false;
+let eventUsage: any = undefined;
+
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=3072')
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -62,6 +65,7 @@ function createWindow() {
     } },
     { label: 'Quit', click:  function(){
         mainWindow?.destroy();
+        eventUsage && clearInterval(eventUsage);
         app.quit();
     }}
   ]);
@@ -97,7 +101,28 @@ function createWindow() {
   })
 }
 
+
+function logBytes(x: any) {
+  log.info(x[0], x[1] / (1000.0*1000), "MB")
+}
+
+function logUsage() {
+  log.info("[MEMORY USAGE]");
+// out  of memory
+  if (typeof process === "undefined") {
+    log.info('CANNOT GET PROCESS');
+    window.location.reload();
+  }
+// get memory usage
+  try {
+    Object.entries(process?.memoryUsage()).map(logBytes)
+  } catch (e) {
+    log.error("[ERROR HEART BEAT]")
+  }
+}
+
 if (!gotTheLock) {
+  eventUsage && clearInterval(eventUsage)
   app.quit();
 } else {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
@@ -106,13 +131,17 @@ if (!gotTheLock) {
     if (mainWindow) {
       if (mainWindow.isMinimized()) {mainWindow.restore()
       }
-      mainWindow.show()
+      mainWindow.show();
       mainWindow.focus()
     }
-  })
+  });
 
   app.on("ready", createWindow);
 
+  // log usage
+  eventUsage = setInterval(() => {
+    logUsage();
+  }, 5 * 60 * 1000);
 }
 app.commandLine.appendSwitch("disable-features", "OutOfBlinkCors");
 app.allowRendererProcessReuse = true;
@@ -141,6 +170,7 @@ process.on('SIGTERM', function(err) {
 });
 
 app.on("renderer-process-crashed", event => {
-  log.error("renderer-process-crashed " + event);
-  app.relaunch()
+  log.error("renderer-process-crashed " + event.currentTarget);
+  app.relaunch();
+  mainWindow?.webContents?.reload()
 });
