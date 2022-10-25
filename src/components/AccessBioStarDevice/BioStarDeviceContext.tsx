@@ -97,7 +97,7 @@ const BioStarDeviceContext = (() => {
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
           // @ts-ignore
-          if (isRecordExists(row.id) || !row?.user_id?.user_id) {
+          if (!row?.user_id?.user_id) {
             continue;
           }
           const mm = moment(row.datetime);

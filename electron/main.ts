@@ -1,9 +1,10 @@
-import { app, BrowserWindow, nativeImage, Menu, Tray } from "electron";
+import { app, BrowserWindow,ipcMain, nativeImage, Menu, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import os from "os";
 const log = require('electron-log');
 const fs = require("fs");
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow: Electron.BrowserWindow | null;
 let tray = null;
@@ -94,6 +95,9 @@ function createWindow() {
 
   mainWindow.on("closed", () => {
     mainWindow = null;
+  });
+  mainWindow.once('ready-to-show', () => {
+    autoUpdater.checkForUpdatesAndNotify().then();
   });
 
   app.setLoginItemSettings({
@@ -187,3 +191,13 @@ app.on("renderer-process-crashed", event => {
   app.relaunch(); // call relaunch after exit
   app.quit();
 });
+autoUpdater.on('update-available', () => {
+  mainWindow?.webContents.send('update_available');
+});
+autoUpdater.on('update-downloaded', () => {
+  mainWindow?.webContents.send('update_downloaded');
+});
+ipcMain.on('restart_app', () => {
+  autoUpdater.quitAndInstall();
+});
+

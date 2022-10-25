@@ -13,6 +13,8 @@ import { getLanguage, i18next, initI18next } from "./store/settings/languages";
 import { useAsyncFn } from "react-use";
 import './App.css'
 import { HeartBeat } from "./components/HeartBeat";
+const ipcRenderer = window.require && window.require('electron').ipcRenderer || null
+
 initI18next().then();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -26,6 +28,20 @@ const Main = memo(function Main() {
   useEffect(() => {
     changeLanguage().then();
   }, []);
+  useEffect(()=>{
+    ipcRenderer?.on('update_available', () => {
+      ipcRenderer?.removeAllListeners('update_available');
+      console.log('A new update is available. Downloading now...')
+    });
+    ipcRenderer?.on('update_downloaded', () => {
+      ipcRenderer?.removeAllListeners('update_downloaded');
+      console.log('Update Downloaded. It will be installed on restart. Restart now?\';')
+    });
+  },[])
+
+  const restartApp = () =>{
+    ipcRenderer.send('restart_app');
+  }
 
   if (loading) {
     return <div>
