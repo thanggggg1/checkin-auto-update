@@ -23,7 +23,7 @@
     "dist-linux": "electron-builder -l --ia32",
     "dist-windows": "electron-builder -w --ia32",
     "dist-windows-automatic": "yarn prod:react && yarn prod:electron && yarn dist-windows",
-    "build": "yarn prod:react && yarn prod:electron && yarn dist-windows",
+    "build": "electron-builder build --win --publish never",
     "deploy": "electron-builder build --win --publish always"
   },
   "devDependencies": {
@@ -70,6 +70,9 @@
     "dayjs": "^1.11.0",
     "electron-log": "^4.4.8",
     "electron-store": "^6.0.0",
+    "electron-devtools-installer": "^3.2.0",
+    "electron-reload": "^1.5.0",
+    "electron-updater": "^5.3.0",
     "fix-path": "^3.0.0",
     "fs": "^0.0.1-security",
     "i18next": "^19.7.0",
