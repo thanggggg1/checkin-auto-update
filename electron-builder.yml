@@ -1,0 +1,4 @@
+appId: vn.base.checkinstation
+publish:
+  provider: github
+  token: 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
